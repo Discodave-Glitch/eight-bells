@@ -1,12 +1,15 @@
 {
   "name": "eight-bells",
-  "version": "1.0.0",
-  "description": "Euclidean beats and melodies for the M-VAVE FM-1 and its custom firmwares",
+  "version": "2.0.0",
+  "description": "Beats and melodies for the M-VAVE FM-1 and its custom firmwares",
   "main": "app/main.js",
   "author": "Discodave-Glitch",
   "license": "MIT",
   "homepage": "https://github.com/Discodave-Glitch/eight-bells",
-  "repository": { "type": "git", "url": "https://github.com/Discodave-Glitch/eight-bells.git" },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Discodave-Glitch/eight-bells.git"
+  },
   "scripts": {
     "start": "electron .",
     "dist": "electron-builder"
@@ -18,13 +21,41 @@
   "build": {
     "appId": "com.discodave.eightbells",
     "productName": "Eight Bells",
-    "files": ["index.html", "logo.svg", "app/**", "package.json"],
-    "directories": { "buildResources": "build" },
-    "win": { "target": ["portable", "nsis"] },
+    "files": [
+      "index.html",
+      "logo.svg",
+      "app/**",
+      "package.json"
+    ],
+    "directories": {
+      "buildResources": "build"
+    },
+    "win": {
+      "target": [
+        "portable",
+        "nsis"
+      ]
+    },
     "mac": {
       "category": "public.app-category.music",
-      "target": [{ "target": "dmg", "arch": ["x64", "arm64"] }]
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ]
     },
-    "publish": [{ "provider": "github" }]
+    "portable": {
+      "artifactName": "Eight-Bells-${version}-portable.${ext}"
+    },
+    "nsis": {
+      "artifactName": "Eight-Bells-Setup-${version}.${ext}"
+    },
+    "dmg": {
+      "artifactName": "Eight-Bells-${version}-${arch}.${ext}"
+    }
   }
 }

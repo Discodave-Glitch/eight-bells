@@ -2,13 +2,13 @@
 
 # Eight Bells
 
-Euclidean beats and melodies for the **M-VAVE FM-1** and its custom firmwares. Pick a genre, get a pattern for every track, play it on the FM-1 over USB MIDI (or in your browser), and record it into the FM-1.
+Beats and melodies for the **M-VAVE FM-1** and its custom firmwares, built from 28 engines: Euclidean, world cycles, cellular automata, fractals, number patterns, mirror, weighted and drift. Pick a genre, get a pattern for every track, play it on the FM-1 over USB MIDI (or in your browser), and record it into the FM-1.
 
 From the maker of [Slipway](https://github.com/Discodave-Glitch/slipway).
 
 **Use it now: <https://discodave-glitch.github.io/eight-bells/>**
 
-![Pick from 109 genres](docs/screenshot-top.png)
+![Pick from 126 genres](docs/screenshot-top.png)
 
 ![Every track, with lock, mute, redo, fill, ghost notes and a busy slider](docs/screenshot-tracks.png)
 
@@ -16,7 +16,10 @@ From the maker of [Slipway](https://github.com/Discodave-Glitch/slipway).
 
 ## What it does
 
-- **109 genres** in nine groups: House & Techno, Trance & Hard, Bass & Breaks, Hip-hop & Grime, Funk & Disco, World, Rock & Pop, Slow & Ambient and Experiment. They run from ambient at 40 BPM to blast beats at 235, with odd meters and Euclidean experiments too. Each one builds its rhythms from Euclidean patterns, with fixed anchor steps where the genre needs them. There is a search box and a Surprise me button to find your way around.
+- **28 engines** (new in V2). **Euclid** is the original: hits spread as evenly as possible. **World cycles** follow real timelines: West African bell patterns, Afro-Cuban claves, Balkan and Indian tala beats. **Cellular** grows hits with a cellular automaton (rules such as 30, 90 and 110). **Fractal** uses self-similar sequences (the Fibonacci word, period-doubling, the Cantor set, Rudin-Shapiro). **Number patterns** place hits by Fibonacci, prime, golden-ratio and Thue-Morse sequences. **Mirror** makes rhythms that read the same forwards and backwards. **Weighted** draws hits at random with the strong beats favoured. **Chaos**, **Sieve**, **L-system**, **Random walk**, **Bursts**, **Offbeat**, **Pi and friends**, **Polyrhythm**, **Markov**, **Accelerando**, **Golomb ruler** and **Collatz** are new sequence and number ideas. Every engine other than Euclid also shapes the melody notes and the chord progression, not just the rhythm. **Chord tones**, **Circle of fifths**, **Pentatonic**, **Call and response**, **Sequence**, **Pedal point**, **Turnaround** and **Lament** keep the Euclidean rhythm and change the melody and chords. **Drift** makes melody tracks a step or two shorter than the drums so they slide against them, and cycles hats and percussion against the bar. The engine and genre pickers fold away like the other panels. Every engine keeps the genre's anchors, notes and controls, so a track works the same way whichever engine made it. Switching engine keeps the same seed, and the share code remembers the engine.
+- **Remembers where you left off.** The pattern, tempo, locks and which panels are open come back next time you open the page or the desktop app, and the desktop window keeps its size and position.
+- **Song builder** (new in V2). Tap sections (Intro, Build-up, Drop and so on) into a running order, choose 1, 2, 4 or 8 loops each, and play it back. Locked tracks stay put, and your own pattern returns when it ends. With a Sloop connected, the punch effects sit right inside the panel so you can hold them over the top while it plays.
+- **126 genres** in nine groups: House & Techno, Trance & Hard, Bass & Breaks, Hip-hop & Grime, Funk & Disco, World, Rock & Pop, Slow & Ambient and Experiment. They run from ambient at 40 BPM to blast beats at 235, with odd meters and Euclidean experiments too. Each one builds its rhythms from Euclidean patterns, with fixed anchor steps where the genre needs them. There is a search box and a Surprise me button to find your way around.
 - **Up to 8 tracks**, depending on the firmware you pick (for example 4 on Sloop, 8 on firmwares that have more).
 - **Plays on the FM-1** over USB MIDI, with the right channels and drum notes for the firmware, or plays in your browser.
 - **Records into the FM-1**: the app tells you the settings to use on the REC screen.
@@ -26,7 +29,7 @@ From the maker of [Slipway](https://github.com/Discodave-Glitch/slipway).
 - **Sound controls** that send MIDI controllers (filter, release, pan, reverb, delay, level) while it plays.
 - **Seeds and share codes**: every pattern has a seed, and a share code you can post for others to load.
 - **My seeds**: save patterns with a name, recall them later, and paste in codes other people shared (a whole Reddit comment works). They are kept in your browser.
-- **Auto song**: plays on its own and changes the pattern every 1, 2, 4 or 8 loops, sometimes going back to an earlier one. It can use random patterns (this genre, or other genres near your tempo), your saved seeds, or both. It keeps your tempo.
+- **Auto song**: plays on its own and changes the pattern every 1, 2, 4 or 8 loops, sometimes going back to an earlier one. It can use random patterns (this genre, or other genres near your tempo), your saved seeds, or both. It keeps your tempo. **Tracks you lock stay exactly as they are** (new in V2), and everything else keeps changing around them in the same key.
 - **.mid export** for a DAW.
 - **Firmware list** with each firmware's maker credited, and the MIDI settings it needs.
 
@@ -35,8 +38,8 @@ From the maker of [Slipway](https://github.com/Discodave-Glitch/slipway).
 | Where | How |
 | --- | --- |
 | **Web page** | Open the link above in Chrome or Edge (Firefox also supports MIDI). On a phone you can use "Add to home screen". |
-| **Windows** | Download from [Releases](../../releases). `Eight-Bells-1.0.0.exe` is portable (no install), and `Eight-Bells-Setup-1.0.0.exe` installs it. |
-| **Mac** | Download from [Releases](../../releases). `Eight-Bells-1.0.0.dmg` is for Intel Macs and `Eight-Bells-1.0.0-arm64.dmg` is for Apple silicon (M1 and newer). Not tested on a real Mac yet. |
+| **Windows** | Download from [Releases](../../releases). `Eight-Bells-2.0.0-portable.exe` runs with no install, and `Eight-Bells-Setup-2.0.0.exe` installs it. |
+| **Mac** | Download from [Releases](../../releases). `Eight-Bells-2.0.0-x64.dmg` is for Intel Macs and `Eight-Bells-2.0.0-arm64.dmg` is for Apple silicon (M1 and newer). Not tested on a real Mac yet. |
 | **Android** | Use the web page in Chrome, with the FM-1 connected through a USB OTG adapter. There is no separate Android app, and this is not tested yet. |
 | **iPhone and iPad** | Not supported. Safari has no Web MIDI, and every browser on iOS uses Safari's engine. |
 
@@ -62,7 +65,7 @@ The FM-1's tempo cannot be changed from the app. Set it by hand to match.
 
 Every Generate has a seed. The **Share this pattern** box shows a code such as `EB1:amapiano:2:x0x:sf5jxm:115:54`. It holds the genre, length, firmware, seed, tempo and swing.
 
-- **Share:** tap **Copy for Reddit** and paste it into a post or comment.
+- **Share:** tap **Copy for Reddit** and paste it into a post or comment. If the pattern used a rhythm engine other than Euclid, the code ends with its name, for example `EB1:house:1:sloop:abc123:124:52:cell`. Codes from V1 still load and sound the same.
 - **Load someone else's:** paste the code into the **Seed** box. It loads straight away.
 - A plain seed (no `EB1:` part) needs you to tap the same genre and match the length and firmware.
 
@@ -107,7 +110,7 @@ npm start          # run the desktop app
 npm run dist       # build an installer for the system you are on
 ```
 
-Pushing a tag such as `v1.0.0` runs the GitHub Actions workflow that builds the Windows and Mac apps and attaches them to a release.
+Pushing a tag such as `v2.0.0` runs the GitHub Actions workflow that builds the Windows and Mac apps, then makes one release with whatever was built.
 
 ## Credits and licence
 

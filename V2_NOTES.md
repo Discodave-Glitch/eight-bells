@@ -1,0 +1,12 @@
+# Eight Bells V2 notes (for the maintainer)
+
+- Engine hook: `compute(t)` takes its base row from `baseRow(t)`. `t.eng` is `euclid`, `cell`, `num`, `world`, `frac`, `mirror` or `wtd` (each has a `...Row(k,P,es)` function and finishes with `adjustTo`, so hit counts are exact); `t.es` is the per-track engine seed. Drift (`phase`) is applied in `buildTrack`: melody tracks get a shorter length, hat and perc lanes get a shorter cycle (`P`). Drums keep one shared length, so the loop length is always the drums' length.
+- V1 codes are unchanged: the engine only adds random draws when it is not Euclid, so Euclid patterns for a given seed are identical to V1 (checked against the V1 build).
+- Share code: `EB1:genre:bars:fw:seed:bpm:swing[:engine]`. Exact codes (`EB2`) are unchanged and load as Euclid tracks.
+- Auto song: `lockedParts()` before each change and `applyLocks()` after, on every route (random, other genre, saved seed, go back). Locked tracks are kept as they are, unlocked tracks are rewritten in the locked tracks' key, scale and chords, and a snapshot's old lock flags are cleared.
+- Release workflow: builds on both systems with `--publish never`, uploads the files as artifacts, and one job makes the release from whatever was built. Not run yet: untested until the first V2 tag. File names: `Eight-Bells-2.0.0-portable.exe`, `Eight-Bells-Setup-2.0.0.exe`, `Eight-Bells-2.0.0-x64.dmg`, `Eight-Bells-2.0.0-arm64.dmg`.
+- The "V2 test" label next to the title is in `build/body.html` (class `ver`). Change it to "V2" for the release.
+- Genres: 126, every group a multiple of 6 so tiles fill their rows at 6, 3 or 2 columns (`build/more_genres2.py` added the last 17). Keep new groups at multiples of 6.
+- Song builder: `SONG` state, steps stored in localStorage `eb_song`. Each step restores the snapshot taken at song start, then runs the same function as the section button (`SONG_FN`). `songStep()` runs beside `autoStep()` in `tick`; `stopPlay` ends the song and restores the start pattern. Auto song and the song builder switch each other off.
+- Engines: 20 (`ROWFN` maps engine ids to row functions). Non-Euclid engines set `t.mel`; `fillNotes` then picks scale steps from `engSeq(t.mel,t.es)` through `melDeg`, and `generate` uses `engProg` for the chords. Euclid is untouched so V1 patterns still match.
+- Remembering state: localStorage `eb_last` (snapshot, saved every 2 s and on page hide) and `eb_ui` (open panels). The desktop window bounds are in `window.json` in the app's data folder (`app/main.js`).
