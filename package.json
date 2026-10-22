@@ -1,0 +1,30 @@
+{
+  "name": "eight-bells",
+  "version": "1.0.0",
+  "description": "Euclidean beats and melodies for the M-VAVE FM-1 and its custom firmwares",
+  "main": "app/main.js",
+  "author": "Discodave-Glitch",
+  "license": "MIT",
+  "homepage": "https://github.com/Discodave-Glitch/eight-bells",
+  "repository": { "type": "git", "url": "https://github.com/Discodave-Glitch/eight-bells.git" },
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.discodave.eightbells",
+    "productName": "Eight Bells",
+    "files": ["index.html", "logo.svg", "app/**", "package.json"],
+    "directories": { "buildResources": "build" },
+    "win": { "target": ["portable", "nsis"] },
+    "mac": {
+      "category": "public.app-category.music",
+      "target": [{ "target": "dmg", "arch": ["x64", "arm64"] }]
+    },
+    "publish": [{ "provider": "github" }]
+  }
+}
