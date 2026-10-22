@@ -35,12 +35,16 @@ From the maker of [Slipway](https://github.com/Discodave-Glitch/slipway).
 | Where | How |
 | --- | --- |
 | **Web page** | Open the link above in Chrome or Edge (Firefox also supports MIDI). On a phone you can use "Add to home screen". |
-| **Windows** | Download the `.exe` from [Releases](../../releases). |
-| **Mac** | Download the `.dmg` from [Releases](../../releases). |
+| **Windows** | Download from [Releases](../../releases). `Eight-Bells-1.0.0.exe` is portable (no install), and `Eight-Bells-Setup-1.0.0.exe` installs it. |
+| **Mac** | Coming soon. The Mac build is set up but not published yet. |
 | **Android** | Use the web page in Chrome, with the FM-1 connected through a USB OTG adapter. There is no separate Android app, and this is not tested yet. |
 | **iPhone and iPad** | Not supported. Safari has no Web MIDI, and every browser on iOS uses Safari's engine. |
 
-The Windows and Mac apps are not code-signed. Windows may show a SmartScreen warning (choose More info, then Run anyway). On a Mac, right-click the app and choose Open the first time. If macOS still refuses, open System Settings, then Privacy & Security, and choose Open Anyway.
+The desktop apps are not code-signed. Windows may show a SmartScreen warning (choose More info, then Run anyway). On a Mac, right-click the app and choose Open the first time. If macOS still refuses, open System Settings, then Privacy & Security, and choose Open Anyway.
+
+### Removing it
+
+The portable `.exe` installs nothing, so delete the file to remove it. The installer adds Eight Bells to Settings, then Apps, where you can uninstall it. Saved seeds and colours live in a folder called `Eight Bells` or `eight-bells` inside `%AppData%`. Delete that folder to clear them.
 
 Everything runs on your own computer. Eight Bells does not upload anything, has no account and collects no data. Your saved seeds and colours are kept in your browser.
 
