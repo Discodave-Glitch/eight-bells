@@ -22,3 +22,4 @@
 
 - Instruments: 193 in PATCH_LIST (51 added from SUBC3 and PARTC3 recipes). Voices: 14 voice types, 421 sounds including Numbers, Letters (A to Z), More words and Phrases. New voice/word code goes before `VOX_GROUPS` is computed; spoken forms for device speech go in `SPEAK`.
 - Per-track Level (true bus gain, 0 is silent), Pan and a level meter are browser-preview buses (`busFor`); they never change the MIDI sent to the FM-1. Clear buttons empty a track, lane or drum set. Deleting a saved pattern, seed or the song uses the two-step `sure()` button.
+- Section memory: `SECMEM` (one snapshot per section), `SECBASE` (the pattern before the first section was picked), `goSection()`. Cleared by `generate()` and `loadExact()` unless `SECKEEP`. Song codes are `EB3:steps:r|p:BASE~id.EB2code~...`.
