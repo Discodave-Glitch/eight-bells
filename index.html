@@ -650,6 +650,7 @@ input[type=range],canvas,.grid{touch-action:pan-y}
         <div class="songgrp"><p class="lbl">Tap to add to the song</p><div id="songadd"></div></div>
         <div class="songgrp"><p class="lbl">Your song (tap a section to remove it)</p><div id="songlist" class="saves"></div></div>
         <div class="songgrp"><div class="sharebtns"><button id="songplay" class="mini">Play song</button><button id="songrep" class="mini ghost" aria-pressed="false">Repeat: off</button><button id="songshare" class="mini">Copy song code</button><button id="songclear" class="mini ghost">Clear</button></div>
+        <div class="songgrp"><p class="lbl">Paste a song code</p><div class="sharebtns"><input id="songpaste" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="EB3:..." aria-label="Song code" style="flex:1 1 160px;min-width:0"><button id="songload" class="mini">Load song</button></div></div>
         <p class="hint" id="songmsg"></p></div>
         <div id="songfxwrap" class="songgrp" hidden>
           <p class="lbl">Punch effects over the top (hold a button, Sloop with MIDI connected)</p>
@@ -4793,6 +4794,7 @@ function libMsg(t,bad){ const m=$('libmsg'); m.textContent=t; m.className='mstat
 $('libsave').addEventListener('click',()=>{ const r=libAdd(shareCode(),$('libname').value); if(r===true){ $('libname').value=''; libMsg('Saved. It is in My seeds below.'); } else libMsg(r==='dup'?'That one is already saved.':'Could not save that.',true); });
 $('libsavex').addEventListener('click',()=>{ const r=libAdd(exactCode(),$('libname').value); if(r===true){ $('libname').value=''; libMsg('Saved the exact pattern, with every step you edited.'); } else libMsg(r==='dup'?'That one is already saved.':'Could not save that.',true); });
 $('libadd').addEventListener('click',()=>{
+  if(/\bEB3:/i.test($('libpaste').value)){ const okS=loadAny($('libpaste').value); libMsg(okS&&LASTSONG?'That is a whole song, so it was loaded into the Song builder instead of being saved here. Press Play song.':'That song code could not be loaded. It may be cut off.',!(okS&&LASTSONG)); if(okS) $('libpaste').value=''; return; }
   const found=(String($('libpaste').value).match(/\bEB[12]:[A-Za-z0-9_:.-]+/gi)||[]).map(fixCode);
   if(!found.length){ libMsg('No Eight Bells code found in that text.',true); return; }
   let added=0,dup=0,bad=0; found.forEach(c=>{ const r=libAdd(c,''); if(r===true) added++; else if(r==='dup') dup++; else bad++; });
@@ -4943,6 +4945,15 @@ function songStep(){
 $('songloops').addEventListener('click',e=>{ const b=e.target.closest('[data-sl]'); if(!b) return; SONG.per=+b.dataset.sl; songSave(); songPaint(); });
 $('songadd').addEventListener('click',e=>{ const b=e.target.closest('[data-sa]'); if(!b||SONG.on) return; if(SONG.steps.length>=32){ $('songmsg').textContent='That is the most a song can hold: 32 sections.'; return; } SONG.steps.push({id:b.dataset.sa,n:SONG.per}); songSave(); songPaint(); });
 $('songlist').addEventListener('click',e=>{ const b=e.target.closest('[data-sr]'); if(!b||SONG.on) return; SONG.steps.splice(+b.dataset.sr,1); songSave(); songPaint(); });
+function songLoadBox(){
+  const v=$('songpaste').value.trim(); if(!v) return;
+  const ok=loadAny(v);
+  if(ok&&LASTSONG){ $('songmsg').textContent='Loaded that song: '+SONG.steps.length+' sections. Press Play song.'; $('songpaste').value=''; }
+  else if(ok){ $('songmsg').textContent='That was a single pattern, not a song. The pattern is loaded; add sections to build a song.'; $('songpaste').value=''; }
+  else $('songmsg').textContent='That code could not be loaded. It may be cut off, or made for a firmware with a different track layout.';
+}
+$('songload').addEventListener('click',songLoadBox);
+$('songpaste').addEventListener('input',e=>{ if(/\bEB[123]:[A-Za-z0-9_:.-]{20,}/i.test(e.target.value)) songLoadBox(); });
 $('songshare').addEventListener('click',()=>{ if(!SONG.steps.length){ $('songmsg').textContent='Add some sections to the song first, then copy its code.'; return; } copyText(songCode(),$('songshare'),'Copied'); $('songmsg').textContent='Copied the song code. It holds the order and loops of every section and the pattern it starts from. Paste it into Seed on any copy of Eight Bells V3.'; });
 $('songclear').addEventListener('click',e=>{ if(SONG.on) return; if(!SONG.steps.length) return; sure($('songclear'),()=>{ SONG.steps=[]; songSave(); songPaint(); }); });
 $('songrep').addEventListener('click',()=>{ SONG.rep=!SONG.rep; songSave(); songPaint(); });
