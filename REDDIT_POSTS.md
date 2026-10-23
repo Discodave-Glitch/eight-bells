@@ -1,6 +1,6 @@
 # Reddit post for Eight Bells (r/MVaveFM1, flair: Showcase)
 
-**Title:** Eight Bells: a free pattern maker for FM-1 firmwares, with 28 engines, 126 genres and a song builder
+**Title:** Eight Bells: a free pattern maker for FM-1 firmwares, with 28 engines, 187 genres and a song builder
 
 **Body:**
 
@@ -11,7 +11,7 @@ Apps and code: https://github.com/Discodave-Glitch/eight-bells
 
 **What it does**
 
-- **126 genres**, from ambient at 40 BPM to blast beats at 235, with odd meters.
+- **187 genres**, from ambient at 40 BPM to blast beats at 235, with odd meters.
 - **28 engines** decide how the notes are chosen. Euclid is the classic even spacing. Others use real world rhythms (West African bell patterns, Afro-Cuban claves, Balkan and Indian beats), cellular automata, fractals, number sequences like Fibonacci and pi, chaos, Markov chains, polyrhythms and more. Most of them also shape the melody and the chord progression. Some keep the Euclidean rhythm and only change the melody and chords (circle of fifths, pentatonic, call and response and so on).
 - **Song builder**: tap Intro, Build-up, Drop, Chorus, Breakdown and the rest into an order, choose how many loops each gets, and play it back as a song. On a Sloop, the 16 punch effects sit in the same panel so you can hold them over the top live.
 - **Auto song** keeps changing the pattern on its own, and leaves any track you lock exactly as it is.
