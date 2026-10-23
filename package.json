@@ -1,6 +1,6 @@
 {
   "name": "eight-bells",
-  "version": "3.0.1",
+  "version": "3.0.0",
   "description": "Beats and melodies for the M-VAVE FM-1 and its custom firmwares",
   "main": "app/main.js",
   "author": "Discodave-Glitch",
