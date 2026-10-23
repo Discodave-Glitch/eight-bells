@@ -10,11 +10,7 @@ From the maker of [Slipway](https://github.com/Discodave-Glitch/slipway).
 
 ![Pick from 187 genres](docs/screenshot-top.png)
 
-On a Windows or Mac window it opens as a desktop app with three panes and a button at the top right for light or dark:
-
-![Desktop layout](docs/screenshot-desktop.png)
-
-![Every track, with clear, lock, mute, redo, fill, ghost notes, busy, level and pan](docs/screenshot-tracks.png)
+![Every track, with lock, mute, redo, fill, ghost notes and a busy slider](docs/screenshot-tracks.png)
 
 ![Save seeds and let Auto song play on its own](docs/screenshot-seeds.png)
 
@@ -150,3 +146,4 @@ The firmwares it works with are made by other people, and the app credits each m
 - **Track levels** (V3). Every synth track, drum lane and drum set has a Level slider (0 to 125%) next to Ghost notes, Fill and Busy. It sets how loud that track is in the browser preview and is kept when you press Generate or Redo. It never changes the MIDI sent to the FM-1.
 - **Pan and level meters** (V3). Each track, drum lane and drum set also has a Pan slider (left to right) and a thin level meter that moves while it plays. Like Level, these only affect the browser preview and never the MIDI sent to the FM-1.
 - **Tidier desktop tracks, true Level, safer deletes** (V3). On wide windows the tracks flow in balanced columns with no empty gaps. Level now sets the real volume of the track (0 is silent). Deleting a saved pattern, a seed or the whole song asks "Sure?" first.
+- **Share a whole song** (V3). In the Song builder, Copy song code gives one code (starting EB3) with the order and loops of every section and the pattern it starts from. Paste it into Seed on any copy of V3 to get the same song back. Codes are accepted in any letter case, V2 codes load in V3 exactly as before, and V3 codes load in V2.

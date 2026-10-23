@@ -649,7 +649,7 @@ input[type=range],canvas,.grid{touch-action:pan-y}
         <div class="songgrp"><p class="lbl">Loops per section</p><div class="seg" id="songloops"></div></div>
         <div class="songgrp"><p class="lbl">Tap to add to the song</p><div id="songadd"></div></div>
         <div class="songgrp"><p class="lbl">Your song (tap a section to remove it)</p><div id="songlist" class="saves"></div></div>
-        <div class="songgrp"><div class="sharebtns"><button id="songplay" class="mini">Play song</button><button id="songrep" class="mini ghost" aria-pressed="false">Repeat: off</button><button id="songclear" class="mini ghost">Clear</button></div>
+        <div class="songgrp"><div class="sharebtns"><button id="songplay" class="mini">Play song</button><button id="songrep" class="mini ghost" aria-pressed="false">Repeat: off</button><button id="songshare" class="mini">Copy song code</button><button id="songclear" class="mini ghost">Clear</button></div>
         <p class="hint" id="songmsg"></p></div>
         <div id="songfxwrap" class="songgrp" hidden>
           <p class="lbl">Punch effects over the top (hold a button, Sloop with MIDI connected)</p>
@@ -2525,7 +2525,7 @@ function fillNotes(t,fresh,ctx){
     hit++; gen++;
   }
   // A melodic track with a few hits must not land on one pitch every time: walk through chord tones instead.
-  if(gen&&t.role&&t.role!=='bass'){
+  if(gen&&!LEGACY&&t.role&&t.role!=='bass'){
     const ix=[]; for(let i=0;i<t.n;i++) if(t.cells[i]&&t.notes[i]!=null) ix.push(i);
     if(ix.length>=2&&ix.every(i=>t.notes[i]===t.notes[ix[0]])){
       const seq=[0,2,4,2,1,3,4,2];
@@ -3249,9 +3249,9 @@ function renderRecTip(){
     '<li>Switch on only that track below, then press Play here. It starts the loop and records from the first note.</li>'+
     '<li>Repeat for each of the other tracks.</li></ol>';
 }
-let LASTNOSEED=false;
+let LASTNOSEED=false, LEGACY=false; // LEGACY: a V2 code (no 'v3' marker) is rebuilt exactly the way V2 built it, without the one-note fix
 // A pattern that was edited by hand has no seed to rebuild it from, so share the exact pattern instead of an empty seed.
-function shareCode(){ if(!state.seed) return exactCode(); const c=['EB1',state.genre,state.bars,cfg.device,state.seed||'',state.bpm,state.swing]; if(state.engine&&state.engine!=='euclid') c.push(state.engine); return c.join(':'); }
+function shareCode(){ if(!state.seed) return exactCode(); const c=['EB1',state.genre,state.bars,cfg.device,state.seed||'',state.bpm,state.swing]; c.push(state.engine||'euclid'); c.push('v3'); return c.join(':'); }
 function sharePost(){
   const g=genreObj();
   return `Eight Bells pattern: ${g.name}${state.engine&&state.engine!=='euclid'?' ('+ENGINES.find(e=>e.id===state.engine).name+' engine)':''}, ${state.bpm} BPM, ${NOTE_NAMES[state.key]} ${SCALE_NAMES[state.scale].toLowerCase()}, ${state.bars} bar${state.bars>1?'s':''}, ${fwOf(cfg.device).name} on the FM-1\n\nShare code: \`${shareCode()}\`\n\nPaste the code into the Seed box in Eight Bells to get the same pattern.`;
@@ -3265,7 +3265,8 @@ function loadCode(str){
   state.bars=clamp(+p[2]||1,1,4);
   $('seed').value=seed; state.seed='';
   state.engine=(p[7]&&ENGINES.some(e=>e.id===p[7]))?p[7]:'euclid';
-  setGenre(p[1]);
+  LEGACY=(p[8]||'').toLowerCase()!=='v3';
+  try{ setGenre(p[1]); }finally{ LEGACY=false; }
   if(p[5]&&+p[5]) state.bpm=clamp(+p[5],40,240);
   if(p[6]&&+p[6]) state.swing=clamp(+p[6],50,75);
   renderAll(); return true;
@@ -3348,8 +3349,20 @@ function exactPost(){
 // Find a share or pattern code in whatever was pasted, even a whole Reddit comment.
 // Phones often turn the start of a pasted or typed code into lower case (eb1:...), so the EB1/EB2 start is accepted in any case.
 function fixCode(c){ return 'EB'+c.slice(2).replace(/[.:]+$/,''); }
-function findCode(text){ const m=String(text).match(/\bEB[12]:[A-Za-z0-9_:.-]+/i); return m?fixCode(m[0]):''; }
-function loadAny(text){ const c=findCode(text); if(!c) return null; return c.startsWith('EB2:')?loadExact(c):loadCode(c); }
+function findCode(text){ const m=String(text).match(/\bEB[123]:[A-Za-z0-9_:.-]+/i); return m?fixCode(m[0]):''; }
+// EB3 = a whole song: the section order and loops, then the pattern it starts from (an EB1 or EB2 code).
+function songCode(){ return 'EB3:'+SONG.steps.map(x=>x.id+'.'+x.n).join('_')+':'+(SONG.rep?'r':'p')+':'+shareCode(); }
+function loadSong(c){
+  const i1=c.indexOf(':'), i2=c.indexOf(':',i1+1), i3=c.indexOf(':',i2+1); if(i3<0) return false;
+  const steps=c.slice(i1+1,i2).split('_').filter(Boolean).map(t=>{ const q=t.toLowerCase().split('.'); return {id:q[0],n:+q[1]}; });
+  if(!steps.length||steps.length>32||steps.some(x=>!SONG_FN[x.id])) return false;
+  const rep=c.slice(i2+1,i3).toLowerCase()==='r';
+  if(SONG.on) stopPlay();
+  if(!loadAny(c.slice(i3+1))) return false;
+  SONG.steps=steps.map(x=>({id:x.id,n:[1,2,4,8].includes(x.n)?x.n:2})); SONG.rep=rep; songSave(); songPaint(); LASTSONG=true; return true;
+}
+let LASTSONG=false;
+function loadAny(text){ const c=findCode(text); if(!c) return null; LASTSONG=false; return c.startsWith('EB3:')?loadSong(c):c.startsWith('EB2:')?loadExact(c):loadCode(c); }
 function renderOut(){ $('out').textContent=outText(); renderRecTip(); const sc=$('sharecode'); if(sc) sc.value=shareCode(); }
 function renderAll(){ renderTop(); renderTracks(); if(typeof renderPreview==='function'&&typeof PV!=='undefined') renderPreview(); if(typeof renderVox==='function'&&typeof VOX!=='undefined') renderVox(); if(typeof rollDraw==='function') rollDraw(); }
 
@@ -3627,16 +3640,16 @@ $('sharexact').addEventListener('click',()=>copyText(exactPost(),$('sharexact'),
 const SHARE_HINT='The share code holds the genre, length, firmware, seed and tempo. The exact pattern also holds every step you edited.';
 $('seed').addEventListener('input',e=>{
   const v=e.target.value.trim();
-  if(/\bEB[12]:[A-Za-z0-9_:.-]{12,}/i.test(v)){
+  if(/\bEB[123]:[A-Za-z0-9_:.-]{12,}/i.test(v)){
     const done=loadAny(v);
-    if(done){ $('sharemsg').textContent=LASTNOSEED?'That code has no seed, so only its genre, length, firmware and tempo were used. The notes are a new pattern.':'Loaded that code.'; e.target.blur(); }
+    if(done){ $('sharemsg').textContent=LASTSONG?'Loaded that song: '+SONG.steps.length+' sections. Press Play song.':LASTNOSEED?'That code has no seed, so only its genre, length, firmware and tempo were used. The notes are a new pattern.':'Loaded that code.'; e.target.blur(); }
     else if(done===false&&/EB2:[^:]+:[^:]+:[A-Za-z0-9_-]{20,}/.test(v)){ $('sharemsg').textContent='That pattern code could not be loaded. It may be cut off, or made for a firmware with a different track layout.'; }
   }
 });
 $('seed').addEventListener('change',e=>{
   const v=e.target.value.trim();
   $('sharemsg').textContent=SHARE_HINT;
-  if(/\bEB[12]:/i.test(v)){ if(!loadAny(v)){ $('seed').value=state.seed||''; $('sharemsg').textContent='That code was not recognised. It may be cut off.'; } }
+  if(/\bEB[123]:/i.test(v)){ if(!loadAny(v)){ $('seed').value=state.seed||''; $('sharemsg').textContent='That code was not recognised. It may be cut off.'; } }
 });
 $('copy').addEventListener('click',async()=>{
   const text=outText(), btn=$('copy');
@@ -4930,6 +4943,7 @@ function songStep(){
 $('songloops').addEventListener('click',e=>{ const b=e.target.closest('[data-sl]'); if(!b) return; SONG.per=+b.dataset.sl; songSave(); songPaint(); });
 $('songadd').addEventListener('click',e=>{ const b=e.target.closest('[data-sa]'); if(!b||SONG.on) return; if(SONG.steps.length>=32){ $('songmsg').textContent='That is the most a song can hold: 32 sections.'; return; } SONG.steps.push({id:b.dataset.sa,n:SONG.per}); songSave(); songPaint(); });
 $('songlist').addEventListener('click',e=>{ const b=e.target.closest('[data-sr]'); if(!b||SONG.on) return; SONG.steps.splice(+b.dataset.sr,1); songSave(); songPaint(); });
+$('songshare').addEventListener('click',()=>{ if(!SONG.steps.length){ $('songmsg').textContent='Add some sections to the song first, then copy its code.'; return; } copyText(songCode(),$('songshare'),'Copied'); $('songmsg').textContent='Copied the song code. It holds the order and loops of every section and the pattern it starts from. Paste it into Seed on any copy of Eight Bells V3.'; });
 $('songclear').addEventListener('click',e=>{ if(SONG.on) return; if(!SONG.steps.length) return; sure($('songclear'),()=>{ SONG.steps=[]; songSave(); songPaint(); }); });
 $('songrep').addEventListener('click',()=>{ SONG.rep=!SONG.rep; songSave(); songPaint(); });
 $('songplay').addEventListener('click',()=>{
