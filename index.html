@@ -578,7 +578,7 @@ input[type=range],canvas,.grid{touch-action:pan-y}
       </div>
       <div class="field seedf">
         <label for="libpaste" class="lbl">Add codes other people shared</label>
-        <textarea id="libpaste" rows="3" placeholder="Paste one or more codes, or a whole Reddit comment"></textarea>
+        <textarea id="libpaste" rows="3" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Paste one or more codes, or a whole Reddit comment"></textarea>
         <div class="sharebtns"><button id="libadd" class="mini">Add codes</button></div>
       </div>
       <p class="mstatus" id="libmsg"></p>
@@ -3257,7 +3257,7 @@ function sharePost(){
   return `Eight Bells pattern: ${g.name}${state.engine&&state.engine!=='euclid'?' ('+ENGINES.find(e=>e.id===state.engine).name+' engine)':''}, ${state.bpm} BPM, ${NOTE_NAMES[state.key]} ${SCALE_NAMES[state.scale].toLowerCase()}, ${state.bars} bar${state.bars>1?'s':''}, ${fwOf(cfg.device).name} on the FM-1\n\nShare code: \`${shareCode()}\`\n\nPaste the code into the Seed box in Eight Bells to get the same pattern.`;
 }
 function loadCode(str){
-  const p=String(str).trim().split(':');
+  const p=String(str).trim().split(':'); if(p[1]) p[1]=p[1].toLowerCase(); if(p[3]) p[3]=p[3].toLowerCase(); if(p[7]) p[7]=p[7].toLowerCase();
   if(p[0]!=='EB1'||p.length<5||!GENRES.some(x=>x.id===p[1])) return false;
   const seed=p[4].replace(/[^A-Za-z0-9]/g,'').slice(0,24); LASTNOSEED=!seed;
   pushHist(); state.section=null; state.solo=[];
@@ -3346,7 +3346,9 @@ function exactPost(){
   return `Eight Bells exact pattern: ${g.name}, ${state.bpm} BPM, ${NOTE_NAMES[state.key]} ${SCALE_NAMES[state.scale].toLowerCase()}, ${state.bars} bar${state.bars>1?'s':''}, ${fwOf(cfg.device).name} on the FM-1\n\nPattern code: \`${exactCode()}\`\n\nPaste the code into the Seed box in Eight Bells. It holds every step, note and velocity, so it plays exactly as made.`;
 }
 // Find a share or pattern code in whatever was pasted, even a whole Reddit comment.
-function findCode(text){ const m=String(text).match(/EB[12]:[A-Za-z0-9_:.-]+/); return m?m[0].replace(/[.:]+$/,''):''; }
+// Phones often turn the start of a pasted or typed code into lower case (eb1:...), so the EB1/EB2 start is accepted in any case.
+function fixCode(c){ return 'EB'+c.slice(2).replace(/[.:]+$/,''); }
+function findCode(text){ const m=String(text).match(/\bEB[12]:[A-Za-z0-9_:.-]+/i); return m?fixCode(m[0]):''; }
 function loadAny(text){ const c=findCode(text); if(!c) return null; return c.startsWith('EB2:')?loadExact(c):loadCode(c); }
 function renderOut(){ $('out').textContent=outText(); renderRecTip(); const sc=$('sharecode'); if(sc) sc.value=shareCode(); }
 function renderAll(){ renderTop(); renderTracks(); if(typeof renderPreview==='function'&&typeof PV!=='undefined') renderPreview(); if(typeof renderVox==='function'&&typeof VOX!=='undefined') renderVox(); if(typeof rollDraw==='function') rollDraw(); }
@@ -3625,7 +3627,7 @@ $('sharexact').addEventListener('click',()=>copyText(exactPost(),$('sharexact'),
 const SHARE_HINT='The share code holds the genre, length, firmware, seed and tempo. The exact pattern also holds every step you edited.';
 $('seed').addEventListener('input',e=>{
   const v=e.target.value.trim();
-  if(/EB[12]:[A-Za-z0-9_:.-]{12,}/.test(v)){
+  if(/\bEB[12]:[A-Za-z0-9_:.-]{12,}/i.test(v)){
     const done=loadAny(v);
     if(done){ $('sharemsg').textContent=LASTNOSEED?'That code has no seed, so only its genre, length, firmware and tempo were used. The notes are a new pattern.':'Loaded that code.'; e.target.blur(); }
     else if(done===false&&/EB2:[^:]+:[^:]+:[A-Za-z0-9_-]{20,}/.test(v)){ $('sharemsg').textContent='That pattern code could not be loaded. It may be cut off, or made for a firmware with a different track layout.'; }
@@ -3634,7 +3636,7 @@ $('seed').addEventListener('input',e=>{
 $('seed').addEventListener('change',e=>{
   const v=e.target.value.trim();
   $('sharemsg').textContent=SHARE_HINT;
-  if(/EB[12]:/.test(v)){ if(!loadAny(v)){ $('seed').value=state.seed||''; $('sharemsg').textContent='That code was not recognised. It may be cut off.'; } }
+  if(/\bEB[12]:/i.test(v)){ if(!loadAny(v)){ $('seed').value=state.seed||''; $('sharemsg').textContent='That code was not recognised. It may be cut off.'; } }
 });
 $('copy').addEventListener('click',async()=>{
   const text=outText(), btn=$('copy');
@@ -4778,7 +4780,7 @@ function libMsg(t,bad){ const m=$('libmsg'); m.textContent=t; m.className='mstat
 $('libsave').addEventListener('click',()=>{ const r=libAdd(shareCode(),$('libname').value); if(r===true){ $('libname').value=''; libMsg('Saved. It is in My seeds below.'); } else libMsg(r==='dup'?'That one is already saved.':'Could not save that.',true); });
 $('libsavex').addEventListener('click',()=>{ const r=libAdd(exactCode(),$('libname').value); if(r===true){ $('libname').value=''; libMsg('Saved the exact pattern, with every step you edited.'); } else libMsg(r==='dup'?'That one is already saved.':'Could not save that.',true); });
 $('libadd').addEventListener('click',()=>{
-  const found=(String($('libpaste').value).match(/EB[12]:[A-Za-z0-9_:.-]+/g)||[]).map(c=>c.replace(/[.:]+$/,''));
+  const found=(String($('libpaste').value).match(/\bEB[12]:[A-Za-z0-9_:.-]+/gi)||[]).map(fixCode);
   if(!found.length){ libMsg('No Eight Bells code found in that text.',true); return; }
   let added=0,dup=0,bad=0; found.forEach(c=>{ const r=libAdd(c,''); if(r===true) added++; else if(r==='dup') dup++; else bad++; });
   $('libpaste').value='';
