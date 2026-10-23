@@ -150,3 +150,4 @@ The firmwares it works with are made by other people, and the app credits each m
 - **Sections remember their patterns** (V3). Pick a section, shape the tracks, move to another section and come back: it is still as you left it. A dot marks sections with something saved, and Play song uses them. A new Generate starts fresh. Song codes now carry what each section holds, and can be pasted into a box in the Song builder.
 - **Generate keeps your sections; Generate and Play bar on phones** (V3). Generate while a section is lit remakes only that section. On a phone, a slim Generate and Play bar appears at the bottom whenever the real buttons are out of view.
 - Share and save whole songs: Copy song code now sits in Seed and share, and Save this song sits next to Save this pattern in My seeds and songs. Song sections are now called patterns.
+- After a song code is loaded the big Play button reads Play song and plays the whole song; everything stays editable.

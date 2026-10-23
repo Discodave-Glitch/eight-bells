@@ -2925,6 +2925,7 @@ function genLane(j,rule,old,n){
   return t;
 }
 function generate(){
+  try{ if(!SONG.on&&typeof SONGREADY!=='undefined'&&SONGREADY) setSongReady(false); }catch(_){}
   secReset();
   const g=genreObj(), bars=state.bars, L=layoutOf();
   // One chord progression for every unlocked synth, so bass, stab and lead agree.
@@ -3412,8 +3413,10 @@ function loadSong(c){
   paintSections();
   SONG.steps=steps.map(x=>({id:x.id,n:[1,2,4,8].includes(x.n)?x.n:2})); SONG.rep=rep; songSave(); songPaint(); LASTSONG=true; return true;
 }
-let LASTSONG=false;
-function loadAny(text){ const c=findCode(text); if(!c) return null; LASTSONG=false; return c.startsWith('EB3:')?loadSong(c):c.startsWith('EB2:')?loadExact(c):loadCode(c); }
+let LASTSONG=false, SONGREADY=false;
+function playIdle(){ return SONGREADY&&SONG.steps.length?'Play song':'Play'; }
+function setSongReady(v){ SONGREADY=!!v; if(!playing&&!SONG.on) $('play').textContent=playIdle(); }
+function loadAny(text){ const c=findCode(text); if(!c) return null; LASTSONG=false; const ok=c.startsWith('EB3:')?loadSong(c):c.startsWith('EB2:')?loadExact(c):loadCode(c); setSongReady(!!(ok&&LASTSONG)); return ok; }
 function renderOut(){ $('out').textContent=outText(); renderRecTip(); const sc=$('sharecode'); if(sc) sc.value=shareCode(); }
 function renderAll(){ renderTop(); renderTracks(); if(typeof renderPreview==='function'&&typeof PV!=='undefined') renderPreview(); if(typeof renderVox==='function'&&typeof VOX!=='undefined') renderVox(); if(typeof rollDraw==='function') rollDraw(); }
 
@@ -5116,10 +5119,10 @@ function stopPlay(){
   playing=false; clearTimeout(timer); stopTicker(); queue=[]; paintNow(null); ROLL.step=-1; setTimeout(rollDraw,0); fxCap(false);
   try{ if(midi.out&&midi.out.clear) midi.out.clear(); }catch(_){}
   if(canSend()){ allOff(); if(cfg.clock) mSend([0xFC]); }
-  $('play').textContent='Play'; $('play').setAttribute('aria-pressed','false'); autoMsg();
+  $('play').textContent=playIdle(); $('play').setAttribute('aria-pressed','false'); autoMsg();
   if(SONG.on) songEnd();
 }
-$('play').addEventListener('click',()=>{ playing?stopPlay():startPlay(); });
+$('play').addEventListener('click',()=>{ if(playing){ stopPlay(); return; } if(SONGREADY&&SONG.steps.length){ $('songplay').click(); return; } startPlay(); });
 
 if(!HAS_MIDI){ $('midi').hidden=true; $('midisub').hidden=true; }
 
