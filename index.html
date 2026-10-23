@@ -417,6 +417,14 @@ input[type=range],canvas,.grid{touch-action:pan-y}
 .ghost.mem{position:relative}
 .ghost.mem::after{content:'';position:absolute;top:6px;right:7px;width:7px;height:7px;border-radius:50%;background:var(--accent,#2f7f95)}
 
+/* slim Generate and Play bar for phones */
+#minibar{position:fixed;left:0;right:0;bottom:0;z-index:30;display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:8px 16px calc(8px + env(safe-area-inset-bottom));background:var(--surface,var(--bg));border-top:1px solid var(--line,rgba(127,127,127,.3));box-shadow:0 -4px 14px rgba(0,0,0,.12)}
+#minibar[hidden]{display:none}
+#minibar button{min-height:46px}
+body.minibar{padding-bottom:76px}
+@media (min-width:900px){#minibar{display:none !important}}
+#minibar button{grid-column:auto !important;width:100%;margin:0}
+
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#2f7f95">
@@ -649,7 +657,7 @@ input[type=range],canvas,.grid{touch-action:pan-y}
     <details class="midi" id="songbox" open>
       <summary>Song builder <span class="cur" id="songcur"></span><button type="button" class="dice" data-dice="song" title="Surprise me: build a random song" aria-label="Surprise me: build a random song">&#127922;</button></summary>
       <div class="midi-body songbody">
-        <p class="hint">Tap sections to line them up into a song, then play it. Each section remembers what you make in it: pick a section, shape the tracks, move to another and come back, and it is still there. A dot marks sections that have something saved. Tap the lit section again to start it afresh. A section you have not visited yet is built from the pattern you started from. Tracks you lock stay as they are, and your own pattern comes back when it ends.</p>
+        <p class="hint">Tap sections to line them up into a song, then play it. Each section remembers what you make in it: pick a section, shape the tracks, move to another and come back, and it is still there. A dot marks sections that have something saved. Tap the lit section again to start it afresh, and Generate while a section is lit remakes only that section. A section you have not visited yet is built from the pattern you started from. Tracks you lock stay as they are, and your own pattern comes back when it ends.</p>
         <div class="songgrp"><p class="lbl">Loops per section</p><div class="seg" id="songloops"></div></div>
         <div class="songgrp"><p class="lbl">Tap to add to the song</p><div id="songadd"></div></div>
         <div class="songgrp"><p class="lbl">Your song (tap a section to remove it)</p><div id="songlist" class="saves"></div></div>
@@ -738,6 +746,7 @@ input[type=range],canvas,.grid{touch-action:pan-y}
   </div>
   </div>
 </main>
+<div id="minibar" hidden><button id="mgen" class="primary">Generate</button><button id="mplay" class="ghost" aria-pressed="false">Play</button></div>
 
 <script>
 const HAS_MIDI=true;
@@ -3432,7 +3441,15 @@ $('bars').addEventListener('click',e=>{
   const b=e.target.closest('[data-bars]'); if(!b) return;
   pushHist(); state.section=null; state.bars=+b.dataset.bars; generate(); renderAll();
 });
-$('gen').addEventListener('click',()=>{ pushHist(); state.section=null; rollSeed(); generate(); renderTracks(); });
+// Generate while a section is lit remakes only that section; the other sections keep what you made in them.
+$('gen').addEventListener('click',()=>{
+  pushHist();
+  const cur=(state.section&&SECTION_IDS.includes(state.section))?state.section:null;
+  SECKEEP=!!cur;
+  try{ rollSeed(); generate(); }finally{ SECKEEP=false; }
+  if(cur){ state.section=cur; secStore(cur); } else state.section=null;
+  renderTracks();
+});
 $('bpm').addEventListener('input',e=>{ state.bpm=+e.target.value; $('bpmv').textContent=state.bpm; tempoBox(); renderOut(); });
 $('swing').addEventListener('input',e=>{ state.swing=+e.target.value; $('swingv').textContent=state.swing===50?'straight':state.swing+'%'; renderOut(); });
 $('accent').addEventListener('input',e=>{ $('accentv').textContent=e.target.value+'%'; });
@@ -5612,6 +5629,18 @@ applyPanels();
 setInterval(saveLast,2000);
 window.addEventListener('pagehide',saveLast);
 document.addEventListener('visibilitychange',()=>{ if(document.hidden) saveLast(); });
+/* Phones: when the real Generate and Play buttons scroll out of view, a slim bar at the bottom repeats them. */
+(function(){
+  const bar=$('minibar'), g=$('gen'), p=$('play'); if(!bar||!g||!p||!window.IntersectionObserver) return;
+  const mg=$('mgen'), mp=$('mplay');
+  mg.addEventListener('click',()=>g.click()); mp.addEventListener('click',()=>p.click());
+  const sync=()=>{ mp.textContent=p.textContent; mp.setAttribute('aria-pressed',p.getAttribute('aria-pressed')||'false'); };
+  new MutationObserver(sync).observe(p,{childList:true,characterData:true,subtree:true,attributes:true,attributeFilter:['aria-pressed']}); sync();
+  let away=false;
+  const show=()=>{ const on=away&&window.innerWidth<900; bar.hidden=!on; document.body.classList.toggle('minibar',on); };
+  new IntersectionObserver(es=>{ away=!es[0].isIntersecting; show(); }).observe(g);
+  window.addEventListener('resize',show);
+})();
 
 </script>
 <script>
