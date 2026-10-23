@@ -2,6 +2,10 @@
 
 **Preview sounds you can play with no FM-1**, plus a Sample track and tools around it. Nothing here changes what is sent to the FM-1: with an FM-1 connected the MIDI is byte-for-byte the same as V2.
 
+## 3.0.1
+- Share now gives the exact pattern code when a pattern was edited by hand (it used to give a code with an empty seed that could not be loaded). Old codes with an empty seed now load their genre, length, firmware and tempo with a new random pattern, and say so.
+- Level 0 is now silent, and a clearer desktop layout with no empty gaps.
+
 ## New
 - 187 genres in ten groups (61 new: jazz, blues, folk, Celtic, flamenco, tango, K-pop, hyperpop, frenchcore, UK drill and more), each with matching drum kit, instruments and FM-1 sound tips.
 - A desktop layout for Windows and Mac (three panes, sticky Generate and Play), a light/dark button at the top right, and no sideways drift or zoom on phones.
