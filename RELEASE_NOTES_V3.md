@@ -3,9 +3,12 @@
 **Preview sounds you can play with no FM-1**, plus a Sample track and tools around it. Nothing here changes what is sent to the FM-1: with an FM-1 connected the MIDI is byte-for-byte the same as V2.
 
 ## New
-- 142 preview instruments in 8 groups (basses, keys and organs, stabs, brass and reeds, pads, leads, strings, plucks and bells, world) and 20 drum kits that follow the genre.
+- 187 genres in ten groups (61 new: jazz, blues, folk, Celtic, flamenco, tango, K-pop, hyperpop, frenchcore, UK drill and more), each with matching drum kit, instruments and FM-1 sound tips.
+- A desktop layout for Windows and Mac (three panes, sticky Generate and Play), a light/dark button at the top right, and no sideways drift or zoom on phones.
+- Per-track Level, Pan and a level meter (browser preview only), Clear buttons on every track, lane and drum set, and "Sure?" before deleting a pattern, seed or song.
+- 193 preview instruments in 9 groups (basses, keys and organs, stabs, brass and reeds, pads, leads, strings, plucks and bells, world) and 20 drum kits that follow the genre.
 - Your own sounds: add audio files of any length, play them from on-screen keys or a MIDI keyboard, give any track or drum lane a sample, and Slice a long recording into parts.
-- Sample track: a floating 9th track, up to four voices, 204 sounds (vowels, ad-libs, scat, styles, 146 spoken-style words), male / female / deep / child voices, pitch, pitch patterns, humanise, held notes that glide, and reverb. Saved with your patterns. Never sent to the FM-1 as MIDI.
+- Sample track: a floating 9th track, up to four voices, 421 sounds (vowels, ad-libs, scat, styles, numbers, the letters A to Z, 363 spoken-style words and phrases), 14 voice types (male, female, deep, child, tenor, baritone, alto, soprano, whisper, robot, elder, giant, chipmunk), pitch, pitch patterns, humanise, held notes that glide, and reverb. Saved with your patterns. Never sent to the FM-1 as MIDI.
 - Device voices: say the words with your device's own male and female voices (clearer than the built-in synth).
 - Mix in the FM-1's sound through a sound input, so one speaker plays the FM-1 and the samples together.
 - Record to WAV, preview volume with a limiter, performance view, and a delay-the-FM-1 slider.
