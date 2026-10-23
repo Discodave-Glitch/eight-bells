@@ -2975,6 +2975,7 @@ function trackNames(){
   for(let k=0;k<L.nD;k++) out.push(nm[L.nS+k]||('Track '+(L.nS+k+1)));
   return out;
 }
+let KEYFORCE=null; /* a share code carries the key, so a pattern made with the Generate button comes back exactly */
 function rollSeed(){
   const el=$('seed'), typed=el?el.value.trim():'';
   state.seed=(typed&&typed!==state.seed)?typed:newSeed();
@@ -2985,7 +2986,7 @@ function setGenre(id){
   rollSeed();
   state.genre=id;
   const g=genreObj();
-  state.scale=g.scale; state.key=rint(0,11); state.bpm=rint(g.bpm[0],g.bpm[1]);
+  state.scale=g.scale; { const k0=rint(0,11); state.key=KEYFORCE!=null?KEYFORCE:k0; } state.bpm=rint(g.bpm[0],g.bpm[1]);
   state.swing=SWING_DEFAULT[id]||50;
   state.synth=[]; state.drums=null; state.drums2=null;
   generate();
@@ -3182,10 +3183,17 @@ $('solos').addEventListener('click',e=>{
 const SECTION_IDS=['allt','intro','bld','drop','chorus','brk','bridge','half','outro'];
 /* Section memory: each section keeps what you made in it. Leave a section and its pattern is stored; come back and it is recalled.
    A section you have not visited yet is built from SECBASE, the pattern as it was before the first section was picked. A new Generate starts fresh. */
-let SECMEM={}, SECBASE=null, SECKEEP=false;
-try{ const j=JSON.parse(localStorage.getItem('eb_secmem')||'null'); if(j&&j.m&&typeof j.m==='object'){ SECMEM=j.m; SECBASE=j.b||null; } }catch(_){}
-function secPersist(){ try{ localStorage.setItem('eb_secmem',JSON.stringify({m:SECMEM,b:SECBASE})); }catch(_){} }
-function secReset(){ if(SECKEEP) return; SECMEM={}; SECBASE=null; secPersist(); }
+let SECMEM={}, SECBASE=null, SECKEEP=false, SECSD={};
+try{ const j=JSON.parse(localStorage.getItem('eb_secmem')||'null'); if(j&&j.m&&typeof j.m==='object'){ SECMEM=j.m; SECBASE=j.b||null; SECSD=(j.s&&typeof j.s==='object')?j.s:{}; } }catch(_){}
+function secPersist(){ try{ localStorage.setItem('eb_secmem',JSON.stringify({m:SECMEM,b:SECBASE,s:SECSD})); }catch(_){} }
+function secReset(){ if(SECKEEP) return; SECMEM={}; SECBASE=null; SECSD={}; secPersist(); }
+/* A section is built with its own small random seed, so a song code can rebuild an untouched section from a few characters. */
+function mb32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+function secRun(id,fresh,sdIn){
+  const sd=sdIn!=null?sdIn:(!fresh&&SECSD[id]!=null)?SECSD[id]:Math.floor(Math.random()*4294967296)>>>0;
+  SECSD[id]=sd; const old=RNG; RNG=mb32(sd);
+  try{ SONG_FN[id](); } finally{ RNG=old; }
+}
 function secStore(id){ if(!id||!SECTION_IDS.includes(id)) return; const sn=snapshot(); sn.section=id; delete sn.vox; SECMEM[id]=sn; secPersist(); }
 const clonej=o=>JSON.parse(JSON.stringify(o));
 function goSection(id){
@@ -3197,7 +3205,7 @@ function goSection(id){
   else{
     if(cur){ restore(clonej(SECBASE)); state.bpm=bpm; }
     delete SECMEM[id];
-    SONG_FN[id]();
+    secRun(id,cur===id);
   }
   state.section=id; state.change=null; secStore(id); renderTracks();
 }
@@ -3296,10 +3304,20 @@ function renderRecTip(){
 }
 let LASTNOSEED=false, LEGACY=false; // LEGACY: a V2 code (no 'v3' marker) is rebuilt exactly the way V2 built it, without the one-note fix
 // A pattern that was edited by hand has no seed to rebuild it from, so share the exact pattern instead of an empty seed.
-function shareCode(){ if(!state.seed) return exactCode(); const c=['EB1',state.genre,state.bars,cfg.device,state.seed||'',state.bpm,state.swing]; c.push(state.engine||'euclid'); c.push('v3'); return c.join(':'); }
+function shareCode(){ if(!state.seed) return packCode(exactCode()); const c=['EB1',state.genre,state.bars,cfg.device,state.seed||'',state.bpm,state.swing]; c.push(state.engine||'euclid'); c.push('v3'); c.push(state.key); return c.join(':'); }
+const POST_HOW='Paste it into the Seed box in Eight Bells (web app or desktop), or into Add codes in My seeds and songs to save it. ';
+const POST_FREE=' Eight Bells is free, in your browser: https://discodave-glitch.github.io/eight-bells/';
+function postHead(kind){
+  const g=genreObj(), eng=state.engine&&state.engine!=='euclid'?' ('+ENGINES.find(e=>e.id===state.engine).name+' engine)':'';
+  return `${kind}: ${g.name}${eng}, ${state.bpm} BPM, ${NOTE_NAMES[state.key]} ${SCALE_NAMES[state.scale].toLowerCase()}, ${state.bars} bar${state.bars>1?'s':''}, ${fwOf(cfg.device).name} on the FM-1`;
+}
 function sharePost(){
-  const g=genreObj();
-  return `Eight Bells pattern: ${g.name}${state.engine&&state.engine!=='euclid'?' ('+ENGINES.find(e=>e.id===state.engine).name+' engine)':''}, ${state.bpm} BPM, ${NOTE_NAMES[state.key]} ${SCALE_NAMES[state.scale].toLowerCase()}, ${state.bars} bar${state.bars>1?'s':''}, ${fwOf(cfg.device).name} on the FM-1\n\nShare code: \`${shareCode()}\`\n\nPaste the code into the Seed box in Eight Bells to get the same pattern.`;
+  return `${postHead('Eight Bells pattern')}\n\nShare code: \`${shareCode()}\`\n\n${POST_HOW}It rebuilds the same pattern from the seed.${POST_FREE}`;
+}
+function songPost(){
+  const n=SONG.steps.length;
+  const list=SONG.steps.map(x=>{ const el=document.getElementById(x.id); return (el?el.textContent.trim():x.id)+(x.n>1?' x'+x.n:''); }).join(', ');
+  return `${postHead('Eight Bells song')}\n${n} pattern${n===1?'':'s'}: ${list}${SONG.rep?' (repeats)':''}\n\nSong code: \`${packCode(songCode())}\`\n\n${POST_HOW}It holds the whole song: the order, the loops and what every pattern contains. Press Play song, then edit any pattern, remix it and save your own version.${POST_FREE}`;
 }
 function loadCode(str){
   const p=String(str).trim().split(':'); if(p[1]) p[1]=p[1].toLowerCase(); if(p[3]) p[3]=p[3].toLowerCase(); if(p[7]) p[7]=p[7].toLowerCase();
@@ -3311,7 +3329,8 @@ function loadCode(str){
   $('seed').value=seed; state.seed='';
   state.engine=(p[7]&&ENGINES.some(e=>e.id===p[7]))?p[7]:'euclid';
   LEGACY=(p[8]||'').toLowerCase()!=='v3';
-  try{ setGenre(p[1]); }finally{ LEGACY=false; }
+  KEYFORCE=(/^\d+$/.test(p[9]||'')&&+p[9]<12)?+p[9]:null;
+  try{ setGenre(p[1]); }finally{ LEGACY=false; KEYFORCE=null; }
   if(p[5]&&+p[5]) state.bpm=clamp(+p[5],40,240);
   if(p[6]&&+p[6]) state.swing=clamp(+p[6],50,75);
   renderAll(); return true;
@@ -3324,6 +3343,47 @@ function b64u(bytes){ let s=''; for(const x of bytes) s+=String.fromCharCode(x);
 function unb64u(str){
   const s=atob(str.replace(/-/g,'+').replace(/_/g,'/')+'==='.slice((str.length+3)%4)); const o=[];
   for(let i=0;i<s.length;i++) o.push(s.charCodeAt(i)); return o;
+}
+
+/* ---------- Short codes (EB4): long exact-pattern and song codes are squeezed (long base64 runs become bytes, then LZ compression) ---------- */
+function lzPack(inp){
+  const out=[], n=inp.length, head=new Map(); let i=0, flagPos=-1, flagBit=8;
+  const put=(isMatch)=>{ if(flagBit===8){ flagPos=out.length; out.push(0); flagBit=0; } if(isMatch) out[flagPos]|=1<<flagBit; flagBit++; };
+  const key=p=>inp[p]|(inp[p+1]<<8)|(inp[p+2]<<16)|(inp[p+3]*16777216);
+  const add=p=>{ if(p+4<=n){ const k=key(p); let l=head.get(k); if(!l){ l=[]; head.set(k,l); } l.push(p); } };
+  while(i<n){
+    let bl=0, bo=0;
+    if(i+4<=n){ const lst=head.get(key(i)); if(lst){ for(let t=lst.length-1,c=0;t>=0&&c<48;t--,c++){ const p=lst[t], d=i-p; if(d>65535) break; let l=0; while(l<259&&i+l<n&&inp[p+l]===inp[i+l]) l++; if(l>bl){ bl=l; bo=d; } } } }
+    if(bl>=4){ put(true); out.push(bo&255,bo>>8,bl-4); for(let q=0;q<bl;q++) add(i+q); i+=bl; }
+    else { put(false); out.push(inp[i]); add(i); i++; }
+  }
+  return out;
+}
+function lzUnpack(inp){
+  const out=[]; let i=0;
+  while(i<inp.length){ const f=inp[i++]; for(let b=0;b<8&&i<inp.length;b++){ if(f&(1<<b)){ const d=inp[i]|(inp[i+1]<<8), l=inp[i+2]+4; i+=3; if(!d||d>out.length) throw new Error('bad'); for(let q=0;q<l;q++) out.push(out[out.length-d]); } else out.push(inp[i++]); } }
+  return out;
+}
+function packCode(code){
+  try{
+    const txt=String(code); if(txt.length<120||!/^EB[23]:/.test(txt)) return txt;
+    const bytes=[], enc=new TextEncoder(), prev=new Map(); let last=0;
+    const re=/[A-Za-z0-9_-]{24,}/g; let m;
+    while((m=re.exec(txt))){ let raw; try{ raw=unb64u(m[0]); }catch(_){ continue; } if(b64u(raw)!==m[0]) continue;
+      enc.encode(txt.slice(last,m.index)).forEach(x=>bytes.push(x)); const pv=prev.get(raw.length); bytes.push(pv?2:1); let L=raw.length; while(L>=128){ bytes.push((L&127)|128); L>>=7; } bytes.push(L); raw.forEach((x,k)=>bytes.push(pv?x^pv[k]:x)); prev.set(raw.length,raw); last=m.index+m[0].length; }
+    enc.encode(txt.slice(last)).forEach(x=>bytes.push(x));
+    const out='EB4:'+b64u(lzPack(bytes));
+    return out.length<txt.length&&unpackCode(out)===txt?out:txt;
+  }catch(_){ return String(code); }
+}
+function unpackCode(code){
+  const c=String(code); if(!/^EB4:/i.test(c)) return c;
+  try{
+    const by=lzUnpack(unb64u(c.slice(4))); let txt='', run=[]; const dec=new TextDecoder(), prev=new Map();
+    const flush=()=>{ if(run.length){ txt+=dec.decode(new Uint8Array(run)); run=[]; } };
+    for(let i=0;i<by.length;){ if(by[i]===1||by[i]===2){ flush(); const xr=by[i]===2; i++; let L=0,sh=0; for(;;){ const x=by[i++]; L|=(x&127)<<sh; sh+=7; if(!(x&128)) break; } let raw=by.slice(i,i+L); i+=L; if(xr){ const pv=prev.get(L); if(!pv) throw new Error('bad'); raw=raw.map((x,k)=>x^pv[k]); } prev.set(L,raw); txt+=b64u(raw); } else run.push(by[i++]); }
+    flush(); return txt;
+  }catch(_){ return ''; }
 }
 function exactCode(){
   const by=[2], scaleIdx=Object.keys(SCALES).indexOf(state.scale);
@@ -3389,18 +3449,23 @@ function loadExact(str){
   }catch(_){ return false; }
 }
 function exactPost(){
-  const g=genreObj();
-  return `Eight Bells exact pattern: ${g.name}, ${state.bpm} BPM, ${NOTE_NAMES[state.key]} ${SCALE_NAMES[state.scale].toLowerCase()}, ${state.bars} bar${state.bars>1?'s':''}, ${fwOf(cfg.device).name} on the FM-1\n\nPattern code: \`${exactCode()}\`\n\nPaste the code into the Seed box in Eight Bells. It holds every step, note and velocity, so it plays exactly as made.`;
+  return `${postHead('Eight Bells exact pattern')}\n\nPattern code: \`${packCode(exactCode())}\`\n\n${POST_HOW}It holds every step, note and velocity you edited, so it plays exactly as made.${POST_FREE}`;
 }
 // Find a share or pattern code in whatever was pasted, even a whole Reddit comment.
 // Phones often turn the start of a pasted or typed code into lower case (eb1:...), so the EB1/EB2 start is accepted in any case.
 function fixCode(c){ return 'EB'+c.slice(2).replace(/[.:]+$/,''); }
-function findCode(text){ const m=String(text).match(/\bEB[123]:[A-Za-z0-9_:.~-]+/i); return m?fixCode(m[0]):''; }
+function findCode(text){ const m=String(text).match(/\bEB[1234]:[A-Za-z0-9_:.~-]+/i); return m?unpackCode(fixCode(m[0])):''; }
 // EB3 = a whole song: the section order and loops, then the pattern it starts from (an EB1 or EB2 code).
 function songCode(){
   if(state.section) secStore(state.section);
-  const base=shareCode(), keep=snapshot(), used=[...new Set(SONG.steps.map(x=>x.id))].filter(id=>SECMEM[id]);
-  const mem=used.map(id=>{ restore(clonej(SECMEM[id])); return id+'.'+exactCode(); });
+  const base=shareCode(), keep=snapshot(), used=[...new Set(SONG.steps.map(x=>x.id))].filter(id=>SECMEM[id]||SECSD[id]!=null);
+  const mem=[]; used.forEach(id=>{
+    if(!SECMEM[id]){ if(SECSD[id]!=null) mem.push(id+'.'+SECSD[id].toString(36)); return; }
+    restore(clonej(SECMEM[id])); const mine=exactCode(), bpm=state.bpm;
+    let same=false;
+    if(SECSD[id]!=null&&(SECBASE||SONG.base)){ try{ restore(clonej(SECBASE||SONG.base)); state.bpm=bpm; secRun(id,false); same=exactCode()===mine; }catch(_){ same=false; } }
+    mem.push(id+'.'+(same?SECSD[id].toString(36):mine));
+  });
   restore(keep);
   return 'EB3:'+SONG.steps.map(x=>x.id+'.'+x.n).join('_')+':'+(SONG.rep?'r':'p')+':'+base+mem.map(m=>'~'+m).join('');
 }
@@ -3413,8 +3478,8 @@ function loadSong(c){
   const parts=c.slice(i3+1).split('~'), baseCode=parts.shift();
   SECKEEP=true; let ok=false;
   try{
-    SECMEM={}; SECBASE=null;
-    parts.forEach(m=>{ const k=m.indexOf('.'), id=m.slice(0,k).toLowerCase(); if(k<1||!SECTION_IDS.includes(id)) return; if(loadExact(m.slice(k+1))){ state.section=id; const sn=snapshot(); sn.section=id; delete sn.vox; SECMEM[id]=sn; } });
+    SECMEM={}; SECBASE=null; SECSD={};
+    parts.forEach(m=>{ const k=m.indexOf('.'), id=m.slice(0,k).toLowerCase(); if(k<1||!SECTION_IDS.includes(id)) return; const rest=m.slice(k+1); if(!/^EB2:/i.test(rest)){ const sd=parseInt(rest,36); if(Number.isFinite(sd)) SECSD[id]=sd>>>0; return; } if(loadExact(rest)){ state.section=id; const sn=snapshot(); sn.section=id; delete sn.vox; SECMEM[id]=sn; } });
     ok=!!loadAny(baseCode);
     if(ok){ SECBASE=null; state.section=null; secPersist(); }
   }finally{ SECKEEP=false; }
@@ -3457,7 +3522,7 @@ $('gen').addEventListener('click',()=>{
   pushHist();
   const cur=(state.section&&SECTION_IDS.includes(state.section))?state.section:null;
   SECKEEP=!!cur;
-  try{ rollSeed(); generate(); }finally{ SECKEEP=false; }
+  try{ rollSeed(); const g0=genreObj(); rint(0,11); rint(g0.bpm[0],g0.bpm[1]); generate(); }finally{ SECKEEP=false; }
   if(cur){ state.section=cur; secStore(cur); } else state.section=null;
   renderTracks();
 });
@@ -3708,7 +3773,7 @@ $('sharexact').addEventListener('click',()=>copyText(exactPost(),$('sharexact'),
 const SHARE_HINT='The share code holds the genre, length, firmware, seed and tempo. The exact pattern also holds every step you edited.';
 $('seed').addEventListener('input',e=>{
   const v=e.target.value.trim();
-  if(/\bEB[123]:[A-Za-z0-9_:.~-]{12,}/i.test(v)){
+  if(/\bEB[1234]:[A-Za-z0-9_:.~-]{12,}/i.test(v)){
     const done=loadAny(v);
     if(done){ $('sharemsg').textContent=LASTSONG?'Loaded that song: '+SONG.steps.length+' patterns. Press Play song.':LASTNOSEED?'That code has no seed, so only its genre, length, firmware and tempo were used. The notes are a new pattern.':'Loaded that code.'; e.target.blur(); }
     else if(done===false&&/EB2:[^:]+:[^:]+:[A-Za-z0-9_-]{20,}/.test(v)){ $('sharemsg').textContent='That pattern code could not be loaded. It may be cut off, or made for a firmware with a different track layout.'; }
@@ -3717,7 +3782,7 @@ $('seed').addEventListener('input',e=>{
 $('seed').addEventListener('change',e=>{
   const v=e.target.value.trim();
   $('sharemsg').textContent=SHARE_HINT;
-  if(/\bEB[123]:/i.test(v)){ if(!loadAny(v)){ $('seed').value=state.seed||''; $('sharemsg').textContent='That code was not recognised. It may be cut off.'; } }
+  if(/\bEB[1234]:/i.test(v)){ if(!loadAny(v)){ $('seed').value=state.seed||''; $('sharemsg').textContent='That code was not recognised. It may be cut off.'; } }
 });
 $('copy').addEventListener('click',async()=>{
   const text=outText(), btn=$('copy');
@@ -4835,17 +4900,25 @@ let lib=[];
 try{ const j=JSON.parse(localStorage.getItem(LIB_KEY)||'[]'); if(Array.isArray(j)) lib=j.filter(e=>e&&typeof e.code==='string'&&typeof e.id==='string'); }catch(_){}
 function saveLib(){ try{ localStorage.setItem(LIB_KEY,JSON.stringify(lib)); }catch(_){} }
 function codeInfo(code){
+  code=unpackCode(code);
   if(/^EB3:/.test(String(code))){ const m=String(code).match(/^EB3:([^:]*):([^:]*):([^~]*)/); if(!m) return null; const bi=codeInfo(m[3]); if(!bi) return null; return {kind:'song',g:bi.g,fw:bi.fw,bars:bi.bars,bpm:bi.bpm,n:m[1].split('_').filter(Boolean).length}; }
   const p=String(code).split(':'), g=GENRES.find(x=>x.id===p[1]); if(!g) return null;
   if(p[0]==='EB1') return {kind:'seed',g,fw:p[3],bars:clamp(+p[2]||1,1,4),bpm:+p[5]||null,seed:String(p[4]||'').slice(0,12)};
   if(p[0]==='EB2'&&p.length===4){ try{ const by=unb64u(p[3]); return {kind:'exact',g,fw:p[2],bars:by[6],bpm:by[1]}; }catch(_){ return null; } }
   return null;
 }
+function libPost(code){
+  const i=codeInfo(code), u=unpackCode(code); if(!i) return code;
+  const fw=(FW_DATA.find(f=>f.id===i.fw)||{}).name||i.fw||'FM-1', bits=[i.g.name,i.bpm?i.bpm+' BPM':'',i.bars?i.bars+' bar'+(i.bars>1?'s':''):'',fw+' on the FM-1'].filter(Boolean).join(', ');
+  const kind=i.kind==='song'?'song':i.kind==='exact'?'exact pattern':'pattern', label=i.kind==='song'?'Song code':i.kind==='exact'?'Pattern code':'Share code';
+  const tail=i.kind==='song'?'It holds the whole song: the order, the loops and what every pattern contains. Press Play song, then edit and remix it.':i.kind==='exact'?'It holds every step, note and velocity, so it plays exactly as made.':'It rebuilds the same pattern from the seed.';
+  return 'Eight Bells '+kind+': '+bits+(i.kind==='song'?' ('+i.n+' pattern'+(i.n===1?'':'s')+')':'')+'\n\n'+label+': `'+packCode(u)+'`\n\n'+POST_HOW+tail+POST_FREE;
+}
 function libName(i){ if(i.kind==='song') return 'Song · '+i.n+' pattern'+(i.n===1?'':'s')+' · '+i.g.name+(i.bpm?' · '+i.bpm+' BPM':''); return i.g.name+(i.bpm?' · '+i.bpm+' BPM':'')+(i.kind==='seed'?' · seed '+i.seed:' · exact pattern'); }
 function libAdd(code,name){
-  if(!codeInfo(code)) return false;
-  if(lib.some(e=>e.code===code)) return 'dup';
-  lib.unshift({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),name:String(name||'').trim().slice(0,40),code,auto:!/^EB3:/.test(code)});
+  const full=unpackCode(code); if(!full||!codeInfo(full)) return false;
+  if(lib.some(e=>unpackCode(e.code)===full)) return 'dup';
+  lib.unshift({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),name:String(name||'').trim().slice(0,40),code:packCode(full),auto:!/^EB3:/.test(full)});
   if(lib.length>200) lib.length=200;
   saveLib(); renderLib(); return true;
 }
@@ -4863,8 +4936,7 @@ $('libsave').addEventListener('click',()=>{ const r=libAdd(exactCode(),$('libnam
 $('libsaves').addEventListener('click',()=>{ if(!SONG.steps.length){ libMsg('Add some sections to the song first (Song builder), then save it.',true); return; } const r=libAdd(songCode(),$('libname').value); if(r===true){ $('libname').value=''; libMsg('Saved the song: its sections, loops and what each section holds.'); } else libMsg(r==='dup'?'That song is already saved.':'Could not save that.',true); });
 $('libadd').addEventListener('click',()=>{
   let txt=String($('libpaste').value);
-  const songs=(txt.match(/\bEB3:[A-Za-z0-9_:.~-]+/gi)||[]).map(fixCode); txt=txt.replace(/\bEB3:[A-Za-z0-9_:.~-]+/gi,' ');
-  const found=songs.concat((txt.match(/\bEB[12]:[A-Za-z0-9_:.-]+/gi)||[]).map(fixCode));
+  const found=(txt.match(/\bEB[1234]:[A-Za-z0-9_:.~-]+/gi)||[]).map(fixCode);
   if(!found.length){ libMsg('No Eight Bells code found in that text.',true); return; }
   let added=0,dup=0,bad=0; found.forEach(c=>{ const r=libAdd(c,''); if(r===true) added++; else if(r==='dup') dup++; else bad++; });
   $('libpaste').value='';
@@ -4875,7 +4947,7 @@ $('liblist').addEventListener('click',e=>{
   const item=lib.find(x=>x.id===row.dataset.id); if(!item) return;
   if(e.target.closest('[data-libload]')){
     if(loadAny(item.code)) libMsg(LASTSONG?'Loaded the song: '+SONG.steps.length+' patterns. Press Play song.':LASTNOSEED?'That code has no seed, so only its genre, length and tempo were used. The notes are new.':'Loaded '+(item.name||'that seed')+'.'); else libMsg('That code could not be loaded. It may be cut off, or made for a firmware with a different track layout.',true);
-  }else if(e.target.closest('[data-libcopy]')){ copyText(item.code,e.target.closest('[data-libcopy]'),'Copied'); }
+  }else if(e.target.closest('[data-libcopy]')){ copyText(libPost(item.code),e.target.closest('[data-libcopy]'),'Copied'); }
   else if(e.target.closest('[data-libdel]')){ const bt=e.target.closest('[data-libdel]'); sure(bt,()=>{ lib=lib.filter(x=>x!==item); saveLib(); renderLib(); libMsg('Deleted.'); }); }
 });
 $('liblist').addEventListener('change',e=>{
@@ -4990,7 +5062,7 @@ function songPaint(){
 function songApply(){
   const st=SONG.steps[SONG.i], bpm=state.bpm;
   if(SECMEM[st.id]){ restore(clonej(SECMEM[st.id])); state.bpm=bpm; }
-  else{ restore(SONG.base); state.bpm=bpm; SONG_FN[st.id](); }
+  else{ restore(SONG.base); state.bpm=bpm; secRun(st.id,false); }
   state.section=st.id; state.change=null;
   renderAll(); songPaint();
 }
@@ -5015,7 +5087,7 @@ function songStep(){
 $('songloops').addEventListener('click',e=>{ const b=e.target.closest('[data-sl]'); if(!b) return; SONG.per=+b.dataset.sl; songSave(); songPaint(); });
 $('songadd').addEventListener('click',e=>{ const b=e.target.closest('[data-sa]'); if(!b||SONG.on) return; if(SONG.steps.length>=32){ $('songmsg').textContent='That is the most a song can hold: 32 sections.'; return; } SONG.steps.push({id:b.dataset.sa,n:SONG.per}); songSave(); songPaint(); });
 $('songlist').addEventListener('click',e=>{ const b=e.target.closest('[data-sr]'); if(!b||SONG.on) return; SONG.steps.splice(+b.dataset.sr,1); songSave(); songPaint(); });
-$('sharesong').addEventListener('click',()=>{ if(!SONG.steps.length){ $('sharemsg').textContent='Add some sections to the song first (Song builder), then copy its code.'; return; } copyText(songCode(),$('sharesong'),'Copied'); $('sharemsg').textContent='Copied the song code. It holds the order and loops of every section and what each section contains. Paste it into Seed on any copy of V3, or save it in My seeds.'; });
+$('sharesong').addEventListener('click',()=>{ if(!SONG.steps.length){ $('sharemsg').textContent='Add some sections to the song first (Song builder), then copy its code.'; return; } copyText(songPost(),$('sharesong'),'Copied'); $('sharemsg').textContent='Copied the song with a short intro and the code. It holds the order and loops of every pattern and what each one contains. Paste it into Seed on any copy of V3, or into Add codes in My seeds and songs.'; });
 $('songclear').addEventListener('click',e=>{ if(SONG.on) return; if(!SONG.steps.length) return; sure($('songclear'),()=>{ SONG.steps=[]; songSave(); songPaint(); }); });
 $('songrep').addEventListener('click',()=>{ SONG.rep=!SONG.rep; songSave(); songPaint(); });
 $('songplay').addEventListener('click',()=>{

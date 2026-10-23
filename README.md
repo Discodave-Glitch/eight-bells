@@ -152,3 +152,6 @@ The firmwares it works with are made by other people, and the app credits each m
 - Share and save whole songs: Copy song code now sits in Seed and share, and Save this song sits next to Save this pattern in My seeds and songs. Song sections are now called patterns.
 - After a song code is loaded the big Play button reads Play song and plays the whole song; everything stays editable.
 - Desktop: side panels stay pinned and fill the window at every width, including the two-column layout, so no empty gaps.
+- Much shorter song codes (EB3 codes that start with EB4 are compressed; patterns you have not edited are rebuilt from a few characters). Old codes still load.
+- Copy buttons now add a short intro and how-to-use text each side of the code; paste the whole text anywhere and the code is found.
+- Seed codes now carry the key, so a pattern made with the Generate button comes back exactly on another device.
