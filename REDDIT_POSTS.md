@@ -1,4 +1,4 @@
-# Reddit post for Eight Bells (r/MVaveFM1, flair: Showcase)
+# Reddit post for Eight Bells V3 (r/MVaveFM1, flair: Showcase)
 
 **Title:** Eight Bells: a free pattern maker for FM-1 firmwares, with 28 engines, 187 genres and a song builder
 
@@ -16,6 +16,7 @@ Apps and code: https://github.com/Discodave-Glitch/eight-bells
 - **Song builder**: tap Intro, Build-up, Drop, Chorus, Breakdown and the rest into an order, choose how many loops each gets, and play it back as a song. On a Sloop, the 16 punch effects sit in the same panel so you can hold them over the top live.
 - **Auto song** keeps changing the pattern on its own, and leaves any track you lock exactly as it is.
 - **Seeds and share codes**: every pattern has a short code you can paste into a comment, so anyone can get the same pattern back. Save your favourites in My seeds.
+- **New in V3**: a desktop layout for Windows and Mac, instruments and drum kits so it sounds out of the box with no FM-1, a Sample track with voices, numbers, letters and spoken words, a Level, Pan and meter on every track, Clear buttons so you can start from blank tracks, and a light/dark button.
 - Solo, mute, swing, humanise, key and scale, track colours, and a list of the steps if you'd rather enter a pattern by hand. It remembers where you left off.
 
 **Good to know**

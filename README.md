@@ -10,7 +10,11 @@ From the maker of [Slipway](https://github.com/Discodave-Glitch/slipway).
 
 ![Pick from 187 genres](docs/screenshot-top.png)
 
-![Every track, with lock, mute, redo, fill, ghost notes and a busy slider](docs/screenshot-tracks.png)
+On a Windows or Mac window it opens as a desktop app with three panes and a button at the top right for light or dark:
+
+![Desktop layout](docs/screenshot-desktop.png)
+
+![Every track, with clear, lock, mute, redo, fill, ghost notes, busy, level and pan](docs/screenshot-tracks.png)
 
 ![Save seeds and let Auto song play on its own](docs/screenshot-seeds.png)
 
