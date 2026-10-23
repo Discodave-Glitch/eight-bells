@@ -366,15 +366,19 @@ details.midi > .trow,details.midi > .saves{margin-top:10px}
   .pane.setup{grid-area:setup}
   .pane.stage{grid-area:stage}
   .pane.tools{grid-area:tools}
-  .pane.setup{position:sticky;top:12px;max-height:calc(100vh - 24px);overflow-y:auto;padding-right:6px;scrollbar-width:thin}
+  .layout{grid-template-areas:"sides stage"}
+  .sides{display:flex;flex-direction:column;gap:18px;grid-area:sides;min-width:0;position:sticky;top:12px;max-height:calc(100vh - 24px);overflow-y:auto;padding-right:6px;scrollbar-width:thin}
+  .pane.setup,.pane.tools{grid-area:auto}
 }
 @media (min-width:1400px){
   .layout{grid-template-columns:minmax(340px,380px) minmax(0,1fr) minmax(320px,370px);grid-template-areas:"setup stage tools"}
-  .pane.tools{position:sticky;top:12px;max-height:calc(100vh - 24px);overflow-y:auto;padding-right:6px;scrollbar-width:thin}
+  .sides{display:contents}
+  .pane.setup{grid-area:setup;position:sticky;top:12px;max-height:calc(100vh - 24px);overflow-y:auto;padding-right:6px;scrollbar-width:thin}
+  .pane.tools{grid-area:tools;position:sticky;top:12px;max-height:calc(100vh - 24px);overflow-y:auto;padding-right:6px;scrollbar-width:thin}
 }
 @media (min-width:900px) and (min-height:0){
-  .pane.setup::-webkit-scrollbar,.pane.tools::-webkit-scrollbar{width:8px}
-  .pane.setup::-webkit-scrollbar-thumb,.pane.tools::-webkit-scrollbar-thumb{background:var(--line);border-radius:6px}
+  .pane.setup::-webkit-scrollbar,.pane.tools::-webkit-scrollbar,.sides::-webkit-scrollbar{width:8px}
+  .pane.setup::-webkit-scrollbar-thumb,.pane.tools::-webkit-scrollbar-thumb,.sides::-webkit-scrollbar-thumb{background:var(--line);border-radius:6px}
 }
 
 .deck{grid-column:1 / -1;display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -392,7 +396,7 @@ main{position:relative}
 .brand{padding-right:54px}
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%;overflow-x:hidden;overscroll-behavior-x:none}
 html,body{touch-action:pan-y;max-width:100%}
-body{overflow-x:hidden;overscroll-behavior-x:none}
+body{overflow-x:clip;overscroll-behavior-x:none}
 input[type=range],canvas,.grid{touch-action:pan-y}
 @media (pointer:coarse){ input:not([type=range]):not([type=checkbox]):not([type=radio]),select,textarea{font-size:16px !important} }
 
@@ -424,6 +428,9 @@ input[type=range],canvas,.grid{touch-action:pan-y}
 body.minibar{padding-bottom:76px}
 @media (min-width:900px){#minibar{display:none !important}}
 #minibar button{grid-column:auto !important;width:100%;margin:0}
+
+.sides{display:contents}
+@media (min-width:900px) and (max-width:1399px){.sides{display:flex}}
 
 </style>
 <link rel="manifest" href="manifest.webmanifest">
@@ -463,6 +470,7 @@ body.minibar{padding-bottom:76px}
 
 
   <div class="layout">
+  <div class="sides">
   <div class="pane setup">
   <details class="midi" id="midi" open>
     <summary>Play on the FM-1</summary>
@@ -728,6 +736,7 @@ body.minibar{padding-bottom:76px}
     <button id="colreset" class="mini">Back to the Sloop colours</button>
   </details>
 
+  </div>
   </div>
   <div class="pane stage">
   <section id="tracks" aria-label="Tracks" style="display:flex;flex-direction:column;gap:12px"></section>
