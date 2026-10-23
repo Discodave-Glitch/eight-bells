@@ -3249,7 +3249,9 @@ function renderRecTip(){
     '<li>Switch on only that track below, then press Play here. It starts the loop and records from the first note.</li>'+
     '<li>Repeat for each of the other tracks.</li></ol>';
 }
-function shareCode(){ const c=['EB1',state.genre,state.bars,cfg.device,state.seed||'',state.bpm,state.swing]; if(state.engine&&state.engine!=='euclid') c.push(state.engine); return c.join(':'); }
+let LASTNOSEED=false;
+// A pattern that was edited by hand has no seed to rebuild it from, so share the exact pattern instead of an empty seed.
+function shareCode(){ if(!state.seed) return exactCode(); const c=['EB1',state.genre,state.bars,cfg.device,state.seed||'',state.bpm,state.swing]; if(state.engine&&state.engine!=='euclid') c.push(state.engine); return c.join(':'); }
 function sharePost(){
   const g=genreObj();
   return `Eight Bells pattern: ${g.name}${state.engine&&state.engine!=='euclid'?' ('+ENGINES.find(e=>e.id===state.engine).name+' engine)':''}, ${state.bpm} BPM, ${NOTE_NAMES[state.key]} ${SCALE_NAMES[state.scale].toLowerCase()}, ${state.bars} bar${state.bars>1?'s':''}, ${fwOf(cfg.device).name} on the FM-1\n\nShare code: \`${shareCode()}\`\n\nPaste the code into the Seed box in Eight Bells to get the same pattern.`;
@@ -3257,7 +3259,7 @@ function sharePost(){
 function loadCode(str){
   const p=String(str).trim().split(':');
   if(p[0]!=='EB1'||p.length<5||!GENRES.some(x=>x.id===p[1])) return false;
-  const seed=p[4].replace(/[^A-Za-z0-9]/g,'').slice(0,24); if(!seed) return false;
+  const seed=p[4].replace(/[^A-Za-z0-9]/g,'').slice(0,24); LASTNOSEED=!seed;
   pushHist(); state.section=null; state.solo=[];
   if(FW_DATA.some(f=>f.id===p[3])&&p[3]!==cfg.device) applyDevice(p[3]);
   state.bars=clamp(+p[2]||1,1,4);
@@ -3625,7 +3627,7 @@ $('seed').addEventListener('input',e=>{
   const v=e.target.value.trim();
   if(/EB[12]:[A-Za-z0-9_:.-]{12,}/.test(v)){
     const done=loadAny(v);
-    if(done){ $('sharemsg').textContent='Loaded that code.'; e.target.blur(); }
+    if(done){ $('sharemsg').textContent=LASTNOSEED?'That code has no seed, so only its genre, length, firmware and tempo were used. The notes are a new pattern.':'Loaded that code.'; e.target.blur(); }
     else if(done===false&&/EB2:[^:]+:[^:]+:[A-Za-z0-9_-]{20,}/.test(v)){ $('sharemsg').textContent='That pattern code could not be loaded. It may be cut off, or made for a firmware with a different track layout.'; }
   }
 });
@@ -4786,7 +4788,7 @@ $('liblist').addEventListener('click',e=>{
   const row=e.target.closest('.librow'); if(!row) return;
   const item=lib.find(x=>x.id===row.dataset.id); if(!item) return;
   if(e.target.closest('[data-libload]')){
-    if(loadAny(item.code)) libMsg('Loaded '+(item.name||'that seed')+'.'); else libMsg('That code could not be loaded. It may be cut off, or made for a firmware with a different track layout.',true);
+    if(loadAny(item.code)) libMsg(LASTNOSEED?'That code has no seed, so only its genre, length and tempo were used. The notes are new.':'Loaded '+(item.name||'that seed')+'.'); else libMsg('That code could not be loaded. It may be cut off, or made for a firmware with a different track layout.',true);
   }else if(e.target.closest('[data-libcopy]')){ copyText(item.code,e.target.closest('[data-libcopy]'),'Copied'); }
   else if(e.target.closest('[data-libdel]')){ const bt=e.target.closest('[data-libdel]'); sure(bt,()=>{ lib=lib.filter(x=>x!==item); saveLib(); renderLib(); libMsg('Deleted.'); }); }
 });
