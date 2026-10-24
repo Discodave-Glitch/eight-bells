@@ -441,7 +441,7 @@ body.minibar{padding-bottom:76px}
   <button id="themebtn" class="themebtn" type="button" aria-label="Switch between light and dark" title="Switch between light and dark"></button>
   <header class="brand">
     <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Eight Bells logo"><circle cx="32" cy="32" r="30" fill="#2f7f95" stroke="#e0b04a" stroke-width="2.5"/><circle cx="32.0" cy="8.0" r="3" fill="#e0b04a"/><circle cx="49.0" cy="15.0" r="3" fill="#1d5568"/><circle cx="56.0" cy="32.0" r="3" fill="#e0b04a"/><circle cx="49.0" cy="49.0" r="3" fill="#e0b04a"/><circle cx="32.0" cy="56.0" r="3" fill="#1d5568"/><circle cx="15.0" cy="49.0" r="3" fill="#e0b04a"/><circle cx="8.0" cy="32.0" r="3" fill="#e0b04a"/><circle cx="15.0" cy="15.0" r="3" fill="#1d5568"/><circle cx="32" cy="19" r="2.2" fill="#e0b04a"/><path d="M21 43c2.5-4 3.5-8 3.5-13 0-5 3-8 7.5-8s7.5 3 7.5 8c0 5 1 9 3.5 13z" fill="#f2ede9" stroke="#0b0909" stroke-width="1.2" stroke-linejoin="round"/><rect x="20" y="42.5" width="24" height="3" rx="1.5" fill="#e0b04a" stroke="#0b0909" stroke-width="1"/><circle cx="32" cy="48.5" r="2.6" fill="#0b0909"/></svg>
-    <div class="brandtxt"><p class="from"><a href="https://github.com/Discodave-Glitch/slipway" target="_blank" rel="noopener">From the maker of Slipway</a></p><h1>Eight Bells <small class="ver">V3</small></h1>
+    <div class="brandtxt"><p class="from"><a href="https://github.com/Discodave-Glitch/slipway" target="_blank" rel="noopener">From the maker of Slipway</a></p><h1>Eight Bells <small class="ver">V3<span id="buildtag"> &middot; zm</span></small></h1>
     <p class="sub">Beats and melodies for the M-VAVE FM-1 and its custom firmwares, built from 28 engines, from Euclidean rhythms to world cycles, chaos and Markov chains. Up to 8 tracks depending on the firmware, up to 64 steps each.<span id="midisub"> It can play the pattern on the FM-1 itself over USB MIDI.</span></p></div>
   </header>
   <div class="waves" aria-hidden="true"></div>
@@ -3235,9 +3235,7 @@ function renderTracks(){
   renderOut();
   box.style.minHeight='';
   if(Math.abs(window.pageYOffset-y)>1) window.scrollTo(0,y);
-  requestAnimationFrame(()=>{ if(Math.abs(window.pageYOffset-y)>1&&!SCROLLING) window.scrollTo(0,y); });
 }
-let SCROLLING=false; (function(){ let t; const on=()=>{ SCROLLING=true; clearTimeout(t); t=setTimeout(()=>{ SCROLLING=false; },120); }; window.addEventListener('touchmove',on,{passive:true}); window.addEventListener('wheel',on,{passive:true}); })();
 function tempoBox(){
   { const fc=$('feelcur'); if(fc) fc.textContent=state.bpm+' BPM \u00b7 '+NOTE_NAMES[state.key]; }
   const el=$('tempobox'); if(!el) return;
@@ -5723,6 +5721,28 @@ document.addEventListener('visibilitychange',()=>{ if(document.hidden) saveLast(
   const show=()=>{ const on=away&&window.innerWidth<900; bar.hidden=!on; document.body.classList.toggle('minibar',on); };
   new IntersectionObserver(es=>{ away=!es[0].isIntersecting; show(); }).observe(g);
   window.addEventListener('resize',show);
+})();
+
+/* Debug overlay: open the page with ?dbg on the end of the address to see what the page does when you tap (for tracking down phone-only problems). Does nothing otherwise. */
+(function(){
+  if(!/[?&]dbg\b/.test(location.search)) return;
+  const box=document.createElement('pre'); box.id='dbgbox';
+  box.style.cssText='position:fixed;left:0;right:0;top:0;max-height:36vh;overflow:auto;margin:0;padding:6px;font:11px/1.3 monospace;background:rgba(0,0,0,.88);color:#7f7;z-index:99999;white-space:pre-wrap;word-break:break-all';
+  document.body.appendChild(box); const L=[];
+  const H=()=>document.documentElement.scrollHeight, Y=()=>Math.round(window.pageYOffset);
+  const log=m=>{ L.push((performance.now()/1000).toFixed(2)+' '+m); if(L.length>70) L.shift(); box.textContent=L.join('\n'); box.scrollTop=1e9; };
+  const tag=(document.getElementById('buildtag')||{}).textContent||'';
+  log('debug on'+tag+' | '+innerWidth+'x'+innerHeight+' | '+navigator.userAgent.slice(-70));
+  window.addEventListener('error',e=>log('ERROR '+e.message+' line '+(e.lineno||'?')));
+  window.addEventListener('unhandledrejection',e=>log('REJECT '+e.reason));
+  let last=Y(); window.addEventListener('scroll',()=>{ const y=Y(); if(Math.abs(y-last)>250) log('SCROLL JUMP '+last+' -> '+y+' (h '+H()+')'); last=y; },{passive:true});
+  document.addEventListener('touchstart',e=>{ const c=e.target.closest&&e.target.closest('[data-act]'); log('touch '+(c?c.dataset.act+' s'+(c.dataset.s||''):(e.target.tagName||'?'))+' y'+Y()+' h'+H()); },{passive:true,capture:true});
+  document.addEventListener('click',e=>{ const c=e.target.closest&&e.target.closest('[data-act]'), t=c&&c.closest('.track'); log('click '+(c?c.dataset.act+' s'+(c.dataset.s||'')+' kind'+(t?t.dataset.kind+(t.dataset.i||t.dataset.di||''):'?'):(e.target.tagName||'?'))+' y'+Y()); },true);
+  ['scrollTo','scrollBy'].forEach(n=>{ const o=window[n]; window[n]=function(){ log(n+'('+[].slice.call(arguments).join(',')+')'); return o.apply(this,arguments); }; });
+  const si=Element.prototype.scrollIntoView; Element.prototype.scrollIntoView=function(){ log('scrollIntoView '+(this.id||this.className)); return si.apply(this,arguments); };
+  const fo=HTMLElement.prototype.focus; HTMLElement.prototype.focus=function(){ log('focus '+(this.id||this.tagName)); return fo.apply(this,arguments); };
+  try{ const rt=renderTracks; renderTracks=function(){ log('renderTracks start y'+Y()+' h'+H()); const r=rt.apply(this,arguments); log('renderTracks end y'+Y()+' h'+H()); return r; }; }catch(e){ log('wrap fail '+e.message); }
+  try{ const rp=pushHist; pushHist=function(){ log('pushHist'); return rp.apply(this,arguments); }; }catch(_){}
 })();
 
 </script>
