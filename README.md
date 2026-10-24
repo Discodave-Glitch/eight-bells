@@ -43,8 +43,8 @@ From the maker of [Slipway](https://github.com/Discodave-Glitch/slipway).
 | Where | How |
 | --- | --- |
 | **Web page** | Open the link above in Chrome or Edge (Firefox also supports MIDI). On a phone you can use "Add to home screen". |
-| **Windows** | Download from [Releases](../../releases). `Eight-Bells-3.0.0-portable.exe` runs with no install, and `Eight-Bells-Setup-3.0.0.exe` installs it. |
-| **Mac** | Download from [Releases](../../releases). `Eight-Bells-3.0.0-x64.dmg` is for Intel Macs and `Eight-Bells-3.0.0-arm64.dmg` is for Apple silicon (M1 and newer). Not tested on a real Mac yet. |
+| **Windows** | Download from [Releases](../../releases). `Eight-Bells-3.1.0-portable.exe` runs with no install, and `Eight-Bells-Setup-3.1.0.exe` installs it. |
+| **Mac** | Download from [Releases](../../releases). `Eight-Bells-3.1.0-x64.dmg` is for Intel Macs and `Eight-Bells-3.1.0-arm64.dmg` is for Apple silicon (M1 and newer). Not tested on a real Mac yet. |
 | **Android** | Use the web page in Chrome, with the FM-1 connected through a USB OTG adapter. There is no separate Android app. The page loads and Live view works on Android; using it with an FM-1 over USB OTG is not tested yet. |
 | **iPhone and iPad** | Safari and the other iOS browsers have no Web MIDI, so the page cannot reach the FM-1 from them. Install the free [Web MIDI Browser](https://apps.apple.com/app/id953846217) app from the App Store and open the Eight Bells web page inside it. It has been tested on an iPhone with an FM-1, and the FM-1 played the pattern. |
 
@@ -115,7 +115,7 @@ npm start          # run the desktop app
 npm run dist       # build an installer for the system you are on
 ```
 
-Pushing a tag such as `v3.0.0` runs the GitHub Actions workflow that builds the Windows and Mac apps, then makes one release with whatever was built.
+Pushing a tag such as `v3.1.0` runs the GitHub Actions workflow that builds the Windows and Mac apps, then makes one release with whatever was built.
 
 ## Credits and licence
 
