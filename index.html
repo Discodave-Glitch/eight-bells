@@ -19,7 +19,7 @@
   --accent: #2b44f5;
   --accent-ink: #ffffff;
   --t1: #2f5fd0; --t2: #1f9a73; --t3: #d9c41c; --t4: #d9822b;
-  --t5: #8a4fd0; --t6: #d6336c; --t7: #0b8aa0; --t8: #c0392b;
+  --t5: #8a4fd0; --t6: #d6336c; --t7: #0b8aa0; --t8: #c0392b; --t9: #6b7280;
   --ok: #0b8a7e; --bad: #d6336c; --warn: #b86e00;
   --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
   --font-body: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
@@ -30,14 +30,14 @@
   :root:not([data-theme="light"]) {
     --bg: #0e1118; --surface: #171b25; --ink: #e9ecf4; --muted: #9097ab; --line: #2a3040;
     --cell: #232938; --accent: #7f8fff; --accent-ink: #0e1118;
-    --t1: #5a86f0; --t2: #3cc29a; --t3: #f0e14a; --t4: #f5a45d; --t5: #b48cff; --t6: #ff6fa0; --t7: #4fd0e8; --t8: #ff7a68; --ok: #3cd0bf; --bad: #ff6fa0; --warn: #ffb547;
+    --t1: #5a86f0; --t2: #3cc29a; --t3: #f0e14a; --t4: #f5a45d; --t5: #b48cff; --t6: #ff6fa0; --t7: #4fd0e8; --t8: #ff7a68; --t9: #a3adc2; --ok: #3cd0bf; --bad: #ff6fa0; --warn: #ffb547;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #0e1118; --surface: #171b25; --ink: #e9ecf4; --muted: #9097ab; --line: #2a3040;
   --cell: #232938; --accent: #7f8fff; --accent-ink: #0e1118;
-  --t1: #5a86f0; --t2: #3cc29a; --t3: #f0e14a; --t4: #f5a45d; --t5: #b48cff; --t6: #ff6fa0; --t7: #4fd0e8; --t8: #ff7a68; --ok: #3cd0bf; --bad: #ff6fa0; --warn: #ffb547;
+  --t1: #5a86f0; --t2: #3cc29a; --t3: #f0e14a; --t4: #f5a45d; --t5: #b48cff; --t6: #ff6fa0; --t7: #4fd0e8; --t8: #ff7a68; --t9: #a3adc2; --ok: #3cd0bf; --bad: #ff6fa0; --warn: #ffb547;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
@@ -441,7 +441,7 @@ body.minibar{padding-bottom:76px}
   <button id="themebtn" class="themebtn" type="button" aria-label="Switch between light and dark" title="Switch between light and dark"></button>
   <header class="brand">
     <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Eight Bells logo"><circle cx="32" cy="32" r="30" fill="#2f7f95" stroke="#e0b04a" stroke-width="2.5"/><circle cx="32.0" cy="8.0" r="3" fill="#e0b04a"/><circle cx="49.0" cy="15.0" r="3" fill="#1d5568"/><circle cx="56.0" cy="32.0" r="3" fill="#e0b04a"/><circle cx="49.0" cy="49.0" r="3" fill="#e0b04a"/><circle cx="32.0" cy="56.0" r="3" fill="#1d5568"/><circle cx="15.0" cy="49.0" r="3" fill="#e0b04a"/><circle cx="8.0" cy="32.0" r="3" fill="#e0b04a"/><circle cx="15.0" cy="15.0" r="3" fill="#1d5568"/><circle cx="32" cy="19" r="2.2" fill="#e0b04a"/><path d="M21 43c2.5-4 3.5-8 3.5-13 0-5 3-8 7.5-8s7.5 3 7.5 8c0 5 1 9 3.5 13z" fill="#f2ede9" stroke="#0b0909" stroke-width="1.2" stroke-linejoin="round"/><rect x="20" y="42.5" width="24" height="3" rx="1.5" fill="#e0b04a" stroke="#0b0909" stroke-width="1"/><circle cx="32" cy="48.5" r="2.6" fill="#0b0909"/></svg>
-    <div class="brandtxt"><p class="from"><a href="https://github.com/Discodave-Glitch/slipway" target="_blank" rel="noopener">From the maker of Slipway</a></p><h1>Eight Bells <small class="ver">V3<span id="buildtag"> &middot; zm</span></small></h1>
+    <div class="brandtxt"><p class="from"><a href="https://github.com/Discodave-Glitch/slipway" target="_blank" rel="noopener">From the maker of Slipway</a></p><h1>Eight Bells <small class="ver">V3<span id="buildtag"> &middot; zn</span></small></h1>
     <p class="sub">Beats and melodies for the M-VAVE FM-1 and its custom firmwares, built from 28 engines, from Euclidean rhythms to world cycles, chaos and Markov chains. Up to 8 tracks depending on the firmware, up to 64 steps each.<span id="midisub"> It can play the pattern on the FM-1 itself over USB MIDI.</span></p></div>
   </header>
   <div class="waves" aria-hidden="true"></div>
@@ -550,7 +550,7 @@ body.minibar{padding-bottom:76px}
         <p class="hint">These are the sounds you hear in the browser when no FM-1 is connected. They are approximations of the kinds of instrument the firmwares offer, not the real FM-1 sounds. With an FM-1 connected, it plays its own sounds and everything here stays silent.</p>
         <div class="songgrp"><button id="pssurp" class="mini">Surprise me: random instruments and drums</button> <span class="hint">Tip: tick "new instruments and drums" in the Genres panel to get new ones every time you pick a genre. Set any instrument below to Auto to go back to the genre's own choice.</span></div>
         <div class="songgrp"><p class="lbl">Drum kit</p><div class="field"><select id="pskit" aria-label="Drum kit"></select><button class="mini ghost" data-hear="kit">Hear</button></div></div>
-        <div class="songgrp"><p class="lbl">Instrument for each kind of track</p><div id="pspatch" class="psgrid"></div></div>
+        <div class="songgrp"><p class="lbl">Instrument for each kind of track</p><p class="hint">Each melodic track plays as one of these four roles, depending on the genre, so with more than four melodic tracks some share an instrument. Drum tracks use the drum kit above, and the sample track uses its own sounds.</p><div id="pspatch" class="psgrid"></div></div>
         <div class="songgrp">
           <p class="lbl">Your own sounds</p>
           <p class="hint">Add audio files from your device (WAV, MP3, AIFF, FLAC and so on, any length). They stay on this device. They play in the browser preview only: the FM-1 can only play sounds that are already installed on it.</p>
@@ -731,9 +731,9 @@ body.minibar{padding-bottom:76px}
 
 
   <details class="midi"><summary>Track colours</summary>
-    <p class="hint">Tracks 1 to 4 start in the same colours as the Sloop screen: blue, green, yellow and orange. Tap a swatch to change any track's colour. Your choices are remembered in this browser.</p>
+    <p class="hint">Tracks 1 to 4 start in the same colours as the Sloop screen: blue, green, yellow and orange. Tap a swatch to change any track's colour, including the sample track. Your choices are remembered in this browser.</p>
     <div class="colrow" id="colours"></div>
-    <button id="colreset" class="mini">Back to the Sloop colours</button>
+    <button id="colreset" class="mini">Default colours</button>
   </details>
 
   </div>
@@ -3146,7 +3146,7 @@ let userCols={};
 try{ const j=JSON.parse(localStorage.getItem(COL_KEY)||'{}'); if(j&&typeof j==='object') userCols=j; }catch(_){}
 function applyCols(){
   const r=document.documentElement.style;
-  for(let n=1;n<=8;n++){ const v=userCols[n]; if(/^#[0-9a-f]{6}$/i.test(v||'')) r.setProperty('--t'+n,v); else r.removeProperty('--t'+n); }
+  for(let n=1;n<=9;n++){ const v=userCols[n]; if(/^#[0-9a-f]{6}$/i.test(v||'')) r.setProperty('--t'+n,v); else r.removeProperty('--t'+n); }
 }
 function saveCols(){ try{ localStorage.setItem(COL_KEY,JSON.stringify(userCols)); }catch(_){} }
 function curHex(n){
@@ -3157,7 +3157,8 @@ function curHex(n){
 function renderColours(){
   const el=$('colours'); if(!el) return;
   const names=trackNames();
-  el.innerHTML=names.map((nm,i)=>`<label class="colpick"><span class="lbl">Track ${i+1}</span><input type="color" data-col="${i+1}" value="${curHex(i+1)}" aria-label="Colour for track ${i+1}, ${esc(nm)}"></label>`).join('');
+  el.innerHTML=names.map((nm,i)=>`<label class="colpick"><span class="lbl">Track ${i+1}</span><input type="color" data-col="${i+1}" value="${curHex(i+1)}" aria-label="Colour for track ${i+1}, ${esc(nm)}"></label>`).join('')+
+    `<label class="colpick"><span class="lbl">Sample</span><input type="color" data-col="9" value="${curHex(9)}" aria-label="Colour for the sample track"></label>`;
 }
 $('colours').addEventListener('input',e=>{
   const c=e.target.closest('[data-col]'); if(!c) return;
@@ -5497,7 +5498,7 @@ function renderVox(){
    `<div class="vopts"><span class="lbl">Mix in the FM-1's sound</span><select id="linsel" aria-label="Sound input">${LIN.devs.length?LIN.devs.map(d=>`<option value="${esc(d.deviceId)}">${esc(d.label||'Input')}</option>`).join(''):'<option value="">Default input (tap Start to list more)</option>'}</select><button class="mini" data-vact="lin" aria-pressed="${LIN.on}">${LIN.on?'Stop':'Start'}</button><input id="linlvl" type="range" min="5" max="100" value="${Math.round(LIN.level*100)}" aria-label="FM-1 sound level"></div><p class="hint">${LIN.err?esc(LIN.err)+' ':''}This takes the FM-1's sound in through a sound input on this device (a USB sound device if the FM-1 shows as one in your sound settings, or the line-in or mic socket with a cable from the FM-1's headphone jack) and plays it with your samples through this device's output. Use headphones or an input that is not a microphone in the room, or it will squeal. There is a small delay on the FM-1's sound.</p>
    <p class="hint">Up to four voices play together, each with its own sound, hits, pitch and hold (how many steps a note lasts; "to next" holds until the next hit, and sung notes glide into each other). The grid shows the selected voice. Voices are saved with your patterns. This track is never sent to the FM-1 as MIDI; it plays through this device's speakers, and only while no FM-1 is connected unless you tick the box above. The built-in voices are synthesised; device voices are clearer for words. Add your own recordings in Preview sounds above. "Delay the FM-1" shifts only when notes reach the FM-1 (use it if the samples arrive late over Bluetooth); leave it at 0 otherwise.</p>`;
   { const ls=$('linsel'); if(ls&&LIN.id) ls.value=LIN.id; }
-  box.className='track vox'+(VOX.on?'':' muted')+(TCOL.has('vox')?' col':''); box.style.setProperty('--c','var(--t8)');
+  box.className='track vox'+(VOX.on?'':' muted')+(TCOL.has('vox')?' col':''); box.style.setProperty('--c','var(--t9)');
   $('voxsnd').value=L.snd; $('voxeng').value=VOX.eng; $('voxmode').value=L.mode;
   if(VOX.eng==='device'){ const d=$('voxdv'); if(d&&VOX.dv) d.value=VOX.dv; } else $('voxvoice').value=L.voice;
 }

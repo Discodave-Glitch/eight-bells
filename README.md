@@ -157,3 +157,4 @@ The firmwares it works with are made by other people, and the app credits each m
 - Seed codes now carry the key, so a pattern made with the Generate button comes back exactly on another device.
 - Phones: rebuilding the tracks after a tap now holds the page position, so tapping a step no longer jumps the view (fix for iPhone, awaiting confirmation).
 - Debug mode: add ?dbg to the web address to show a small log of taps, scrolls and errors (for tracking down phone-only problems). The build letters show next to V3 in the title.
+- Track colours: the sample track now has its own colour swatch, and the reset button reads Default colours.
