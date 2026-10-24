@@ -8451,7 +8451,7 @@ document.addEventListener('fullscreenchange',fsChange);document.addEventListener
 g$('stfs').onclick=()=>{autoImm=false;imm()?exitImm():enterImm()};
 g$('stfx').onclick=exitImm;g$('stfpl').onclick=()=>{g$('play').click();showFloat();idle=4};g$('stfp').onclick=()=>{setScene(cur-1);showFloat()};g$('stfn').onclick=()=>{setScene(cur+1);showFloat()};
 let lastLs=null,autoImm=0;
-const phoneLand=()=>matchMedia('(orientation:landscape)').matches&&innerHeight<=600;
+const phoneLand=()=>matchMedia('(orientation:landscape)').matches&&(innerHeight<=600||matchMedia('(pointer:coarse)').matches);
 function autoRot(){if(!stOn)return;const ls=phoneLand();if(ls===lastLs)return;lastLs=ls;if(ls&&!imm()){enterImm();autoImm=1}else if(!ls&&imm()&&autoImm){exitImm();autoImm=0}}
 addEventListener('resize',()=>{if(stOn){autoRot();fit();idle=3}});addEventListener('orientationchange',()=>setTimeout(()=>{if(stOn){autoRot();fit()}},250));
 document.addEventListener('visibilitychange',()=>{prev=performance.now()});
