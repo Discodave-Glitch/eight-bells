@@ -7297,7 +7297,7 @@ SCN.push(
 ['High diving','Every hit is a dive.',sHd]
 );
 
-let stOn=false,rafId=0,lm=Array(8).fill(false),free=0,lastMode="";
+let stOn=false,rafId=0,lm=Array(8).fill(false),free=0,lastMode="",idle=4,wasLive=false;
 const g$=id=>document.getElementById(id);
 function slot(i){
   try{
@@ -7311,26 +7311,27 @@ function slot(i){
   return null}
 function on(g,k){return !!(g&&g.cells&&g.cells[k%g.n]&&(!g.notes||g.notes[k%g.n]!=null))}
 function setScene(n){cur=(n+SCN.length)%SCN.length;balls=[];floaters=[];puffs=[];cones=[];darts=[];rocks=[];lasers=[];score=0;shots=0;flash=0;Z={};fb={x:340,y:190,tx:340,ty:190};ch={x:340,y:170,tx:340,ty:170};
-g$('stlab').textContent='No. '+String(cur+1).padStart(2,'0')+' of '+SCN.length+' · '+SCN[cur][0]+'  —  '+SCN[cur][1];
+idle=4;g$('stlab').textContent='No. '+String(cur+1).padStart(2,'0')+' of '+SCN.length+' · '+SCN[cur][0]+'  —  '+SCN[cur][1];
 [...g$('stchips').children].forEach((b,i)=>b.classList.toggle('sel',i===cur))}
 function frame(t){if(!stOn)return;rafId=requestAnimationFrame(frame);
 now=t;dt=Math.min(.1,(t-prev)/1000);prev=t;hits=[];
 sd=60/(state.bpm||120)/4;
-const live=playing&&ROLL.step>=0,mode=live?'l':'f';
-if(live){stf=ROLL.step+Math.max(0,Math.min(.999,(ac.currentTime-ROLL.t)/sd))}else{if(run)free+=dt/sd;stf=free}
-if(run||live){const ns=Math.floor(stf);if(mode!==lastMode||ns-last>4||ns<last){last=ns-1;lastMode=mode}
+const live=playing&&ROLL.step>=0,mode=live?'l':'f';if(wasLive&&!live)idle=4;wasLive=live;
+if(live){stf=ROLL.step+Math.max(0,Math.min(.999,(ac.currentTime-ROLL.t)/sd))}else{stf=free=0;if(idle<=0){return}idle--;dt=0;T.forEach(tr=>tr.h=0)}
+if(live){const ns=Math.floor(stf);if(mode!==lastMode||ns-last>4||ns<last){last=ns-1;lastMode=mode}
  const gs=T.map((_,i)=>slot(i));
  for(let k=last+1;k<=ns;k++){gs.forEach((q,i)=>{if(q&&!q.mute&&!lm[i]&&on(q,k)){T[i].h=1;hits.push(i)}});if(k%16===0)shake=mood>.5?8:3}
- last=ns}
+ last=ns}else{lastMode='f'}
 st=Math.floor(stf);fr=stf-st;s=st%16;bar=Math.floor(st/16)%4;el=stf*sd;
 const base=Math.floor(st/16)*16;
 T.forEach((tr,i)=>{const q=slot(i);tr.m=!q||q.mute||lm[i];for(let k=0;k<16;k++)tr.p[k]=!!(q&&on(q,base+k))});
 if(autoOn&&st%64===0&&st>0&&st!==lastAutoBar){lastAutoBar=st;setScene(cur+1)}
-T.forEach(tr=>tr.h*=.86);
+if(live)T.forEach(tr=>tr.h*=.86);
 if(balls.length>150)balls.splice(0,50);if(floaters.length>120)floaters.splice(0,40);if(darts.length>80)darts.splice(0,30);if(rocks.length>60)rocks.splice(0,20);
 x.save();if(shake>.3){x.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);shake*=.8}
 try{SCN[cur][2]()}catch(e){x.restore();window.__err=(window.__err||[]).concat(SCN[cur][0]+': '+e.message);x.fillStyle='#151213';x.fillRect(0,0,W,H);txt('scene error',340,190,'#E8503A','center',16);return}
 if(sticker){x.save();x.translate(340,110);x.rotate(sticker.r);x.globalAlpha=Math.min(1,sticker.a*2);x.fillStyle='#F5C84B';x.beginPath();for(let i=0;i<16;i++){const a=i/16*6.283,r=i%2?50:72;x.lineTo(Math.cos(a)*r*1.3,Math.sin(a)*r*.7)}x.closePath();x.fill();txt(sticker.w,0,9,'#151213','center',26);x.restore();sticker.a-=.02;if(sticker.a<=0)sticker=null}
+if(!live){x.fillStyle='rgba(21,18,19,.55)';x.fillRect(0,0,W,H);txt('PRESS PLAY',340,196,'#F5C84B','center',30);txt('Stage moves with your tracks',340,224,'#bdb3a9','center',13)}
 x.restore();
 const pb=g$('stplay');const lbl=playing?'Stop':'Play';if(pb.textContent!==lbl)pb.textContent=lbl}
 function openStage(){if(stOn)return;stOn=true;g$('stage').hidden=false;document.documentElement.classList.add('st-lock');
@@ -7339,7 +7340,7 @@ function closeStage(){if(imm())exitImm();stOn=false;cancelAnimationFrame(rafId);
 const chips=g$('stchips');
 SCN.forEach((sc,i)=>{const b=document.createElement('button');b.className='sb';b.textContent=(i+1)+' '+sc[0];b.onclick=()=>setScene(i);chips.appendChild(b)});
 const trk=g$('sttrk');
-T.forEach((t,i)=>{const b=document.createElement('button');b.className='sb';b.textContent=t.n;b.style.background=t.c;b.onclick=()=>{lm[i]=!lm[i];b.classList.toggle('off',lm[i])};trk.appendChild(b)});
+T.forEach((t,i)=>{const b=document.createElement('button');b.className='sb';b.textContent=t.n;b.style.background=t.c;b.onclick=()=>{idle=3;lm[i]=!lm[i];b.classList.toggle('off',lm[i])};trk.appendChild(b)});
 g$('stagebtn').addEventListener('click',openStage);
 g$('stx').onclick=closeStage;
 g$('stplay').onclick=()=>g$('play').click();
@@ -7364,7 +7365,7 @@ function fsChange(){if(fsEl())fsOn=true;else if(fsOn&&imm())exitImm();setTimeout
 document.addEventListener('fullscreenchange',fsChange);document.addEventListener('webkitfullscreenchange',fsChange);
 g$('stfs').onclick=()=>imm()?exitImm():enterImm();
 g$('stfx').onclick=exitImm;g$('stfp').onclick=()=>{setScene(cur-1);showFloat()};g$('stfn').onclick=()=>{setScene(cur+1);showFloat()};
-addEventListener('resize',()=>{if(stOn)fit()});addEventListener('orientationchange',()=>setTimeout(()=>{if(stOn)fit()},250));
+addEventListener('resize',()=>{if(stOn){fit();idle=3}});addEventListener('orientationchange',()=>setTimeout(()=>{if(stOn)fit()},250));
 document.addEventListener('visibilitychange',()=>{prev=performance.now()});
 
 })();
