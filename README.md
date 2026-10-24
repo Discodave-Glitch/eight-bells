@@ -155,3 +155,4 @@ The firmwares it works with are made by other people, and the app credits each m
 - Much shorter song codes (EB3 codes that start with EB4 are compressed; patterns you have not edited are rebuilt from a few characters). Old codes still load.
 - Copy buttons now add a short intro and how-to-use text each side of the code; paste the whole text anywhere and the code is found.
 - Seed codes now carry the key, so a pattern made with the Generate button comes back exactly on another device.
+- Phones: rebuilding the tracks after a tap now holds the page position, so tapping a step no longer jumps the view (fix for iPhone, awaiting confirmation).

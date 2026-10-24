@@ -3225,12 +3225,19 @@ function runChange(id,fn){
 }
 function setSection(id){ state.section=id; paintSections(); }
 function renderTracks(){
-  $('tracks').innerHTML=state.synth.map(synthHTML).join('')+drumSets().map(drumHTML).join('');
+  /* Rebuilding the tracks must never move the page: on phones the view could jump up to the panels above the tracks. Hold the height and the scroll position across the rebuild. */
+  const box=$('tracks'), y=window.pageYOffset, h=box.offsetHeight;
+  box.style.minHeight=h+'px';
+  box.innerHTML=state.synth.map(synthHTML).join('')+drumSets().map(drumHTML).join('');
   renderSolos(); renderColours(); fillCapTargets(); paintSections(); paintChange(); if(typeof tcolAllLabel==='function') tcolAllLabel();
   prevNow=[];
   applySolo();
   renderOut();
+  box.style.minHeight='';
+  if(Math.abs(window.pageYOffset-y)>1) window.scrollTo(0,y);
+  requestAnimationFrame(()=>{ if(Math.abs(window.pageYOffset-y)>1&&!SCROLLING) window.scrollTo(0,y); });
 }
+let SCROLLING=false; (function(){ let t; const on=()=>{ SCROLLING=true; clearTimeout(t); t=setTimeout(()=>{ SCROLLING=false; },120); }; window.addEventListener('touchmove',on,{passive:true}); window.addEventListener('wheel',on,{passive:true}); })();
 function tempoBox(){
   { const fc=$('feelcur'); if(fc) fc.textContent=state.bpm+' BPM \u00b7 '+NOTE_NAMES[state.key]; }
   const el=$('tempobox'); if(!el) return;
