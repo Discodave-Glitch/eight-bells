@@ -598,7 +598,7 @@ html.st-lock,html.st-lock body{overflow:hidden}
  .stagev .sb{height:34px}
 }
 .stagev.st-imm .st-in>*:not(.st-cvw){display:none}
-.stagev.st-imm .st-cvw{position:fixed;inset:0;z-index:5;background:#000;align-items:center}
+.stagev.st-imm .st-cvw{position:fixed;inset:0;z-index:5;background:transparent;align-items:center}
 .stagev.st-imm .st-cvw{display:block;overflow:hidden}
 .stagev.st-imm canvas{border-radius:0;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);max-width:none!important;max-height:none!important}
 .stagev.st-imm .st-float{position:fixed;left:0;right:0;bottom:max(14px,env(safe-area-inset-bottom));justify-content:center;gap:10px;opacity:0;pointer-events:none;transition:opacity .25s}
@@ -609,7 +609,7 @@ html.st-lock,html.st-lock body{overflow:hidden}
 @media (orientation:landscape) and (max-height:800px){.stagev .st-top span{display:none}.stagev .st-top b{flex:1 1 100%}}
 
 .stagev #stbg{position:fixed;left:-10%;top:-10%;width:120%;height:120%;z-index:-1;filter:blur(28px) saturate(1.3) brightness(.5);border-radius:0;pointer-events:none;image-rendering:auto}
-.stagev.st-imm #stbg{display:none}
+.stagev.st-imm #stbg{display:block;position:fixed;left:-10%;top:-10%;width:120%;height:120%;transform:none;max-width:none!important;filter:blur(24px) saturate(1.3) brightness(.7)}
 
 @media (orientation:portrait){
  .stagev .st-in{min-height:calc(100dvh - 28px);display:flex;flex-direction:column;justify-content:space-between;gap:14px}
@@ -8443,7 +8443,7 @@ const imm=()=>stg.classList.contains('st-imm'),fsEl=()=>document.fullscreenEleme
 function showFloat(){fl.classList.add('show');clearTimeout(flT);flT=setTimeout(()=>fl.classList.remove('show'),3500)}
 function fit(){const land=matchMedia('(orientation:landscape) and (max-height:800px)').matches;let aw,ah;
  if(imm()){aw=innerWidth;ah=innerHeight}else if(land){aw=g$('stcvw').clientWidth;ah=innerHeight-28}else{cv.style.width='';cv.style.height='';return}
- const k=imm()?Math.max(aw/W,ah/H):Math.min(aw/W,ah/H);cv.style.width=Math.ceil(W*k)+'px';cv.style.height=Math.ceil(H*k)+'px'}
+ const k=imm()&&aw/ah>=1.35?Math.max(aw/W,ah/H):Math.min(aw/W,ah/H);cv.style.width=Math.ceil(W*k)+'px';cv.style.height=Math.ceil(H*k)+'px'}
 function enterImm(){stg.classList.add('st-imm');fsOn=false;try{const r=stg.requestFullscreen||stg.webkitRequestFullscreen;if(r){const p=r.call(stg);if(p&&p.catch)p.catch(()=>{})}}catch(e){}fit();showFloat()}
 function exitImm(){autoImm=0;stg.classList.remove('st-imm');fl.classList.remove('show');try{if(fsEl()){const r=document.exitFullscreen||document.webkitExitFullscreen;const p=r.call(document);if(p&&p.catch)p.catch(()=>{})}}catch(e){}fsOn=false;fit()}
 function fsChange(){if(fsEl())fsOn=true;else if(fsOn&&imm())exitImm();setTimeout(fit,60)}
