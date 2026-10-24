@@ -8420,7 +8420,7 @@ x.restore();
 if(bgx)try{bgx.drawImage(cv,0,0,48,27)}catch(e){}
 const pb=g$('stplay'),pf=g$('stfpl');const lbl=playing?'Stop':'Play';if(pb.textContent!==lbl)pb.textContent=lbl;if(pf.textContent!==lbl)pf.textContent=lbl}
 function openStage(){if(stOn)return;stOn=true;g$('stage').hidden=false;document.documentElement.classList.add('st-lock');
- prev=performance.now();last=-1;lastMode='';lastAutoBar=-1;setScene(0);g$('stage').scrollTop=0;lastLs=null;autoRot();fit();rafId=requestAnimationFrame(frame)}
+ prev=performance.now();last=-1;lastMode='';lastAutoBar=-1;setScene(0);g$('stage').scrollTop=0;lastLs=null;autoRot();fit();rafId=requestAnimationFrame(frame);setTimeout(()=>{try{autoRot()}catch(e){}},60)}
 function closeStage(){if(imm())exitImm();stOn=false;cancelAnimationFrame(rafId);g$('stage').hidden=true;document.documentElement.classList.remove('st-lock')}
 const chips=g$('stchips');
 SCN.forEach((sc,i)=>{const b=document.createElement('button');b.className='sb';b.textContent=(i+1)+' '+sc[0];b.onclick=()=>setScene(i);chips.appendChild(b)});
@@ -8443,7 +8443,7 @@ const imm=()=>stg.classList.contains('st-imm'),fsEl=()=>document.fullscreenEleme
 function showFloat(){fl.classList.add('show');clearTimeout(flT);flT=setTimeout(()=>fl.classList.remove('show'),3500)}
 function fit(){const land=matchMedia('(orientation:landscape) and (max-height:800px)').matches;let aw,ah;
  if(imm()){aw=innerWidth;ah=innerHeight}else if(land){aw=g$('stcvw').clientWidth;ah=innerHeight-28}else{cv.style.width='';cv.style.height='';return}
- const k=imm()&&aw/ah>=1.35?Math.max(aw/W,ah/H):Math.min(aw/W,ah/H);cv.style.width=Math.ceil(W*k)+'px';cv.style.height=Math.ceil(H*k)+'px'}
+ const k=Math.min(aw/W,ah/H);cv.style.width=Math.ceil(W*k)+'px';cv.style.height=Math.ceil(H*k)+'px'}
 function enterImm(){stg.classList.add('st-imm');fsOn=false;try{const r=stg.requestFullscreen||stg.webkitRequestFullscreen;if(r){const p=r.call(stg);if(p&&p.catch)p.catch(()=>{})}}catch(e){}fit();showFloat()}
 function exitImm(){autoImm=0;stg.classList.remove('st-imm');fl.classList.remove('show');try{if(fsEl()){const r=document.exitFullscreen||document.webkitExitFullscreen;const p=r.call(document);if(p&&p.catch)p.catch(()=>{})}}catch(e){}fsOn=false;fit()}
 function fsChange(){if(fsEl())fsOn=true;else if(fsOn&&imm())exitImm();setTimeout(fit,60)}
