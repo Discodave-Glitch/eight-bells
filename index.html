@@ -542,6 +542,13 @@ html.lv-lock,html.lv-lock body{overflow:hidden !important}
 .lv-barpop .lvb{flex:none;min-width:58px}
 @media (min-width:700px){ .lv-now{grid-template-columns:minmax(0,1fr) 260px minmax(0,1fr)} .lv-barbtn{min-height:34px;font-size:13px;padding:0 12px} }
 
+.lv-gp .lvb{flex:1 1 0}
+.lv-gp .lv-gen,.lv-gp .lv-play,.lv-gp .lv-rec{font-size:17px;min-height:50px}
+.lv-rec{gap:6px}.lv-rec i{width:12px;height:12px;border-radius:50%;background:#e5484d;display:inline-block}
+.lv-rec.on i{animation:lvrecp 1s infinite}@keyframes lvrecp{50%{opacity:.25}}
+.lv-vol .lv-exit{width:110px}
+@media (min-width:700px){ .lv-gp .lv-gen,.lv-gp .lv-play,.lv-gp .lv-rec{min-height:58px;font-size:20px} }
+
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#2f7f95">
@@ -551,7 +558,7 @@ html.lv-lock,html.lv-lock body{overflow:hidden !important}
   <button id="themebtn" class="themebtn" type="button" aria-label="Switch between light and dark" title="Switch between light and dark"></button>
   <header class="brand">
     <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Eight Bells logo"><circle cx="32" cy="32" r="30" fill="#2f7f95" stroke="#e0b04a" stroke-width="2.5"/><circle cx="32.0" cy="8.0" r="3" fill="#e0b04a"/><circle cx="49.0" cy="15.0" r="3" fill="#1d5568"/><circle cx="56.0" cy="32.0" r="3" fill="#e0b04a"/><circle cx="49.0" cy="49.0" r="3" fill="#e0b04a"/><circle cx="32.0" cy="56.0" r="3" fill="#1d5568"/><circle cx="15.0" cy="49.0" r="3" fill="#e0b04a"/><circle cx="8.0" cy="32.0" r="3" fill="#e0b04a"/><circle cx="15.0" cy="15.0" r="3" fill="#1d5568"/><circle cx="32" cy="19" r="2.2" fill="#e0b04a"/><path d="M21 43c2.5-4 3.5-8 3.5-13 0-5 3-8 7.5-8s7.5 3 7.5 8c0 5 1 9 3.5 13z" fill="#f2ede9" stroke="#0b0909" stroke-width="1.2" stroke-linejoin="round"/><rect x="20" y="42.5" width="24" height="3" rx="1.5" fill="#e0b04a" stroke="#0b0909" stroke-width="1"/><circle cx="32" cy="48.5" r="2.6" fill="#0b0909"/></svg>
-    <div class="brandtxt"><p class="from"><a href="https://github.com/Discodave-Glitch/slipway" target="_blank" rel="noopener">From the maker of Slipway</a></p><h1>Eight Bells <small class="ver">V3<span id="buildtag"> &middot; zu</span></small></h1>
+    <div class="brandtxt"><p class="from"><a href="https://github.com/Discodave-Glitch/slipway" target="_blank" rel="noopener">From the maker of Slipway</a></p><h1>Eight Bells <small class="ver">V3<span id="buildtag"> &middot; zv</span></small></h1>
     <p class="sub">Beats and melodies for the M-VAVE FM-1 and its custom firmwares, built from 28 engines, from Euclidean rhythms to world cycles, chaos and Markov chains. Up to 8 tracks depending on the firmware, up to 64 steps each.<span id="midisub"> It can play the pattern on the FM-1 itself over USB MIDI.</span></p></div>
   </header>
   <div class="waves" aria-hidden="true"></div>
@@ -5909,10 +5916,10 @@ function lvBuild(){
     <div class="lv-dice" id="lvdice" style="order:5"></div>
     <div class="lv-edit" id="lvedit" style="order:6" hidden></div>
     <div class="lv-trkw" id="lvtrkw" style="order:7"><div class="lv-lbl" id="lvtl">Tracks &middot; M mute &middot; S solo &middot; Lk lock &middot; tap a track to edit it</div><div class="lv-trks" id="lvtrks"></div></div></div>
-   <div class="lv-r"><div class="lv-row lv-gp" id="lvgp" style="order:2"><button class="lvb lv-gen" id="lvgen">Generate</button><button class="lvb lv-play" id="lvplay">Play</button></div>
+   <div class="lv-r"><div class="lv-row lv-gp" id="lvgp" style="order:2"><button class="lvb lv-gen" id="lvgen">Generate</button><button class="lvb lv-play" id="lvplay">Play</button><button class="lvb lv-rec" id="lvrec" data-lv="rec"></button></div>
     <div class="lv-row lv-bpm" id="lvbpm" style="order:3"><button class="lvb" data-lv="bpm-">&minus;</button><div class="lv-v"><b id="lvbpmv"></b> <small>BPM</small></div><button class="lvb" data-lv="bpm+">+</button><button class="lvb lv-sw" data-lv="swing" id="lvsw"></button></div>
     <div class="lv-fxw" id="lvfxw" style="order:8"><div class="lv-lbl">Punch effects (hold)</div><div class="lv-fx" id="lvfx"></div></div>
-    <div class="lv-row lv-vol" id="lvvol" style="order:9"><label class="lv-volr"><span>Volume</span><input type="range" id="lvvolr" min="10" max="150" aria-label="Preview volume"></label><button class="lvb" id="lvrec" data-lv="rec">Record</button><button class="lvb lv-exit" data-lv="exit">Exit</button></div></div>
+    <div class="lv-row lv-vol" id="lvvol" style="order:9"><label class="lv-volr"><span>Volume</span><input type="range" id="lvvolr" min="10" max="150" aria-label="Preview volume"></label><button class="lvb lv-exit" data-lv="exit">Exit</button></div></div>
   </div>`;
   $('lvdice').innerHTML=LV_DICE.map(x=>`<button class="lvb lv-d" data-dice-lv="${x[0]}" title="${x[2]}"><span>\u{1F3B2}</span><small>${x[1]}</small></button>`).join('');
   $('lvfx').innerHTML=LV_FX.map(i=>`<button class="lvb lvfx" data-fx="${i}">${FX_LIST[i][1].replace(' sweep','')}</button>`).join('');
@@ -6014,7 +6021,7 @@ function lvPaint(){
   { const inf=$('lvinfo'), fl=LV.flash&&Date.now()<LV.flashT, en=$('engname').textContent||''; const k2=fl?'F'+LV.flash:'N'+genreObj().name+'|'+en+'|'+loopLen(); if(inf.dataset.k!==k2){ inf.dataset.k=k2; if(fl) inf.innerHTML='<b class="lv-flash">'+esc(LV.flash)+'</b>'; else inf.textContent=genreObj().name+(en?' · '+en:'')+' · '+loopLen()/16+' bar'+(loopLen()>16?'s':''); } }
   $('lvbpmv').textContent=state.bpm; $('lvsw').textContent='Swing '+$('swing').value+'%';
   const p=$('lvplay'); p.textContent=playing?'Stop':playIdle(); p.classList.toggle('on',playing);
-  const rc=$('lvrec'); rc.textContent=REC.on?'Stop rec':'● Record'; rc.classList.toggle('on',!!REC.on);
+  const rc=$('lvrec'); rc.innerHTML='<i></i>'+(REC.on?'Stop rec':'Record'); rc.classList.toggle('on',!!REC.on);
   if(document.activeElement!==$('lvvolr')) $('lvvolr').value=$('pvol').value;
 }
 function lvLoop(){

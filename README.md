@@ -162,3 +162,4 @@ The firmwares it works with are made by other people, and the app credits each m
 - Live view now has a row of dice rolls: random engine, genre, sounds, pattern, change, solo track, punch effect, and Auto song.
 - Recordings button: the last 10 recordings stay in the browser with Play, Download and Delete. Live view dice now cover all ten dice rolls and say what they did in the top right.
 - Live view: a bars button beside the bar counter, a centred Now and Next box, and the Pattern dice now queues the next pattern to start when the current loop ends.
+- Live view: Record sits next to Play, with Generate, Play and Record as three equal tiles.
