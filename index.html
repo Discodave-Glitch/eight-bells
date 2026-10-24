@@ -609,7 +609,7 @@ html.st-lock,html.st-lock body{overflow:hidden}
 @media (orientation:landscape) and (max-height:800px){.stagev .st-top span{display:none}.stagev .st-top b{flex:1 1 100%}}
 
 .stagev #stbg{position:fixed;left:-10%;top:-10%;width:120%;height:120%;z-index:-1;filter:blur(28px) saturate(1.3) brightness(.5);border-radius:0;pointer-events:none;image-rendering:auto}
-.stagev.st-imm #stbg{display:block;position:fixed;left:-10%;top:-10%;width:120%;height:120%;transform:none;max-width:none!important;filter:blur(24px) saturate(1.3) brightness(.7)}
+.stagev.st-imm #stbg{display:block;position:fixed;left:-10%;top:-10%;width:120%;height:120%;transform:none;max-width:none!important;filter:blur(9px)}
 
 @media (orientation:portrait){
  .stagev .st-in{min-height:calc(100dvh - 28px);display:flex;flex-direction:column;justify-content:space-between;gap:14px}
@@ -962,7 +962,7 @@ html.st-lock,html.st-lock body{overflow:hidden}
 <div id="recs" class="recs" hidden role="dialog" aria-label="Recordings"><div class="recs-in"><div class="recs-top"><b>Recordings</b><button class="mini" data-rclose="1">Close</button></div><div id="recslist"></div><p class="hint">Kept in this browser only, the last 10. Recording also saves a WAV file to your downloads each time.</p></div></div>
 <div id="live" class="live" hidden role="dialog" aria-label="Live view"></div>
 <div id="stage" class="stagev" hidden role="dialog" aria-label="Stage">
-<canvas id="stbg" width="48" height="27" aria-hidden="true"></canvas>
+<canvas id="stbg" width="160" height="90" aria-hidden="true"></canvas>
 <div class="st-in">
 <div class="st-top"><b>Eight Bells</b><span>Stage</span><button class="sb" id="stplay">Play</button><button class="sb" id="stfs">Full screen</button><button class="sb" id="stx">Close</button></div>
 <details><summary>All scenes</summary><div class="chips" id="stchips"></div></details>
@@ -9054,7 +9054,7 @@ x.save();if(shake>.3){x.translate((Math.random()-.5)*shake,(Math.random()-.5)*sh
 try{SCN[cur][2]()}catch(e){x.restore();window.__err=(window.__err||[]).concat(SCN[cur][0]+': '+e.message);x.fillStyle='#151213';x.fillRect(0,0,W,H);txt('scene error',340,190,'#E8503A','center',16);return}
 if(sticker){x.save();x.translate(340,110);x.rotate(sticker.r);x.globalAlpha=Math.min(1,sticker.a*2);x.fillStyle='#F5C84B';x.beginPath();for(let i=0;i<16;i++){const a=i/16*6.283,r=i%2?50:72;x.lineTo(Math.cos(a)*r*1.3,Math.sin(a)*r*.7)}x.closePath();x.fill();txt(sticker.w,0,9,'#151213','center',26);x.restore();sticker.a-=.02;if(sticker.a<=0)sticker=null}
 x.restore();
-if(bgx)try{bgx.drawImage(cv,0,0,48,27)}catch(e){}
+if(bgx)try{if(imm()){const wide=innerWidth/innerHeight>W/H;if(wide){bgx.drawImage(cv,0,0,4,H,0,0,80,90);bgx.drawImage(cv,W-4,0,4,H,80,0,80,90)}else{bgx.drawImage(cv,0,0,W,4,0,0,160,45);bgx.drawImage(cv,0,H-4,W,4,0,45,160,45)}}else bgx.drawImage(cv,0,0,160,90)}catch(e){}
 const pb=g$('stplay'),pf=g$('stfpl');const lbl=playing?'Stop':'Play';if(pb.textContent!==lbl)pb.textContent=lbl;if(pf.textContent!==lbl)pf.textContent=lbl}
 function openStage(){if(stOn)return;stOn=true;g$('stage').hidden=false;document.documentElement.classList.add('st-lock');
  prev=performance.now();last=-1;lastMode='';lastAutoBar=-1;setScene(0);g$('stage').scrollTop=0;lastLs=null;autoRot();fit();rafId=requestAnimationFrame(frame);setTimeout(()=>{try{autoRot()}catch(e){}},60)}
