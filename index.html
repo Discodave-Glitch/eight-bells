@@ -305,6 +305,8 @@ details.about .fine { font-size: 13px; color: var(--muted); }
 .toolrow .mini{width:100%;justify-content:center;min-height:38px}
 .toolrow .hint:empty{display:none}
 .toolrow .hint{grid-column:1 / -1;margin:0}
+.toolrow .tvol{grid-column:1 / -1}
+.toolrow #tcolall{grid-column:1 / -1;order:9}
 .tvol{display:flex;align-items:center;gap:8px;font-size:.85rem;min-width:0}
 .tvol input{flex:1;min-width:0;width:auto}
 #recbtn[aria-pressed="true"]{background:#c0392b;color:#fff;border-color:#c0392b}
@@ -354,7 +356,8 @@ details.midi > .trow,details.midi > .saves{margin-top:10px}
   #tracks > .track{break-inside:avoid;-webkit-column-break-inside:avoid;margin:0 0 14px !important;display:flex}
 }
 @media (min-width:700px){
-  .toolrow{grid-template-columns:repeat(4,auto);justify-content:start;gap:10px 14px}
+  .toolrow{grid-template-columns:repeat(3,auto);justify-content:start;gap:10px 14px}
+  .toolrow .tvol,.toolrow #tcolall{grid-column:auto;order:0}
   .toolrow .mini{width:auto;padding-inline:16px}
   .tvol input{width:160px;flex:none}
 }
@@ -515,6 +518,20 @@ html.lv-lock,html.lv-lock body{overflow:hidden !important}
 .lv-d{flex-direction:column;gap:1px;min-height:44px;padding:0;border-radius:10px}.lv-d span{font-size:17px;line-height:1}.lv-d small{font-size:8.5px;color:var(--muted);font-weight:600}
 .live.editing .lv-d{min-height:36px}.live.editing .lv-d small{display:none}
 
+@media (min-width:1100px){ .toolrow{grid-template-columns:repeat(6,auto)} }
+.lv-d.hit{animation:lvhit .7s ease-out}
+@keyframes lvhit{0%{background:var(--accent);color:var(--accent-ink)}100%{background:var(--surface)}}
+.lv-dice{grid-template-columns:repeat(10,1fr);gap:3px}
+.lv-d small{font-size:7.5px;letter-spacing:-.2px}
+.lv-top .lv-info{max-width:62%;text-align:right}.lv-flash{color:var(--accent);font-size:13px}
+.recs{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:14px}
+.recs[hidden]{display:none}
+.recs-in{background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:14px;width:min(560px,100%);max-height:86vh;overflow:auto;display:flex;flex-direction:column;gap:10px}
+.recs-top{display:flex;justify-content:space-between;align-items:center;font-size:16px}
+.rec-item{display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:var(--cell);border-radius:10px;padding:8px 10px}
+.rec-info{flex:1 1 140px;display:flex;flex-direction:column}.rec-info small{color:var(--muted)}
+.rec-item .mini{flex:none;width:auto !important}
+
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#2f7f95">
@@ -524,7 +541,7 @@ html.lv-lock,html.lv-lock body{overflow:hidden !important}
   <button id="themebtn" class="themebtn" type="button" aria-label="Switch between light and dark" title="Switch between light and dark"></button>
   <header class="brand">
     <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Eight Bells logo"><circle cx="32" cy="32" r="30" fill="#2f7f95" stroke="#e0b04a" stroke-width="2.5"/><circle cx="32.0" cy="8.0" r="3" fill="#e0b04a"/><circle cx="49.0" cy="15.0" r="3" fill="#1d5568"/><circle cx="56.0" cy="32.0" r="3" fill="#e0b04a"/><circle cx="49.0" cy="49.0" r="3" fill="#e0b04a"/><circle cx="32.0" cy="56.0" r="3" fill="#1d5568"/><circle cx="15.0" cy="49.0" r="3" fill="#e0b04a"/><circle cx="8.0" cy="32.0" r="3" fill="#e0b04a"/><circle cx="15.0" cy="15.0" r="3" fill="#1d5568"/><circle cx="32" cy="19" r="2.2" fill="#e0b04a"/><path d="M21 43c2.5-4 3.5-8 3.5-13 0-5 3-8 7.5-8s7.5 3 7.5 8c0 5 1 9 3.5 13z" fill="#f2ede9" stroke="#0b0909" stroke-width="1.2" stroke-linejoin="round"/><rect x="20" y="42.5" width="24" height="3" rx="1.5" fill="#e0b04a" stroke="#0b0909" stroke-width="1"/><circle cx="32" cy="48.5" r="2.6" fill="#0b0909"/></svg>
-    <div class="brandtxt"><p class="from"><a href="https://github.com/Discodave-Glitch/slipway" target="_blank" rel="noopener">From the maker of Slipway</a></p><h1>Eight Bells <small class="ver">V3<span id="buildtag"> &middot; zs</span></small></h1>
+    <div class="brandtxt"><p class="from"><a href="https://github.com/Discodave-Glitch/slipway" target="_blank" rel="noopener">From the maker of Slipway</a></p><h1>Eight Bells <small class="ver">V3<span id="buildtag"> &middot; zt</span></small></h1>
     <p class="sub">Beats and melodies for the M-VAVE FM-1 and its custom firmwares, built from 28 engines, from Euclidean rhythms to world cycles, chaos and Markov chains. Up to 8 tracks depending on the firmware, up to 64 steps each.<span id="midisub"> It can play the pattern on the FM-1 itself over USB MIDI.</span></p></div>
   </header>
   <div class="waves" aria-hidden="true"></div>
@@ -534,6 +551,7 @@ html.lv-lock,html.lv-lock body{overflow:hidden !important}
       <label class="tvol"><span>Volume</span><input id="pvol" type="range" min="10" max="150" value="100" aria-label="Preview volume"></label>
       <button id="tcolall" class="mini" title="Minimise or expand every track">Minimise tracks</button>
       <button id="recbtn" class="mini" aria-pressed="false" title="Record what you hear in the browser (preview sounds, Sample track and the FM-1 sound input) to a WAV file">Record</button>
+      <button id="recsbtn" class="mini" title="Your last recordings, kept in this browser">Recordings</button>
       <span id="recmsg" class="hint" aria-live="polite"></span>
     </div>
 
@@ -838,6 +856,7 @@ html.lv-lock,html.lv-lock body{overflow:hidden !important}
   </div>
   </div>
 </main>
+<div id="recs" class="recs" hidden role="dialog" aria-label="Recordings"><div class="recs-in"><div class="recs-top"><b>Recordings</b><button class="mini" data-rclose="1">Close</button></div><div id="recslist"></div><p class="hint">Kept in this browser only, the last 10. Recording also saves a WAV file to your downloads each time.</p></div></div>
 <div id="live" class="live" hidden role="dialog" aria-label="Live view"></div>
 <div id="minibar" hidden><button id="mgen" class="primary">Generate</button><button id="mplay" class="ghost" aria-pressed="false">Play</button></div>
 
@@ -5653,6 +5672,7 @@ function recStop(){
   if(!REC.n) return null;
   const blob=new Blob([wavEncode([cat(REC.L),cat(REC.R)],ac.sampleRate)],{type:'audio/wav'}), url=URL.createObjectURL(blob), a=document.createElement('a');
   a.href=url; a.download='eight-bells-'+new Date().toISOString().slice(0,16).replace(/[:T]/g,'-')+'.wav'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),30000);
+  try{ recKeep(blob,REC.n/ac.sampleRate); }catch(_){}
   REC.L=[]; REC.R=[]; return true;
 }
 function paintTools(){
@@ -5660,7 +5680,7 @@ function paintTools(){
 }
 let recTick=null;
 $('recbtn').addEventListener('click',()=>{
-  if(REC.on){ recStop(); clearInterval(recTick); $('recmsg').textContent='Saved as a WAV file (check your downloads).'; }
+  if(REC.on){ recStop(); clearInterval(recTick); $('recmsg').textContent='Saved as a WAV file (check your downloads) and kept in Recordings.'; }
   else { try{ recStart(); }catch(_){ $('recmsg').textContent='This browser cannot record.'; return; } $('recmsg').textContent='Recording... 0:00'; clearInterval(recTick); recTick=setInterval(()=>{ if(!REC.on){ clearInterval(recTick); $('recmsg').textContent='Saved as a WAV file (check your downloads).'; paintTools(); return; } const s=Math.floor((Date.now()-REC.t0)/1000); $('recmsg').textContent='Recording... '+Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); },500); }
   paintTools();
 });
@@ -5856,7 +5876,7 @@ function eqCols(){
 /* ---------- Live view: a one-screen performance page for phones (upright) and tablets (either way).
    It only reads the pattern and presses the same controls as the full view, so nothing sent to the FM-1 changes. ---------- */
 var LV={next:null,edit:null,bar:0,built:false};
-var LV_DICE=[['eng','Engine','Random engine'],['gen','Genre','Random genre'],['inst','Sounds','Random instruments and drums'],['sec','Pattern','Jump to a random pattern'],['chg','Change','Apply a random change'],['solo','Solo','Solo a random track'],['fx','Effect','Fire a random punch effect'],['auto','Auto','Start or stop Auto song']];
+var LV_DICE=[['eng','Engine','Random engine'],['gen','Genre','Random genre'],['inst','Sounds','Random instruments and drums'],['sec','Pattern','Jump to a random pattern'],['chg','Change','Apply a random change'],['solo','Solo','Solo a random track'],['fx','Effect','Fire a random punch effect'],['auto','Auto','Start or stop Auto song'],['song','Song','Build a random song'],['cc','Controls','Randomise the sound controls']];
 var LV_FX=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15];
 function lvOn(){ return document.body.classList.contains('live'); }
 function lvTracks(){
@@ -5905,7 +5925,7 @@ function lvClick(e){
     else if(a==='rec'){ $('recbtn').click(); setTimeout(lvPaint,50); }
     return;
   }
-  if(d.diceLv){ const src=document.querySelector('[data-dice="'+d.diceLv+'"]'); if(src) src.click(); setTimeout(()=>{ lvRender(); },60); return; }
+  if(d.diceLv){ lvDice(d.diceLv,b); return; }
   if(d.sec){
     if(SONG.on) return;
     if(!playing){ goSection(d.sec); LV.next=null; }
@@ -5978,7 +5998,7 @@ function lvPaint(){
   const nx=SONG.on?(SONG.steps[SONG.i+1]?SONG_NAME[SONG.steps[SONG.i+1].id]:(SONG.rep?SONG_NAME[SONG.steps[0].id]:'End')):(LV.next?SONG_NAME[LV.next]:'&mdash;');
   const now=$('lvnow'); const k=nm+'|'+nb+'|'+cur+'|'+nx+'|'+SONG.on+'|'+(SONG.on?SONG.loops+'/'+SONG.i:'');
   if(now.dataset.k!==k){ now.dataset.k=k; now.innerHTML=`<div><div class="lv-lbl">Now</div><b>${esc(nm)}</b>${playing?` <small>bar ${cur+1} of ${nb}</small>`:''}</div><div class="lv-bars">${bars}</div><div class="lv-nx"><div class="lv-lbl">Next</div><b>${nx}</b></div>`; }
-  $('lvinfo').textContent=genreObj().name+' · '+loopLen()/16+' bar'+(loopLen()>16?'s':'');
+  { const inf=$('lvinfo'), fl=LV.flash&&Date.now()<LV.flashT, en=$('engname').textContent||''; const k2=fl?'F'+LV.flash:'N'+genreObj().name+'|'+en+'|'+loopLen(); if(inf.dataset.k!==k2){ inf.dataset.k=k2; if(fl) inf.innerHTML='<b class="lv-flash">'+esc(LV.flash)+'</b>'; else inf.textContent=genreObj().name+(en?' · '+en:'')+' · '+loopLen()/16+' bar'+(loopLen()>16?'s':''); } }
   $('lvbpmv').textContent=state.bpm; $('lvsw').textContent='Swing '+$('swing').value+'%';
   const p=$('lvplay'); p.textContent=playing?'Stop':playIdle(); p.classList.toggle('on',playing);
   const rc=$('lvrec'); rc.textContent=REC.on?'Stop rec':'● Record'; rc.classList.toggle('on',!!REC.on);
@@ -5999,6 +6019,73 @@ function lvStep(){
 }
 $('livebtn').addEventListener('click',()=>lvSet(!lvOn()));
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&lvOn()) lvSet(false); });
+
+/* ---------- Live view dice: each one says what it did, up in the top right corner ---------- */
+function lvFlash(txt){ LV.flash=txt; LV.flashT=Date.now()+2800; lvPaint(); clearTimeout(LV.ft); LV.ft=setTimeout(lvPaint,2900); }
+function lvDice(k,btn){
+  btn.classList.remove('hit'); void btn.offsetWidth; btn.classList.add('hit'); setTimeout(()=>btn.classList.remove('hit'),700);
+  const main=document.querySelector('[data-dice="'+k+'"]');
+  const pick=a=>a[Math.floor(Math.random()*a.length)];
+  if(k==='fx'){ lvFxDice(); return; }
+  if(k==='chg'){ const o=pick([['vary','Vary'],['fill','Fill'],['tweak','Tweak']]); const el=$(o[0]); if(el) el.click(); lvFlash('Change: '+o[1]); lvRender(); return; }
+  if(main) main.click();
+  setTimeout(()=>{
+    let t='';
+    if(k==='eng') t='Engine: '+($('engname').textContent||'random');
+    else if(k==='gen') t='Genre: '+($('genname').textContent||genreObj().name);
+    else if(k==='inst'){ const kit=$('pskit'), ko=kit&&kit.selectedOptions[0]; t='Sounds: '+(ko?ko.text.replace(/^Auto:\s*/,''):'new kit')+' kit'; if(!playing){ try{ hearKit(); }catch(_){} } }
+    else if(k==='sec') t='Pattern: '+(state.section?SONG_NAME[state.section]:'random');
+    else if(k==='solo'){ const nm=trackNames(); t=state.solo.length?'Solo: '+state.solo.map(i=>nm[i]||('Track '+(i+1))).join(', '):'Solo: all tracks'; }
+    else if(k==='auto') t=AUTO.on?'Auto song: on':'Auto song: off';
+    else if(k==='song') t=SONG.steps.length?'Song built: '+SONG.steps.length+' patterns':'Song: nothing built';
+    else if(k==='cc') t='Sound controls randomised';
+    lvFlash(t); lvRender();
+  },80);
+}
+function lvFxDice(){
+  const i=LV_FX[Math.floor(Math.random()*LV_FX.length)], b=document.querySelector('#lvfx [data-fx="'+i+'"]');
+  if(!b||$('lvfxw').hidden){ lvFlash('Effects are off while an FM-1 is connected on this firmware'); return; }
+  const dur=Math.max(600,Math.min(2200,60000/state.bpm*2));
+  try{ b.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,pointerId:77,pointerType:'touch'})); }catch(_){ return; }
+  lvFlash('Effect: '+FX_LIST[i][1]);
+  setTimeout(()=>{ try{ b.dispatchEvent(new PointerEvent('pointerup',{bubbles:true,pointerId:77,pointerType:'touch'})); }catch(_){} },dur);
+}
+/* ---------- Recordings: the last few recordings stay in this browser so you can play, save or delete them ---------- */
+var RECS={list:[],db:null,url:null,audio:null,playing:null};
+function recDB(cb){
+  if(RECS.db) return cb(RECS.db);
+  try{ const rq=indexedDB.open('eb_rec',1); rq.onupgradeneeded=()=>{ rq.result.createObjectStore('r',{keyPath:'id'}); }; rq.onsuccess=()=>{ RECS.db=rq.result; cb(RECS.db); }; rq.onerror=()=>cb(null); }catch(_){ cb(null); }
+}
+function recLoad(done){
+  recDB(db=>{ if(!db){ done&&done(); return; } try{ const rq=db.transaction('r').objectStore('r').getAll(); rq.onsuccess=()=>{ const mem=RECS.list.filter(m=>!(rq.result||[]).some(r=>r.id===m.id)); RECS.list=(rq.result||[]).concat(mem).sort((a,b)=>b.id-a.id); recPaintBtn(); done&&done(); }; rq.onerror=()=>done&&done(); }catch(_){ done&&done(); } });
+}
+function recKeep(blob,dur){
+  const item={id:Date.now(),dur,size:blob.size,blob};
+  RECS.list.unshift(item);
+  const old=RECS.list.splice(10);
+  recDB(db=>{ if(!db) return; try{ const tx=db.transaction('r','readwrite'), st=tx.objectStore('r'); st.put(item); old.forEach(o=>st.delete(o.id)); }catch(_){} });
+  recPaintBtn(); if(!$('recs').hidden) recPaintList();
+}
+function recDel(id){ RECS.list=RECS.list.filter(x=>x.id!==id); recDB(db=>{ if(db) try{ db.transaction('r','readwrite').objectStore('r').delete(id); }catch(_){} }); if(RECS.playing===id) recStopPlay(); recPaintBtn(); recPaintList(); }
+function recPaintBtn(){ const b=$('recsbtn'); if(b) b.textContent=RECS.list.length?'Recordings ('+RECS.list.length+')':'Recordings'; }
+function recStopPlay(){ if(RECS.audio){ try{ RECS.audio.pause(); }catch(_){} } if(RECS.url){ URL.revokeObjectURL(RECS.url); RECS.url=null; } RECS.playing=null; }
+const recFmt=s=>Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');
+function recPaintList(){
+  const box=$('recslist'); if(!box) return;
+  const L=RECS.list;
+  box.innerHTML=L.length?L.map(r=>{ const d=new Date(r.id); const nm=d.toLocaleDateString(undefined,{day:'numeric',month:'short'})+' '+d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}); return `<div class="rec-item"><div class="rec-info"><b>${nm}</b><small>${recFmt(r.dur)} &middot; ${(r.size/1048576).toFixed(1)} MB</small></div><button class="mini" data-rp="${r.id}">${RECS.playing===r.id?'Stop':'Play'}</button><button class="mini" data-rd="${r.id}">Download</button><button class="mini" data-rx="${r.id}">Delete</button></div>`; }).join(''):'<p class="hint">No recordings yet. Press Record, play something, then press it again to stop. The last 10 stay here.</p>';
+}
+function recOpen(on){ const p=$('recs'); p.hidden=!on; if(on){ recPaintList(); recLoad(recPaintList); } else recStopPlay(); }
+$('recsbtn').addEventListener('click',()=>recOpen($('recs').hidden));
+$('recs').addEventListener('click',e=>{
+  if(e.target===$('recs')||e.target.closest('[data-rclose]')){ recOpen(false); return; }
+  const p=e.target.closest('[data-rp]'), dl=e.target.closest('[data-rd]'), x=e.target.closest('[data-rx]');
+  if(p){ const id=+p.dataset.rp, r=RECS.list.find(v=>v.id===id); if(!r) return; if(RECS.playing===id){ recStopPlay(); recPaintList(); return; } recStopPlay(); RECS.url=URL.createObjectURL(r.blob); RECS.audio=RECS.audio||new Audio(); RECS.audio.src=RECS.url; RECS.audio.onended=()=>{ recStopPlay(); recPaintList(); }; RECS.playing=id; RECS.audio.play().catch(()=>{}); recPaintList(); }
+  else if(dl){ const r=RECS.list.find(v=>v.id===+dl.dataset.rd); if(!r) return; const u=URL.createObjectURL(r.blob), a=document.createElement('a'); a.href=u; a.download='eight-bells-'+new Date(r.id).toISOString().slice(0,16).replace(/[:T]/g,'-')+'.wav'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),30000); }
+  else if(x){ sure(x,()=>recDel(+x.dataset.rx)); }
+});
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&!$('recs').hidden) recOpen(false); });
+recLoad();
 
 </script>
 <script>
