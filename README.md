@@ -159,3 +159,4 @@ The firmwares it works with are made by other people, and the app credits each m
 - Debug mode: add ?dbg to the web address to show a small log of taps, scrolls and errors (for tracking down phone-only problems). The build letters show next to V3 in the title.
 - Track colours: the sample track now has its own colour swatch, and the reset button reads Default colours.
 - Live view: a one-screen performance page for phones (upright) and tablets (either way). Now and Next, every track as a strip with mute, solo and lock, tap a track to edit one bar with big steps, queue the next pattern, 16 punch effects, tempo, swing, volume and record.
+- Live view now has a row of dice rolls: random engine, genre, sounds, pattern, change, solo track, punch effect, and Auto song.
