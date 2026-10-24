@@ -10,6 +10,10 @@
 - Mix in the FM-1's sound through a sound input, so one speaker plays the FM-1 and the samples together.
 - Record to WAV, preview volume with a limiter, performance view, and a delay-the-FM-1 slider.
 - iPhone and iPad: works through the Web MIDI Browser app.
+- **Live view**: a one-screen performance page for phones (upright) and tablets (either way). Now/Next box, every track as a strip with Mute, Solo and Lock, tap a track (Sample included) to edit one bar with big steps, queue the next pattern, 16 punch effects, tempo, swing, volume, Record, and all ten dice.
+- **Recordings** button: the last 10 recordings stay in your browser with Play, Download and Delete.
+- Solo dice picks all tracks or 1, 2 or 3 tracks; **Split drums** lets Kick, Snare, Hat and Perc be soloed one by one.
+- Fixes: iPhone/iPad tap-jump, even column heights, sample track colour.
 
 ## Honest limits
 - The built-in voices and words are synthesised and robotic. For natural words, load real recordings.
