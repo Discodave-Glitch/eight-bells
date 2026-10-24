@@ -432,6 +432,85 @@ body.minibar{padding-bottom:76px}
 .sides{display:contents}
 @media (min-width:900px) and (max-width:1399px){.sides{display:flex}}
 
+/* ---------- Live view ---------- */
+[hidden]{display:none !important}
+html.lv-lock,html.lv-lock body{overflow:hidden !important}
+.live{position:fixed;inset:0;z-index:100;background:var(--bg);color:var(--ink);display:flex;flex-direction:column;padding:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left))}
+.live[hidden]{display:none}
+.lv-turn{display:none;margin:auto;text-align:center;font-size:18px;line-height:1.5;color:var(--muted);padding:24px}
+.lv-in{flex:1;min-height:0;display:flex;flex-direction:column;gap:6px}
+.lv-l,.lv-r{display:contents}
+.lv-top{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted)}
+.lv-top b{color:var(--ink);font-size:15px}.lv-sub{font-size:12px}
+.lvb{font:inherit;font-weight:700;font-size:13px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:11px;min-height:34px;padding:0 8px;display:flex;align-items:center;justify-content:center;flex:1;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.lvb.on{background:var(--ink);color:var(--bg)}
+.lvb[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.lv-row{display:flex;gap:6px}
+.lv-gen{background:var(--accent);color:var(--accent-ink);font-size:18px;min-height:50px;flex:1.4;border-color:transparent}
+.lv-play{background:#3cc29a;color:#0b0e16;font-size:18px;min-height:50px;border-color:transparent}
+.lv-play.on{background:var(--ink);color:var(--bg)}
+.lv-bpm{align-items:center}.lv-bpm .lvb{flex:none;width:44px}.lv-bpm .lv-sw{width:92px}
+.lv-v{flex:1;text-align:center;font-size:24px;font-weight:800;line-height:1}.lv-v small{font-size:11px;font-weight:500;color:var(--muted)}
+.lv-now{background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:6px 10px;display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:11px}
+.lv-now b{font-size:16px}.lv-now small{color:var(--muted)}.lv-nx{text-align:right}.lv-nx b{color:#e8a43a}
+.lv-lbl{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.lv-bars{display:flex;gap:4px;flex:1;justify-content:center}.lv-bars i{flex:1;max-width:46px;height:8px;border-radius:3px;background:var(--line)}.lv-bars i.d{background:#3cc29a}.lv-bars i.c{background:var(--ink)}
+.lv-secs{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}.lv-secs.dis{opacity:.45;pointer-events:none}
+.lv-chip{font-size:12px;min-height:30px}.lv-chip.on{background:var(--ink);color:var(--bg)}.lv-chip.nx{outline:2px dashed #e8a43a;outline-offset:-2px}
+.lv-trkw{flex:1 1 0;min-height:60px;display:flex;flex-direction:column;gap:4px}
+.lv-trks{flex:1;min-height:0;display:flex;flex-direction:column;gap:3px;overflow-y:auto}
+.lv-trk{flex:1 1 0;min-height:26px;max-height:56px;display:flex;align-items:center;gap:5px;background:var(--surface);border-radius:9px;padding:2px 5px}
+.lv-trk.mu{opacity:.5}.lv-trk.sel{outline:2px solid var(--c)}
+.lv-nm{width:56px;flex:none;font:inherit;font-size:10.5px;font-weight:700;color:var(--ink);background:none;border:0;padding:0;display:flex;align-items:center;gap:4px;text-align:left;overflow:hidden;white-space:nowrap}
+.lv-nm i{width:8px;height:8px;border-radius:2px;background:var(--c);flex:none}
+.lv-stw{flex:1;min-width:0;height:100%;max-height:34px;display:flex;flex-direction:column;justify-content:center;gap:3px;cursor:pointer}
+.lv-st{display:grid;gap:1px;position:relative;height:100%;min-height:10px;max-height:26px}
+.lv-st s{background:var(--cell);border-radius:1px;display:block}.lv-st s.o{background:var(--c)}
+.lv-st s:nth-child(16n+1):not(:first-child){margin-left:3px}
+.lv-ph{position:absolute;top:-2px;bottom:-2px;background:var(--ink);opacity:.9;display:none;pointer-events:none;min-width:2px}
+.lv-lv{height:3px;background:var(--line);border-radius:2px;position:relative;flex:none}.lv-lv u{position:absolute;inset:0 auto 0 0;background:var(--c);border-radius:2px}
+.lv-m{flex:none;width:28px;height:26px;border-radius:7px;background:var(--cell);border:1px solid var(--line);font:inherit;font-size:9.5px;font-weight:700;color:var(--ink);display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;touch-action:manipulation}
+.lv-m.on{background:var(--ink);color:var(--bg)}.lv-m.so{background:#e8a43a;color:#0b0e16}.lv-m.gh{visibility:hidden}
+.lv-fxw{display:flex;flex-direction:column;gap:3px;flex:none}
+.lv-fx{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.lvfx{font-size:10px;min-height:30px;border-radius:9px;padding:0 2px;touch-action:none;user-select:none;-webkit-user-select:none}
+.lvfx[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.lv-vol{align-items:center}.lv-vol .lvb{flex:none;width:84px;padding:0 4px;font-size:12px}
+.lv-volr{flex:1;display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:0 10px;min-height:34px;font-size:12px;color:var(--muted)}.lv-volr input{flex:1;min-width:0;width:0}
+.lv-exit{background:var(--cell)}
+.lv-edit{background:color-mix(in srgb,var(--c) 14%,var(--surface));border:2px solid var(--c);border-radius:12px;padding:8px;display:flex;flex-direction:column;gap:7px;flex:none}
+.lv-edtop{display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:13px}.lv-edtop i{display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--c);margin-right:6px}
+.lv-done{flex:none;background:var(--ink);color:var(--bg);padding:0 16px;min-height:28px}
+.lv-big{display:grid;grid-template-columns:repeat(8,1fr);gap:5px}
+.lv-step{font:inherit;border:0;border-radius:8px;background:var(--cell);height:44px;position:relative;cursor:pointer;touch-action:manipulation;padding:0}
+.lv-step.o{background:var(--c)}.lv-step.now{outline:2px solid var(--ink);outline-offset:1px}
+.lv-step b{position:absolute;bottom:2px;left:0;right:0;text-align:center;font-size:8px;color:var(--muted);font-weight:600}.lv-step.o b{color:#0b0e16}
+.live.editing .lv-trks .lv-trk{max-height:28px}.live.editing .lv-fxw .lvfx{min-height:26px}
+/* phone held sideways */
+@media (orientation:landscape) and (max-height:500px) and (max-width:900px){ .live .lv-in{display:none} .live .lv-turn{display:block} }
+/* tablet sideways: tracks and patterns on the left, controls on the right */
+@media (min-width:900px) and (orientation:landscape) and (min-height:501px){
+  .lv-in{display:grid;grid-template-columns:1.65fr 1fr;grid-template-rows:auto 1fr;gap:10px 12px}
+  .lv-top{grid-column:1 / -1}
+  .lv-l,.lv-r{display:flex;flex-direction:column;gap:8px;min-height:0}
+  .lv-secs{order:7 !important;grid-template-columns:repeat(8,1fr)}
+  .lv-chip{min-height:38px;font-size:13px}
+  .lv-gen,.lv-play{min-height:58px;font-size:20px}
+  .lv-fxw{flex:1;min-height:0}.lv-fx{flex:1;grid-auto-rows:1fr}.lvfx{min-height:0;font-size:12px}
+  .lv-trk{max-height:none}.lv-st{max-height:none}.lv-stw{max-height:none}
+  .lv-big{gap:8px}.lv-step{height:84px}
+  .live.editing .lv-trks .lv-trk{max-height:34px}.live.editing .lv-fxw .lvfx{min-height:0}
+}
+/* tablet upright: one wider column */
+@media (min-width:700px) and (orientation:portrait){
+  .lv-secs{grid-template-columns:repeat(8,1fr)}
+  .lv-trk{max-height:none}.lv-st{max-height:none}.lv-stw{max-height:none}
+  .live.editing .lv-trks .lv-trk{max-height:46px}
+  .lv-fx{gap:6px}.lvfx{min-height:40px;font-size:12px}
+  .lv-gen,.lv-play{min-height:58px;font-size:20px}
+  .lv-step{height:64px}.lv-big{gap:8px}
+}
+
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#2f7f95">
@@ -441,11 +520,12 @@ body.minibar{padding-bottom:76px}
   <button id="themebtn" class="themebtn" type="button" aria-label="Switch between light and dark" title="Switch between light and dark"></button>
   <header class="brand">
     <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Eight Bells logo"><circle cx="32" cy="32" r="30" fill="#2f7f95" stroke="#e0b04a" stroke-width="2.5"/><circle cx="32.0" cy="8.0" r="3" fill="#e0b04a"/><circle cx="49.0" cy="15.0" r="3" fill="#1d5568"/><circle cx="56.0" cy="32.0" r="3" fill="#e0b04a"/><circle cx="49.0" cy="49.0" r="3" fill="#e0b04a"/><circle cx="32.0" cy="56.0" r="3" fill="#1d5568"/><circle cx="15.0" cy="49.0" r="3" fill="#e0b04a"/><circle cx="8.0" cy="32.0" r="3" fill="#e0b04a"/><circle cx="15.0" cy="15.0" r="3" fill="#1d5568"/><circle cx="32" cy="19" r="2.2" fill="#e0b04a"/><path d="M21 43c2.5-4 3.5-8 3.5-13 0-5 3-8 7.5-8s7.5 3 7.5 8c0 5 1 9 3.5 13z" fill="#f2ede9" stroke="#0b0909" stroke-width="1.2" stroke-linejoin="round"/><rect x="20" y="42.5" width="24" height="3" rx="1.5" fill="#e0b04a" stroke="#0b0909" stroke-width="1"/><circle cx="32" cy="48.5" r="2.6" fill="#0b0909"/></svg>
-    <div class="brandtxt"><p class="from"><a href="https://github.com/Discodave-Glitch/slipway" target="_blank" rel="noopener">From the maker of Slipway</a></p><h1>Eight Bells <small class="ver">V3<span id="buildtag"> &middot; zq</span></small></h1>
+    <div class="brandtxt"><p class="from"><a href="https://github.com/Discodave-Glitch/slipway" target="_blank" rel="noopener">From the maker of Slipway</a></p><h1>Eight Bells <small class="ver">V3<span id="buildtag"> &middot; zr</span></small></h1>
     <p class="sub">Beats and melodies for the M-VAVE FM-1 and its custom firmwares, built from 28 engines, from Euclidean rhythms to world cycles, chaos and Markov chains. Up to 8 tracks depending on the firmware, up to 64 steps each.<span id="midisub"> It can play the pattern on the FM-1 itself over USB MIDI.</span></p></div>
   </header>
   <div class="waves" aria-hidden="true"></div>
   <div class="toolrow" role="group" aria-label="Output tools">
+      <button id="livebtn" class="mini perfbtn" aria-pressed="false" title="A one-screen view for playing live: Now and Next, every track, big punch effects">Live view</button>
       <button id="perfbtn" class="mini perfbtn" title="Hide everything except the transport, tracks, Sample track and effects">Performance view</button>
       <label class="tvol"><span>Volume</span><input id="pvol" type="range" min="10" max="150" value="100" aria-label="Preview volume"></label>
       <button id="tcolall" class="mini" title="Minimise or expand every track">Minimise tracks</button>
@@ -754,6 +834,7 @@ body.minibar{padding-bottom:76px}
   </div>
   </div>
 </main>
+<div id="live" class="live" hidden role="dialog" aria-label="Live view"></div>
 <div id="minibar" hidden><button id="mgen" class="primary">Generate</button><button id="mplay" class="ghost" aria-pressed="false">Play</button></div>
 
 <script>
@@ -3235,7 +3316,7 @@ function renderTracks(){
   applySolo();
   renderOut();
   box.style.minHeight='';
-  eqCols();
+  eqCols(); if(document.body.classList.contains('live')) lvRender();
   if(Math.abs(window.pageYOffset-y)>1) window.scrollTo(0,y);
 }
 function tempoBox(){
@@ -5114,7 +5195,7 @@ songPaint();
 function tick(){
   const ahead=document.hidden?1.5:0.12;
   while(nextTime<ac.currentTime+ahead){
-    autoStep(); songStep(); if(!playing) return;
+    autoStep(); songStep(); lvStep(); if(!playing) return;
     try{ schedule(gstep,nextTime); }catch(_){ SFX_ERR++; }
     nextTime+=60/state.bpm/4;
     gstep++;
@@ -5767,6 +5848,149 @@ function eqCols(){
   const box=$('tracks'); if(box&&window.ResizeObserver){ new ResizeObserver(run).observe(box); }
   $('tracks').addEventListener('click',run);
 })();
+
+/* ---------- Live view: a one-screen performance page for phones (upright) and tablets (either way).
+   It only reads the pattern and presses the same controls as the full view, so nothing sent to the FM-1 changes. ---------- */
+var LV={next:null,edit:null,bar:0,built:false};
+var LV_FX=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15];
+function lvOn(){ return document.body.classList.contains('live'); }
+function lvTracks(){
+  const rows=[], names=trackNames();
+  state.synth.forEach((t,i)=>rows.push({kind:'s',i,name:names[i]||('Track '+(i+1)),col:'var(--t'+(i+1)+')',n:t.n,cells:t.cells,muted:t.muted,locked:t.locked,lvl:t.lvl,sel:state.solo.includes(i),ti:i}));
+  drumSets().forEach((d,k)=>d.lanes.forEach((l,j)=>rows.push({kind:'d',k,j,name:l.label,col:'var(--t'+(state.synth.length+k+1)+')',n:d.n,cells:l.cells,muted:l.muted||d.muted,locked:d.locked,lvl:l.lvl==null?d.lvl:l.lvl,sel:state.solo.includes(state.synth.length+k),ti:state.synth.length+k})));
+  return rows;
+}
+function lvKey(r){ return r.kind==='s'?'s'+r.i:'d'+r.k+'l'+r.j; }
+function lvCard(r){ return document.querySelector(r.kind==='s'?`#tracks .track[data-kind="s"][data-i="${r.i}"]`:`#tracks .track[data-kind="d"][data-di="${r.k}"]`); }
+function lvStrip(cells,n){ let h=''; for(let s=0;s<n;s++) h+='<s'+(cells[s]?' class="o"':'')+'></s>'; return h; }
+function lvBuild(){
+  if(LV.built) return; LV.built=true;
+  const L=$('live');
+  L.innerHTML=`<div class="lv-turn">Live view works upright on a phone.<br>Turn your phone back to portrait.</div>
+  <div class="lv-in">
+   <div class="lv-top" style="order:0"><span><b>Eight Bells</b> <span class="lv-sub">Live view</span></span><span class="lv-info" id="lvinfo"></span></div>
+   <div class="lv-l"><div class="lv-now" id="lvnow" style="order:1"></div>
+    <div class="lv-secs" id="lvsecs" style="order:4"></div>
+    <div class="lv-edit" id="lvedit" style="order:5" hidden></div>
+    <div class="lv-trkw" id="lvtrkw" style="order:6"><div class="lv-lbl" id="lvtl">Tracks &middot; M mute &middot; S solo &middot; Lk lock &middot; tap a track to edit it</div><div class="lv-trks" id="lvtrks"></div></div></div>
+   <div class="lv-r"><div class="lv-row lv-gp" id="lvgp" style="order:2"><button class="lvb lv-gen" id="lvgen">Generate</button><button class="lvb lv-play" id="lvplay">Play</button></div>
+    <div class="lv-row lv-bpm" id="lvbpm" style="order:3"><button class="lvb" data-lv="bpm-">&minus;</button><div class="lv-v"><b id="lvbpmv"></b> <small>BPM</small></div><button class="lvb" data-lv="bpm+">+</button><button class="lvb lv-sw" data-lv="swing" id="lvsw"></button></div>
+    <div class="lv-fxw" id="lvfxw" style="order:7"><div class="lv-lbl">Punch effects (hold)</div><div class="lv-fx" id="lvfx"></div></div>
+    <div class="lv-row lv-vol" id="lvvol" style="order:8"><label class="lv-volr"><span>Volume</span><input type="range" id="lvvolr" min="10" max="150" aria-label="Preview volume"></label><button class="lvb" id="lvrec" data-lv="rec">Record</button><button class="lvb lv-exit" data-lv="exit">Exit</button></div></div>
+  </div>`;
+  $('lvfx').innerHTML=LV_FX.map(i=>`<button class="lvb lvfx" data-fx="${i}">${FX_LIST[i][1].replace(' sweep','')}</button>`).join('');
+  $('lvfx').addEventListener('pointerdown',fxDown);
+  ['pointerup','pointercancel','lostpointercapture'].forEach(t=>$('lvfx').addEventListener(t,fxRelease));
+  $('lvvolr').addEventListener('input',e=>{ $('pvol').value=e.target.value; $('pvol').dispatchEvent(new Event('input',{bubbles:true})); });
+  $('lvgen').addEventListener('click',()=>{ $('gen').click(); });
+  $('lvplay').addEventListener('click',()=>{ $('play').click(); lvPaint(); });
+  L.addEventListener('click',lvClick);
+}
+function lvClick(e){
+  const sw=e.target.closest('[data-ed-s]');
+  const b=e.target.closest('button')||sw; if(!b) return;
+  const d=b===sw?{ed:sw.dataset.edS}:b.dataset;
+  if(d.lv){
+    const a=d.lv;
+    if(a==='exit') lvSet(false);
+    else if(a==='bpm-'||a==='bpm+'){ const el=$('bpm'); el.value=clamp(+el.value+(a==='bpm+'?1:-1),+el.min,+el.max); el.dispatchEvent(new Event('input',{bubbles:true})); lvPaint(); }
+    else if(a==='swing'){ const el=$('swing'); let v=+el.value+5; if(v>+el.max) v=+el.min; el.value=v; el.dispatchEvent(new Event('input',{bubbles:true})); lvPaint(); }
+    else if(a==='rec'){ $('recbtn').click(); setTimeout(lvPaint,50); }
+    return;
+  }
+  if(d.sec){
+    if(SONG.on) return;
+    if(!playing){ goSection(d.sec); LV.next=null; }
+    else LV.next=(LV.next===d.sec)?null:d.sec;
+    lvPaint(); lvSecs(); return;
+  }
+  if(d.m!==undefined){ const r=lvTracks()[+d.m]; lvPress(r,'mute'); return; }
+  if(d.so!==undefined){ const r=lvTracks()[+d.so]; const sb=document.querySelector(`#solos [data-solo="${r.ti}"]`); if(sb) sb.click(); lvRender(); return; }
+  if(d.lk!==undefined){ const r=lvTracks()[+d.lk]; lvPress(r,'lock'); return; }
+  if(d.vm){ $('voxbox').querySelector('[data-vact="mute"]')&&$('voxbox').querySelector('[data-vact="mute"]').click(); lvRender(); return; }
+  if(d.ed!==undefined){ const rs=lvTracks(), r=rs[+d.ed]; LV.edit=(LV.edit&&LV.edit.key===lvKey(r))?null:{key:lvKey(r)}; LV.bar=Math.min(LV.bar,Math.max(0,Math.ceil(r.n/16)-1)); lvRender(); return; }
+  if(d.eb!==undefined){ LV.bar=+d.eb; lvEdit(); return; }
+  if(d.ea==='done'){ LV.edit=null; lvRender(); return; }
+  if(d.ea==='prev'||d.ea==='next'){ const r=lvEditRow(); if(!r) return; const nb=Math.max(1,Math.ceil(r.n/16)); LV.bar=(LV.bar+(d.ea==='next'?1:nb-1))%nb; lvEdit(); return; }
+  if(d.es!==undefined){ const r=lvEditRow(), c=r&&lvCard(r); if(!c) return; const keep=state.mode; state.mode='hit'; const sel=r.kind==='s'?`[data-act="cell"][data-s="${d.es}"]`:`.lane[data-j="${r.j}"] [data-act="cell"][data-s="${d.es}"]`; const cell=c.querySelector(sel); if(cell) cell.click(); state.mode=keep; return; }
+  if(d.ea==='redo'||d.ea==='clearbar'||d.ea==='lock'){ const r=lvEditRow(), c=r&&lvCard(r); if(!c) return;
+    if(d.ea==='lock'){ lvPress(r,'lock'); return; }
+    if(d.ea==='redo'){ const bt=r.kind==='s'?c.querySelector('[data-act="redo"]'):c.querySelector(`.lane[data-j="${r.j}"] [data-act="redo"]`); if(bt) bt.click(); return; }
+    const keep=state.mode; state.mode='hit';
+    for(let s=LV.bar*16;s<Math.min(r.n,LV.bar*16+16);s++){ const rr=lvEditRow(); if(rr&&rr.cells[s]){ const cc=lvCard(rr); const sel=rr.kind==='s'?`[data-act="cell"][data-s="${s}"]`:`.lane[data-j="${rr.j}"] [data-act="cell"][data-s="${s}"]`; const cell=cc&&cc.querySelector(sel); if(cell) cell.click(); } }
+    state.mode=keep; return; }
+}
+function lvPress(r,act){ const c=lvCard(r); if(!c) return; const sel=r.kind==='s'?`[data-act="${act}"]`:(act==='mute'?`.lane[data-j="${r.j}"] [data-act="mute"]`:`[data-act="${act}"]`); const bt=c.querySelector(sel); if(bt) bt.click(); }
+function lvEditRow(){ if(!LV.edit) return null; return lvTracks().find(r=>lvKey(r)===LV.edit.key)||null; }
+function lvSet(on){
+  if(on&&!HAS_LIVE_OK) return;
+  document.body.classList.toggle('live',on);
+  const L=$('live'); L.hidden=!on;
+  if(on){ lvBuild(); LV.next=null; LV.edit=null; LV.bar=0; document.documentElement.classList.add('lv-lock'); window.scrollTo(0,0); lvRender(); requestAnimationFrame(lvLoop); }
+  else document.documentElement.classList.remove('lv-lock');
+  const b=$('livebtn'); if(b) b.setAttribute('aria-pressed',String(on));
+}
+var HAS_LIVE_OK=true;
+function lvSecs(){
+  const el=$('lvsecs'); if(!el) return;
+  const ids=SECTION_IDS.filter(id=>id!=='allt');
+  el.innerHTML=ids.map(id=>`<button class="lvb lv-chip${state.section===id?' on':''}${LV.next===id?' nx':''}" data-sec="${id}">${({bld:'Build-up',brk:'Break',half:'Half',bridge:'Bridge'})[id]||SONG_NAME[id]}</button>`).join('');
+  el.classList.toggle('dis',!!SONG.on);
+}
+function lvRender(){
+  if(!lvOn()||!LV.built) return;
+  lvSecs(); lvPaint();
+  const rows=lvTracks(), n=rows.length;
+  let h=rows.map((r,i)=>`<div class="lv-trk${r.muted?' mu':''}${LV.edit&&LV.edit.key===lvKey(r)?' sel':''}" data-r="${i}" style="--c:${r.col}"><button class="lv-nm" data-ed="${i}"><i></i>${esc(r.name)}</button><div class="lv-stw" data-ed-s="${i}"><div class="lv-st" style="grid-template-columns:repeat(${r.n},1fr)">${lvStrip(r.cells,r.n)}<em class="lv-ph"></em></div><div class="lv-lv"><u style="width:${Math.min(100,(r.lvl==null?100:r.lvl)/1.25)}%"></u></div></div><button class="lv-m${r.muted?' on':''}" data-m="${i}">M</button><button class="lv-m${r.sel?' so':''}" data-so="${i}">S</button><button class="lv-m${r.locked?' on':''}" data-lk="${i}">Lk</button></div>`).join('');
+  const vc=voxCells(voxLane()), vn=vc.length;
+  h+=`<div class="lv-trk${VOX.mute||!VOX.on?' mu':''}" style="--c:var(--t9)"><span class="lv-nm"><i></i>Sample</span><div class="lv-stw"><div class="lv-st" style="grid-template-columns:repeat(${vn},1fr)">${lvStrip(VOX.lanes.length>1?VOX.lanes.reduce((a,l)=>{ const c=voxCells(l); return a.map((x,i)=>x||c[i]); },new Array(vn).fill(0)):vc,vn)}<em class="lv-ph"></em></div></div><button class="lv-m${VOX.mute?' on':''}" data-vm="1">M</button><span class="lv-m gh"></span><span class="lv-m gh"></span></div>`;
+  $('lvtrks').innerHTML=h;
+  $('lvtrks').classList.toggle('many',n>10);
+  lvEdit();
+  const fxw=$('lvfxw'); fxw.hidden=!(cfg.device==='sloop'||fxLocalMode());
+}
+function lvEdit(){
+  const box=$('lvedit'), r=lvEditRow();
+  if(!r){ box.hidden=true; box.innerHTML=''; $('live').classList.remove('editing'); return; }
+  const nb=Math.max(1,Math.ceil(r.n/16)); LV.bar=Math.min(LV.bar,nb-1);
+  const from=LV.bar*16, cnt=Math.min(16,r.n-from);
+  let st=''; for(let s=from;s<from+cnt;s++) st+=`<button class="lv-step${r.cells[s]?' o':''}" data-es="${s}"><b>${s-from+1}</b></button>`;
+  $('live').classList.add('editing');
+  box.hidden=false; box.style.setProperty('--c',r.col);
+  box.innerHTML=`<div class="lv-edtop"><span><i></i>${esc(r.name)} &middot; editing bar ${LV.bar+1}${nb>1?' of '+nb:''}</span><button class="lvb lv-done" data-ea="done">Done</button></div>`+
+   (nb>1?`<div class="lv-row"><button class="lvb" data-ea="prev" style="flex:none;width:40px">&#9664;</button>${Array.from({length:nb},(_,i)=>`<button class="lvb${i===LV.bar?' on':''}" data-eb="${i}">Bar ${i+1}</button>`).join('')}<button class="lvb" data-ea="next" style="flex:none;width:40px">&#9654;</button></div>`:'')+
+   `<div class="lv-big">${st}</div><div class="lv-row"><button class="lvb" data-ea="redo">Redo track</button><button class="lvb" data-ea="clearbar">Clear bar</button><button class="lvb${r.locked?' on':''}" data-ea="lock">Lock</button></div>`;
+}
+function lvPaint(){
+  if(!lvOn()||!LV.built) return;
+  const nm=state.section?SONG_NAME[state.section]:'No pattern picked';
+  const L=loopLen(), nb=Math.max(1,Math.ceil(L/16));
+  const stp=playing?(ROLL.step<0?0:ROLL.step%L):-1, cur=stp<0?-1:Math.floor(stp/16);
+  let bars=''; for(let i=0;i<Math.min(nb,8);i++) bars+=`<i class="${i===cur?'c':(i<cur?'d':'')}"></i>`;
+  const nx=SONG.on?(SONG.steps[SONG.i+1]?SONG_NAME[SONG.steps[SONG.i+1].id]:(SONG.rep?SONG_NAME[SONG.steps[0].id]:'End')):(LV.next?SONG_NAME[LV.next]:'&mdash;');
+  const now=$('lvnow'); const k=nm+'|'+nb+'|'+cur+'|'+nx+'|'+SONG.on+'|'+(SONG.on?SONG.loops+'/'+SONG.i:'');
+  if(now.dataset.k!==k){ now.dataset.k=k; now.innerHTML=`<div><div class="lv-lbl">Now</div><b>${esc(nm)}</b>${playing?` <small>bar ${cur+1} of ${nb}</small>`:''}</div><div class="lv-bars">${bars}</div><div class="lv-nx"><div class="lv-lbl">Next</div><b>${nx}</b></div>`; }
+  $('lvinfo').textContent=genreObj().name+' · '+loopLen()/16+' bar'+(loopLen()>16?'s':'');
+  $('lvbpmv').textContent=state.bpm; $('lvsw').textContent='Swing '+$('swing').value+'%';
+  const p=$('lvplay'); p.textContent=playing?'Stop':playIdle(); p.classList.toggle('on',playing);
+  const rc=$('lvrec'); rc.textContent=REC.on?'Stop rec':'● Record'; rc.classList.toggle('on',!!REC.on);
+  if(document.activeElement!==$('lvvolr')) $('lvvolr').value=$('pvol').value;
+}
+function lvLoop(){
+  if(!lvOn()) return;
+  const L=loopLen(), stp=playing&&ROLL.step>=0?ROLL.step:-1;
+  document.querySelectorAll('#lvtrks .lv-st').forEach((el,i)=>{ const ph=el.lastElementChild; if(!ph) return; const n=el.children.length-1; if(stp<0||!n){ ph.style.display='none'; return; } ph.style.display='block'; ph.style.left=((stp%n)/n*100)+'%'; ph.style.width=(100/n)+'%'; });
+  const ed=document.querySelector('#lvedit .lv-big'); if(ed){ const r=lvEditRow(); [...ed.children].forEach(b=>b.classList.toggle('now',stp>=0&&r&&(stp%r.n)===+b.dataset.es)); }
+  if(playing||LV.last!==playing){ lvPaint(); }
+  LV.last=playing;
+  requestAnimationFrame(lvLoop);
+}
+function lvStep(){
+  if(!LV.next||SONG.on||gstep<=0||gstep%loopLen()!==0) return;
+  const id=LV.next; LV.next=null; goSection(id);
+}
+$('livebtn').addEventListener('click',()=>lvSet(!lvOn()));
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&lvOn()) lvSet(false); });
 
 </script>
 <script>
