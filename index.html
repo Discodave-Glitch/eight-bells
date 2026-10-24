@@ -549,6 +549,11 @@ html.lv-lock,html.lv-lock body{overflow:hidden !important}
 .lv-vol .lv-exit{width:110px}
 @media (min-width:700px){ .lv-gp .lv-gen,.lv-gp .lv-play,.lv-gp .lv-rec{min-height:58px;font-size:20px} }
 
+.lv-lblrow{display:flex;justify-content:space-between;align-items:center;gap:6px}
+.lv-split{font:inherit;font-size:10px;font-weight:700;color:var(--ink);background:var(--cell);border:1px solid var(--line);border-radius:8px;padding:2px 9px;min-height:22px;cursor:pointer;flex:none;letter-spacing:0;text-transform:none}
+.lv-split.on{background:var(--ink);color:var(--bg)}
+.splitd{grid-column:1 / -1}
+
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#2f7f95">
@@ -558,7 +563,7 @@ html.lv-lock,html.lv-lock body{overflow:hidden !important}
   <button id="themebtn" class="themebtn" type="button" aria-label="Switch between light and dark" title="Switch between light and dark"></button>
   <header class="brand">
     <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Eight Bells logo"><circle cx="32" cy="32" r="30" fill="#2f7f95" stroke="#e0b04a" stroke-width="2.5"/><circle cx="32.0" cy="8.0" r="3" fill="#e0b04a"/><circle cx="49.0" cy="15.0" r="3" fill="#1d5568"/><circle cx="56.0" cy="32.0" r="3" fill="#e0b04a"/><circle cx="49.0" cy="49.0" r="3" fill="#e0b04a"/><circle cx="32.0" cy="56.0" r="3" fill="#1d5568"/><circle cx="15.0" cy="49.0" r="3" fill="#e0b04a"/><circle cx="8.0" cy="32.0" r="3" fill="#e0b04a"/><circle cx="15.0" cy="15.0" r="3" fill="#1d5568"/><circle cx="32" cy="19" r="2.2" fill="#e0b04a"/><path d="M21 43c2.5-4 3.5-8 3.5-13 0-5 3-8 7.5-8s7.5 3 7.5 8c0 5 1 9 3.5 13z" fill="#f2ede9" stroke="#0b0909" stroke-width="1.2" stroke-linejoin="round"/><rect x="20" y="42.5" width="24" height="3" rx="1.5" fill="#e0b04a" stroke="#0b0909" stroke-width="1"/><circle cx="32" cy="48.5" r="2.6" fill="#0b0909"/></svg>
-    <div class="brandtxt"><p class="from"><a href="https://github.com/Discodave-Glitch/slipway" target="_blank" rel="noopener">From the maker of Slipway</a></p><h1>Eight Bells <small class="ver">V3<span id="buildtag"> &middot; zv</span></small></h1>
+    <div class="brandtxt"><p class="from"><a href="https://github.com/Discodave-Glitch/slipway" target="_blank" rel="noopener">From the maker of Slipway</a></p><h1>Eight Bells <small class="ver">V3<span id="buildtag"> &middot; zw</span></small></h1>
     <p class="sub">Beats and melodies for the M-VAVE FM-1 and its custom firmwares, built from 28 engines, from Euclidean rhythms to world cycles, chaos and Markov chains. Up to 8 tracks depending on the firmware, up to 64 steps each.<span id="midisub"> It can play the pattern on the FM-1 itself over USB MIDI.</span></p></div>
   </header>
   <div class="waves" aria-hidden="true"></div>
@@ -2713,6 +2718,9 @@ function makeVel(t,kind,fx){
 function nextVel(v){ return v<=72?90:(v<=105?120:55); }
 
 function audible(st,i){ return !st.solo||!st.solo.length||st.solo.includes(i); }
+// A drum kit can be soloed whole (its track number) or lane by lane ('d<kit>.<lane>', for example 'd0.1' is the snare).
+function audibleSet(st,i,k){ return !st.solo||!st.solo.length||st.solo.includes(i)||st.solo.some(x=>typeof x==='string'&&x.indexOf('d'+k+'.')===0); }
+function audibleLane(st,i,k,j){ return !st.solo||!st.solo.length||st.solo.includes(i)||st.solo.includes('d'+k+'.'+j); }
 function stepMsOf(bpm){ return 60000/bpm/4; }
 // Off-beat sixteenths land late. 50 is straight, 66 is a triplet feel, 75 is the most.
 function swingMs(st,step){ return step%2===1 ? Math.max(0,(st.swing||50)-50)/100*2*stepMsOf(st.bpm) : 0; }
@@ -2731,11 +2739,11 @@ function stepEvents(st,cfg,step){
   });
   const sets=[st.drums].concat(st.drums2?[st.drums2]:[]);
   sets.forEach((d,k)=>{
-    if(d.muted||!audible(st,st.synth.length+k)) return;
+    if(d.muted||!audibleSet(st,st.synth.length+k,k)) return;
     const pos=step%d.n, dc=(k?cfg.dch2:cfg.dch)-1;
     if(!(dc>=0)) return;
     d.lanes.forEach((l,j)=>{
-      if(l.muted||!l.cells[pos]) return;
+      if(l.muted||!l.cells[pos]||!audibleLane(st,st.synth.length+k,k,j)) return;
       const m=cfg.drum[j], vel=clamp((l.vel&&l.vel[pos])||110,1,127);
       ev.push({dt:sw,bytes:[0x90|dc,m,vel]},{dt:sw+Math.min(stepMs*0.5,120),bytes:[0x80|dc,m,0]});
     });
@@ -3255,13 +3263,19 @@ function drumHTML(d,k){
 }
 let prevNow=[];
 function renderSolos(){
-  const names=trackNames(); state.solo=state.solo.filter(x=>x<names.length);
+  const names=trackNames(); state.solo=state.solo.filter(x=>typeof x==='string'?(SPLITD&&/^d\d+\.\d+$/.test(x)&&!!drumSets()[+x.slice(1).split('.')[0]]):x<names.length);
   const fw=fwOf(cfg.device).name;
   soloLabel();
+  const sy=state.synth.length;
   $('solos').innerHTML=`<button class="ghost" data-soloall="1" aria-pressed="${state.solo.length===0}">All tracks</button>`+
-    names.map((n,i)=>`<button class="ghost" data-solo="${i}" aria-pressed="${state.solo.includes(i)}" title="${esc(n)}" style="--c:var(--t${i+1})">Track ${i+1}</button>`).join('');
+    names.map((n,i)=>{
+      if(SPLITD&&i>=sy){ const k=i-sy, d=drumSets()[k]; return d?d.lanes.map((l,j)=>`<button class="ghost" data-solol="${k}.${j}" aria-pressed="${state.solo.includes('d'+k+'.'+j)}" title="${esc(l.label)}" style="--c:var(--t${i+1})">${esc(l.label)}</button>`).join(''):''; }
+      return `<button class="ghost" data-solo="${i}" aria-pressed="${state.solo.includes(i)}" title="${esc(n)}" style="--c:var(--t${i+1})">Track ${i+1}</button>`; }).join('')+
+    `<button class="ghost splitd" data-splitd="1" aria-pressed="${SPLITD}" title="Solo the kick, snare, hat and perc on their own">${SPLITD?'Drums: split':'Split drums'}</button>`;
 }
 /* ---------- track colours: Sloop's four on-screen colours by default, each of tracks 1 to 8 can be changed ---------- */
+var SPLITD=false; try{ SPLITD=localStorage.getItem('eb_splitd')==='1'; }catch(_){}
+function soloName(x){ if(typeof x==='string'){ const m=/^d(\d+)\.(\d+)$/.exec(x), d=m&&drumSets()[+m[1]], l=d&&d.lanes[+m[2]]; return l?l.label:'Drum'; } return 'track '+(x+1); }
 const COL_KEY='ebm-colours';
 let userCols={};
 try{ const j=JSON.parse(localStorage.getItem(COL_KEY)||'{}'); if(j&&typeof j==='object') userCols=j; }catch(_){}
@@ -3288,18 +3302,37 @@ $('colours').addEventListener('input',e=>{
 $('colours').addEventListener('change',e=>{ if(e.target.closest('[data-col]')) saveCols(); });
 $('colreset').addEventListener('click',()=>{ userCols={}; saveCols(); applyCols(); renderColours(); });
 applyCols();
-function soloLabel(){ const sc=$('solocur'); if(sc) sc.textContent=state.solo.length?('track'+(state.solo.length>1?'s ':' ')+state.solo.map(x=>x+1).join(', ')):''; }
+function soloUnits(){ const sy=state.synth.length, u=[]; for(let i=0;i<sy;i++) u.push(i); drumSets().forEach((d,k)=>{ if(SPLITD) d.lanes.forEach((l,j)=>u.push('d'+k+'.'+j)); else u.push(sy+k); }); return u; }
+// Solo dice: sometimes all tracks, sometimes one, two or three. With drums split, each drum lane counts on its own.
+function soloDice(){
+  const units=soloUnits(); if(units.length<2) return;
+  const r=Math.random(); let n=r<0.2?0:r<0.5?1:r<0.78?2:3; n=Math.min(n,units.length-1);
+  const cur=JSON.stringify((state.solo||[]).slice().sort());
+  let pick=[], tries=0;
+  do{ pick=n?units.slice().sort(()=>Math.random()-0.5).slice(0,n):[]; tries++; }while(JSON.stringify(pick.slice().sort())===cur&&tries<8);
+  state.solo=pick; renderSolos(); applySolo(); if(canSend()) allOff();
+}
+function soloLabel(){ const sc=$('solocur'); if(sc) sc.textContent=state.solo.length?state.solo.map(soloName).join(', '):''; }
 function applySolo(){ soloLabel();
   document.querySelectorAll('[data-solo]').forEach(b=>{ if(!b.disabled) b.setAttribute('aria-pressed',String(state.solo.includes(+b.dataset.solo))); });
+  document.querySelectorAll('[data-solol]').forEach(b=>b.setAttribute('aria-pressed',String(state.solo.includes('d'+b.dataset.solol))));
   const all=document.querySelector('[data-soloall]'); if(all) all.setAttribute('aria-pressed',String(state.solo.length===0));
-  document.querySelectorAll('#tracks .track').forEach((c,i)=>c.classList.toggle('dim',!audible(state,i)));
+  document.querySelectorAll('#tracks .track').forEach((c,i)=>c.classList.toggle('dim',c.dataset.kind==='d'?!audibleSet(state,i,+c.dataset.di):!audible(state,i)));
 }
 $('solos').addEventListener('click',e=>{
   const al=e.target.closest('[data-soloall]');
   if(al){ state.solo=[]; applySolo(); if(canSend()) allOff(); return; }
+  const sp=e.target.closest('[data-splitd]');
+  if(sp){ SPLITD=!SPLITD; try{ localStorage.setItem('eb_splitd',SPLITD?'1':'0'); }catch(_){}
+    const sy=state.synth.length;
+    if(SPLITD){ const out=[]; state.solo.forEach(x=>{ if(typeof x==='number'&&x>=sy){ const d=drumSets()[x-sy]; if(d) d.lanes.forEach((l,j)=>out.push('d'+(x-sy)+'.'+j)); } else out.push(x); }); state.solo=out; }
+    else{ const out=[]; state.solo.forEach(x=>{ if(typeof x==='string'){ const k=+x.slice(1).split('.')[0]; if(!out.includes(sy+k)) out.push(sy+k); } else if(!out.includes(x)) out.push(x); }); state.solo=out; }
+    renderSolos(); applySolo(); if(typeof lvRender==='function'&&lvOn()) lvRender(); if(canSend()) allOff(); return; }
+  const sl=e.target.closest('[data-solol]');
+  if(sl){ const key='d'+sl.dataset.solol; state.solo=state.solo.includes(key)?state.solo.filter(x=>x!==key):state.solo.concat(key); if(soloUnits().length<=state.solo.length) state.solo=[]; applySolo(); if(canSend()) allOff(); return; }
   const b=e.target.closest('[data-solo]'); if(!b||b.disabled) return;
   const n=+b.dataset.solo; state.solo=state.solo.includes(n)?state.solo.filter(x=>x!==n):state.solo.concat(n);
-  if(state.solo.length>=trackNames().length) state.solo=[];
+  if(soloUnits().length<=state.solo.length) state.solo=[];
   applySolo(); if(canSend()) allOff();
 });
 const SECTION_IDS=['allt','intro','bld','drop','chorus','brk','bridge','half','outro'];
@@ -4994,10 +5027,10 @@ function schedule(step,time){
       (t.chords?chordOf(t.notes[pos],state.scale,state.key):[t.notes[pos]]).forEach(m=>{ sfx(()=>{ if(useS) samplePlay(sid,m,time+sw,v,dur); else vSynth(time+sw,m,t.role,v,dur); },'s'+ti,t.pan,t.lvl==null?1:t.lvl/100); });
     });
     drumSets().forEach((d,k)=>{
-      if(d.muted||!audible(state,state.synth.length+k)) return;
+      if(d.muted||!audibleSet(state,state.synth.length+k,k)) return;
       const pos=step%d.n;
       d.lanes.forEach((l,j)=>{
-        if(l.muted||!l.cells[pos]) return;
+        if(l.muted||!l.cells[pos]||!audibleLane(state,state.synth.length+k,k,j)) return;
         const v=((l.vel&&l.vel[pos])||110)/127, lv=(l.lvl==null?1:l.lvl/100)*(d.lvl==null?1:d.lvl/100);
         const sid=PV.samp['d'+Math.min(j,3)];
         sfx(()=>{ if(sid&&SBUF.has(sid)) samplePlay(sid,null,time+sw,v,0);
@@ -5719,7 +5752,7 @@ $('tcolall').addEventListener('click',()=>{
   tcolAllLabel(); rollDraw();
 });
 document.querySelectorAll('[data-dice]').forEach(b=>b.addEventListener('click',e=>{ e.preventDefault(); e.stopPropagation(); const k=b.dataset.dice; if(k==='eng') $('engsurp').click(); else if(k==='gen'){ NOSURP.v=true; try{ $('gsurp').click(); }finally{ NOSURP.v=false; } } else if(k==='inst') $('pssurp').click(); else if(k==='chg'){ const ids=['vary','fill','tweak'], el=$(ids[Math.floor(Math.random()*ids.length)]); if(el) el.click(); }
-    else if(k==='solo'){ const bs=[...document.querySelectorAll('#solos [data-solo]')]; if(bs.length>1){ const cur=state.solo||[], pool=bs.filter(x=>!(cur.length===1&&cur[0]===+x.dataset.solo)); const all=document.querySelector('#solos [data-soloall]'); if(all) all.click(); pool[Math.floor(Math.random()*pool.length)].click(); } }
+    else if(k==='solo') soloDice();
     else if(k==='auto') $('auto').click(); else if(k==='song') songDice(); else if(k==='sec'){ const ids=['allt','intro','bld','drop','chorus','brk','bridge','half','outro'], id=ids[Math.floor(Math.random()*ids.length)], el=$(id); if(el) el.click(); } else if(k==='fx') fxDice(); else if(k==='cc'){ $('mrand').click(); flashCur('cccur','Randomised'); } }));
 function songDice(){
   if(SONG.on) return; const mid=['bld','drop','chorus','brk','bridge','half','allt'].filter(x=>SONG_FN[x]), n=3+Math.floor(Math.random()*3), seq=['intro'];
@@ -5898,12 +5931,14 @@ var LV_FX=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15];
 function lvOn(){ return document.body.classList.contains('live'); }
 function lvTracks(){
   const rows=[], names=trackNames();
-  state.synth.forEach((t,i)=>rows.push({kind:'s',i,name:names[i]||('Track '+(i+1)),col:'var(--t'+(i+1)+')',n:t.n,cells:t.cells,muted:t.muted,locked:t.locked,lvl:t.lvl,sel:state.solo.includes(i),ti:i}));
-  drumSets().forEach((d,k)=>d.lanes.forEach((l,j)=>rows.push({kind:'d',k,j,name:l.label,col:'var(--t'+(state.synth.length+k+1)+')',n:d.n,cells:l.cells,muted:l.muted||d.muted,locked:d.locked,lvl:l.lvl==null?d.lvl:l.lvl,sel:state.solo.includes(state.synth.length+k),ti:state.synth.length+k})));
+  state.synth.forEach((t,i)=>rows.push({kind:'s',i,name:names[i]||('Track '+(i+1)),col:'var(--t'+(i+1)+')',n:t.n,cells:t.cells,muted:t.muted,locked:t.locked,lvl:t.lvl,sel:state.solo.includes(i),ti:i,sk:i}));
+  drumSets().forEach((d,k)=>d.lanes.forEach((l,j)=>rows.push({kind:'d',k,j,name:l.label,col:'var(--t'+(state.synth.length+k+1)+')',n:d.n,cells:l.cells,muted:l.muted||d.muted,locked:d.locked,lvl:l.lvl==null?d.lvl:l.lvl,sel:SPLITD?state.solo.includes('d'+k+'.'+j):state.solo.includes(state.synth.length+k),ti:state.synth.length+k,sk:SPLITD?'d'+k+'.'+j:state.synth.length+k})));
+  { const vn=loopLen(), vc=VOX.lanes.length>1?VOX.lanes.reduce((a,l)=>{ const c=voxCells(l); return a.map((x,i)=>x||c[i]); },new Array(vn).fill(0)):voxCells(voxLane());
+    rows.push({kind:'v',name:'Sample',col:'var(--t9)',n:vn,cells:vc,muted:VOX.mute||!VOX.on,locked:!VOX.on,lvl:null,sel:false,ti:-1,sk:-1}); }
   return rows;
 }
-function lvKey(r){ return r.kind==='s'?'s'+r.i:'d'+r.k+'l'+r.j; }
-function lvCard(r){ return document.querySelector(r.kind==='s'?`#tracks .track[data-kind="s"][data-i="${r.i}"]`:`#tracks .track[data-kind="d"][data-di="${r.k}"]`); }
+function lvKey(r){ return r.kind==='v'?'v':r.kind==='s'?'s'+r.i:'d'+r.k+'l'+r.j; }
+function lvCard(r){ if(r.kind==='v') return $('voxbox'); return document.querySelector(r.kind==='s'?`#tracks .track[data-kind="s"][data-i="${r.i}"]`:`#tracks .track[data-kind="d"][data-di="${r.k}"]`); }
 function lvStrip(cells,n){ let h=''; for(let s=0;s<n;s++) h+='<s'+(cells[s]?' class="o"':'')+'></s>'; return h; }
 function lvBuild(){
   if(LV.built) return; LV.built=true;
@@ -5915,7 +5950,7 @@ function lvBuild(){
     <div class="lv-secs" id="lvsecs" style="order:4"></div>
     <div class="lv-dice" id="lvdice" style="order:5"></div>
     <div class="lv-edit" id="lvedit" style="order:6" hidden></div>
-    <div class="lv-trkw" id="lvtrkw" style="order:7"><div class="lv-lbl" id="lvtl">Tracks &middot; M mute &middot; S solo &middot; Lk lock &middot; tap a track to edit it</div><div class="lv-trks" id="lvtrks"></div></div></div>
+    <div class="lv-trkw" id="lvtrkw" style="order:7"><div class="lv-lbl lv-lblrow"><span id="lvtl">Tracks &middot; M mute &middot; S solo &middot; Lk lock &middot; tap to edit</span><button class="lv-split" id="lvsplit" data-lv="split"></button></div><div class="lv-trks" id="lvtrks"></div></div></div>
    <div class="lv-r"><div class="lv-row lv-gp" id="lvgp" style="order:2"><button class="lvb lv-gen" id="lvgen">Generate</button><button class="lvb lv-play" id="lvplay">Play</button><button class="lvb lv-rec" id="lvrec" data-lv="rec"></button></div>
     <div class="lv-row lv-bpm" id="lvbpm" style="order:3"><button class="lvb" data-lv="bpm-">&minus;</button><div class="lv-v"><b id="lvbpmv"></b> <small>BPM</small></div><button class="lvb" data-lv="bpm+">+</button><button class="lvb lv-sw" data-lv="swing" id="lvsw"></button></div>
     <div class="lv-fxw" id="lvfxw" style="order:8"><div class="lv-lbl">Punch effects (hold)</div><div class="lv-fx" id="lvfx"></div></div>
@@ -5938,6 +5973,7 @@ function lvClick(e){
   if(d.lv){
     const a=d.lv;
     if(a==='exit') lvSet(false);
+    else if(a==='split'){ const sb=document.querySelector('#solos [data-splitd]'); if(sb) sb.click(); lvRender(); }
     else if(a==='bars'){ LV.barsOpen=!LV.barsOpen; lvPaint(); }
     else if(a==='bpm-'||a==='bpm+'){ const el=$('bpm'); el.value=clamp(+el.value+(a==='bpm+'?1:-1),+el.min,+el.max); el.dispatchEvent(new Event('input',{bubbles:true})); lvPaint(); }
     else if(a==='swing'){ const el=$('swing'); let v=+el.value+5; if(v>+el.max) v=+el.min; el.value=v; el.dispatchEvent(new Event('input',{bubbles:true})); lvPaint(); }
@@ -5953,22 +5989,23 @@ function lvClick(e){
     lvPaint(); lvSecs(); return;
   }
   if(d.m!==undefined){ const r=lvTracks()[+d.m]; lvPress(r,'mute'); return; }
-  if(d.so!==undefined){ const r=lvTracks()[+d.so]; const sb=document.querySelector(`#solos [data-solo="${r.ti}"]`); if(sb) sb.click(); lvRender(); return; }
+  if(d.so!==undefined){ const r=lvTracks()[+d.so]; const sb=document.querySelector(typeof r.sk==='string'?`#solos [data-solol="${r.sk.slice(1)}"]`:`#solos [data-solo="${r.sk}"]`); if(sb) sb.click(); lvRender(); return; }
   if(d.lk!==undefined){ const r=lvTracks()[+d.lk]; lvPress(r,'lock'); return; }
   if(d.vm){ $('voxbox').querySelector('[data-vact="mute"]')&&$('voxbox').querySelector('[data-vact="mute"]').click(); lvRender(); return; }
   if(d.ed!==undefined){ const rs=lvTracks(), r=rs[+d.ed]; LV.edit=(LV.edit&&LV.edit.key===lvKey(r))?null:{key:lvKey(r)}; LV.bar=Math.min(LV.bar,Math.max(0,Math.ceil(r.n/16)-1)); lvRender(); return; }
+  if(d.evo!==undefined){ const bt=$('voxbox').querySelector('[data-vact="lane'+d.evo+'"]'); if(bt) bt.click(); lvRender(); return; }
   if(d.eb!==undefined){ LV.bar=+d.eb; lvEdit(); return; }
   if(d.ea==='done'){ LV.edit=null; lvRender(); return; }
   if(d.ea==='prev'||d.ea==='next'){ const r=lvEditRow(); if(!r) return; const nb=Math.max(1,Math.ceil(r.n/16)); LV.bar=(LV.bar+(d.ea==='next'?1:nb-1))%nb; lvEdit(); return; }
-  if(d.es!==undefined){ const r=lvEditRow(), c=r&&lvCard(r); if(!c) return; const keep=state.mode; state.mode='hit'; const sel=r.kind==='s'?`[data-act="cell"][data-s="${d.es}"]`:`.lane[data-j="${r.j}"] [data-act="cell"][data-s="${d.es}"]`; const cell=c.querySelector(sel); if(cell) cell.click(); state.mode=keep; return; }
+  if(d.es!==undefined){ const r=lvEditRow(), c=r&&lvCard(r); if(!c) return; const keep=state.mode; state.mode='hit'; const sel=r.kind==='v'?`[data-vact="cell"][data-s="${d.es}"]`:r.kind==='s'?`[data-act="cell"][data-s="${d.es}"]`:`.lane[data-j="${r.j}"] [data-act="cell"][data-s="${d.es}"]`; const cell=c.querySelector(sel); if(cell) cell.click(); state.mode=keep; return; }
   if(d.ea==='redo'||d.ea==='clearbar'||d.ea==='lock'){ const r=lvEditRow(), c=r&&lvCard(r); if(!c) return;
     if(d.ea==='lock'){ lvPress(r,'lock'); return; }
-    if(d.ea==='redo'){ const bt=r.kind==='s'?c.querySelector('[data-act="redo"]'):c.querySelector(`.lane[data-j="${r.j}"] [data-act="redo"]`); if(bt) bt.click(); return; }
+    if(d.ea==='redo'){ const bt=r.kind==='v'?c.querySelector('[data-vact="new"]'):r.kind==='s'?c.querySelector('[data-act="redo"]'):c.querySelector(`.lane[data-j="${r.j}"] [data-act="redo"]`); if(bt) bt.click(); return; }
     const keep=state.mode; state.mode='hit';
-    for(let s=LV.bar*16;s<Math.min(r.n,LV.bar*16+16);s++){ const rr=lvEditRow(); if(rr&&rr.cells[s]){ const cc=lvCard(rr); const sel=rr.kind==='s'?`[data-act="cell"][data-s="${s}"]`:`.lane[data-j="${rr.j}"] [data-act="cell"][data-s="${s}"]`; const cell=cc&&cc.querySelector(sel); if(cell) cell.click(); } }
+    for(let s=LV.bar*16;s<Math.min(r.n,LV.bar*16+16);s++){ const rr=lvEditRow(); if(rr&&(rr.kind==='v'?lvEditCells(rr)[s]:rr.cells[s])){ const cc=lvCard(rr); const sel=rr.kind==='v'?`[data-vact="cell"][data-s="${s}"]`:rr.kind==='s'?`[data-act="cell"][data-s="${s}"]`:`.lane[data-j="${rr.j}"] [data-act="cell"][data-s="${s}"]`; const cell=cc&&cc.querySelector(sel); if(cell) cell.click(); } }
     state.mode=keep; return; }
 }
-function lvPress(r,act){ const c=lvCard(r); if(!c) return; const sel=r.kind==='s'?`[data-act="${act}"]`:(act==='mute'?`.lane[data-j="${r.j}"] [data-act="mute"]`:`[data-act="${act}"]`); const bt=c.querySelector(sel); if(bt) bt.click(); }
+function lvPress(r,act){ const c=lvCard(r); if(!c) return; if(r.kind==='v'){ const bt=c.querySelector(act==='mute'?'[data-vact="mute"]':'[data-vact="on"]'); if(bt) bt.click(); lvRender(); return; } const sel=r.kind==='s'?`[data-act="${act}"]`:(act==='mute'?`.lane[data-j="${r.j}"] [data-act="mute"]`:`[data-act="${act}"]`); const bt=c.querySelector(sel); if(bt) bt.click(); }
 function lvEditRow(){ if(!LV.edit) return null; return lvTracks().find(r=>lvKey(r)===LV.edit.key)||null; }
 function lvSet(on){
   if(on&&!HAS_LIVE_OK) return;
@@ -5987,27 +6024,27 @@ function lvSecs(){
 }
 function lvRender(){
   if(!lvOn()||!LV.built) return;
-  lvSecs(); lvPaint();
+  lvSecs(); lvPaint(); { const sp=$('lvsplit'); if(sp){ sp.textContent=SPLITD?'Drums: split':'Split drums'; sp.classList.toggle('on',SPLITD); } }
   const rows=lvTracks(), n=rows.length;
-  let h=rows.map((r,i)=>`<div class="lv-trk${r.muted?' mu':''}${LV.edit&&LV.edit.key===lvKey(r)?' sel':''}" data-r="${i}" style="--c:${r.col}"><button class="lv-nm" data-ed="${i}"><i></i>${esc(r.name)}</button><div class="lv-stw" data-ed-s="${i}"><div class="lv-st" style="grid-template-columns:repeat(${r.n},1fr)">${lvStrip(r.cells,r.n)}<em class="lv-ph"></em></div><div class="lv-lv"><u style="width:${Math.min(100,(r.lvl==null?100:r.lvl)/1.25)}%"></u></div></div><button class="lv-m${r.muted?' on':''}" data-m="${i}">M</button><button class="lv-m${r.sel?' so':''}" data-so="${i}">S</button><button class="lv-m${r.locked?' on':''}" data-lk="${i}">Lk</button></div>`).join('');
-  const vc=voxCells(voxLane()), vn=vc.length;
-  h+=`<div class="lv-trk${VOX.mute||!VOX.on?' mu':''}" style="--c:var(--t9)"><span class="lv-nm"><i></i>Sample</span><div class="lv-stw"><div class="lv-st" style="grid-template-columns:repeat(${vn},1fr)">${lvStrip(VOX.lanes.length>1?VOX.lanes.reduce((a,l)=>{ const c=voxCells(l); return a.map((x,i)=>x||c[i]); },new Array(vn).fill(0)):vc,vn)}<em class="lv-ph"></em></div></div><button class="lv-m${VOX.mute?' on':''}" data-vm="1">M</button><span class="lv-m gh"></span><span class="lv-m gh"></span></div>`;
+  let h=rows.map((r,i)=>`<div class="lv-trk${r.muted?' mu':''}${LV.edit&&LV.edit.key===lvKey(r)?' sel':''}" data-r="${i}" style="--c:${r.col}"><button class="lv-nm" data-ed="${i}"><i></i>${esc(r.name)}</button><div class="lv-stw" data-ed-s="${i}"><div class="lv-st" style="grid-template-columns:repeat(${r.n},1fr)">${lvStrip(r.cells,r.n)}<em class="lv-ph"></em></div><div class="lv-lv"><u style="width:${Math.min(100,(r.lvl==null?100:r.lvl)/1.25)}%"></u></div></div><button class="lv-m${r.muted?' on':''}" data-m="${i}">M</button>${r.kind==='v'?'<span class="lv-m gh"></span>':`<button class="lv-m${r.sel?' so':''}" data-so="${i}">S</button>`}<button class="lv-m${r.kind==='v'?(r.locked?'':' on'):(r.locked?' on':'')}" data-lk="${i}">${r.kind==='v'?(r.locked?'Off':'On'):'Lk'}</button></div>`).join('');
   $('lvtrks').innerHTML=h;
   $('lvtrks').classList.toggle('many',n>10);
   lvEdit();
   const fxw=$('lvfxw'); fxw.hidden=!(cfg.device==='sloop'||fxLocalMode());
 }
+function lvEditCells(r){ return r.kind==='v'?voxCells(voxLane()):r.cells; }
 function lvEdit(){
   const box=$('lvedit'), r=lvEditRow();
   if(!r){ box.hidden=true; box.innerHTML=''; $('live').classList.remove('editing'); return; }
   const nb=Math.max(1,Math.ceil(r.n/16)); LV.bar=Math.min(LV.bar,nb-1);
   const from=LV.bar*16, cnt=Math.min(16,r.n-from);
-  let st=''; for(let s=from;s<from+cnt;s++) st+=`<button class="lv-step${r.cells[s]?' o':''}" data-es="${s}"><b>${s-from+1}</b></button>`;
+  const ec=lvEditCells(r); let st=''; for(let s=from;s<from+cnt;s++) st+=`<button class="lv-step${ec[s]?' o':''}" data-es="${s}"><b>${s-from+1}</b></button>`;
   $('live').classList.add('editing');
   box.hidden=false; box.style.setProperty('--c',r.col);
   box.innerHTML=`<div class="lv-edtop"><span><i></i>${esc(r.name)} &middot; editing bar ${LV.bar+1}${nb>1?' of '+nb:''}</span><button class="lvb lv-done" data-ea="done">Done</button></div>`+
    (nb>1?`<div class="lv-row"><button class="lvb" data-ea="prev" style="flex:none;width:40px">&#9664;</button>${Array.from({length:nb},(_,i)=>`<button class="lvb${i===LV.bar?' on':''}" data-eb="${i}">Bar ${i+1}</button>`).join('')}<button class="lvb" data-ea="next" style="flex:none;width:40px">&#9654;</button></div>`:'')+
-   `<div class="lv-big">${st}</div><div class="lv-row"><button class="lvb" data-ea="redo">Redo track</button><button class="lvb" data-ea="clearbar">Clear bar</button><button class="lvb${r.locked?' on':''}" data-ea="lock">Lock</button></div>`;
+   (r.kind==='v'&&VOX.lanes.length>1?`<div class="lv-row">${VOX.lanes.map((l,i)=>`<button class="lvb${i===Math.min(VOX.sel,VOX.lanes.length-1)?' on':''}" data-evo="${i}">Voice ${i+1}</button>`).join('')}</div>`:'')+
+   `<div class="lv-big">${st}</div><div class="lv-row"><button class="lvb" data-ea="redo">Redo track</button><button class="lvb" data-ea="clearbar">Clear bar</button><button class="lvb${r.kind==='v'?(r.locked?'':' on'):(r.locked?' on':'')}" data-ea="lock">${r.kind==='v'?(r.locked?'Sample off':'Sample on'):'Lock'}</button></div>`;
 }
 function lvPaint(){
   if(!lvOn()||!LV.built) return;
@@ -6056,7 +6093,7 @@ function lvDice(k,btn){
     else if(k==='gen') t='Genre: '+($('genname').textContent||genreObj().name);
     else if(k==='inst'){ const kit=$('pskit'), ko=kit&&kit.selectedOptions[0]; t='Sounds: '+(ko?ko.text.replace(/^Auto:\s*/,''):'new kit')+' kit'; if(!playing){ try{ hearKit(); }catch(_){} } }
     else if(k==='sec') t='Pattern: '+(state.section?SONG_NAME[state.section]:'random');
-    else if(k==='solo'){ const nm=trackNames(); t=state.solo.length?'Solo: '+state.solo.map(i=>nm[i]||('Track '+(i+1))).join(', '):'Solo: all tracks'; }
+    else if(k==='solo'){ const nm=trackNames(); t=state.solo.length?'Solo: '+state.solo.map(x=>typeof x==='string'?soloName(x):(nm[x]||('Track '+(x+1)))).join(', '):'Solo: all tracks'; }
     else if(k==='auto') t=AUTO.on?'Auto song: on':'Auto song: off';
     else if(k==='song') t=SONG.steps.length?'Song built: '+SONG.steps.length+' patterns':'Song: nothing built';
     else if(k==='cc') t='Sound controls randomised';
@@ -6107,6 +6144,7 @@ $('recs').addEventListener('click',e=>{
 });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&!$('recs').hidden) recOpen(false); });
 recLoad();
+try{ new MutationObserver(()=>{ if(typeof lvOn==='function'&&lvOn()&&LV.built) lvRender(); }).observe($('voxbox'),{childList:true}); }catch(_){}
 
 </script>
 <script>
