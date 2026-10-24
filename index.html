@@ -532,6 +532,16 @@ html.lv-lock,html.lv-lock body{overflow:hidden !important}
 .rec-info{flex:1 1 140px;display:flex;flex-direction:column}.rec-info small{color:var(--muted)}
 .rec-item .mini{flex:none;width:auto !important}
 
+/* Now / Next box: three fixed parts so the counter stays centred */
+.lv-now{display:grid;grid-template-columns:minmax(0,1fr) 176px minmax(0,1fr);gap:6px;align-items:center;position:relative}
+.lv-nl,.lv-nx{min-width:0;display:flex;flex-direction:column}.lv-nx{align-items:flex-end;text-align:right}
+.lv-nl b,.lv-nx b{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lv-nc{display:flex;align-items:center;gap:6px}.lv-nc .lv-bars{flex:1;min-width:0;gap:3px}.lv-nc .lv-bars i{max-width:none}
+.lv-barbtn{flex:none;min-height:30px;padding:0 8px;font-size:12px;border-radius:9px;background:var(--cell)}
+.lv-barpop{position:absolute;left:50%;top:calc(100% + 4px);transform:translateX(-50%);z-index:5;display:flex;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:6px;box-shadow:0 6px 18px rgba(0,0,0,.3)}
+.lv-barpop .lvb{flex:none;min-width:58px}
+@media (min-width:700px){ .lv-now{grid-template-columns:minmax(0,1fr) 260px minmax(0,1fr)} .lv-barbtn{min-height:34px;font-size:13px;padding:0 12px} }
+
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#2f7f95">
@@ -541,7 +551,7 @@ html.lv-lock,html.lv-lock body{overflow:hidden !important}
   <button id="themebtn" class="themebtn" type="button" aria-label="Switch between light and dark" title="Switch between light and dark"></button>
   <header class="brand">
     <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Eight Bells logo"><circle cx="32" cy="32" r="30" fill="#2f7f95" stroke="#e0b04a" stroke-width="2.5"/><circle cx="32.0" cy="8.0" r="3" fill="#e0b04a"/><circle cx="49.0" cy="15.0" r="3" fill="#1d5568"/><circle cx="56.0" cy="32.0" r="3" fill="#e0b04a"/><circle cx="49.0" cy="49.0" r="3" fill="#e0b04a"/><circle cx="32.0" cy="56.0" r="3" fill="#1d5568"/><circle cx="15.0" cy="49.0" r="3" fill="#e0b04a"/><circle cx="8.0" cy="32.0" r="3" fill="#e0b04a"/><circle cx="15.0" cy="15.0" r="3" fill="#1d5568"/><circle cx="32" cy="19" r="2.2" fill="#e0b04a"/><path d="M21 43c2.5-4 3.5-8 3.5-13 0-5 3-8 7.5-8s7.5 3 7.5 8c0 5 1 9 3.5 13z" fill="#f2ede9" stroke="#0b0909" stroke-width="1.2" stroke-linejoin="round"/><rect x="20" y="42.5" width="24" height="3" rx="1.5" fill="#e0b04a" stroke="#0b0909" stroke-width="1"/><circle cx="32" cy="48.5" r="2.6" fill="#0b0909"/></svg>
-    <div class="brandtxt"><p class="from"><a href="https://github.com/Discodave-Glitch/slipway" target="_blank" rel="noopener">From the maker of Slipway</a></p><h1>Eight Bells <small class="ver">V3<span id="buildtag"> &middot; zt</span></small></h1>
+    <div class="brandtxt"><p class="from"><a href="https://github.com/Discodave-Glitch/slipway" target="_blank" rel="noopener">From the maker of Slipway</a></p><h1>Eight Bells <small class="ver">V3<span id="buildtag"> &middot; zu</span></small></h1>
     <p class="sub">Beats and melodies for the M-VAVE FM-1 and its custom firmwares, built from 28 engines, from Euclidean rhythms to world cycles, chaos and Markov chains. Up to 8 tracks depending on the firmware, up to 64 steps each.<span id="midisub"> It can play the pattern on the FM-1 itself over USB MIDI.</span></p></div>
   </header>
   <div class="waves" aria-hidden="true"></div>
@@ -5914,17 +5924,20 @@ function lvBuild(){
   L.addEventListener('click',lvClick);
 }
 function lvClick(e){
+  if(LV.barsOpen&&!e.target.closest('.lv-barpop,[data-lv="bars"]')){ LV.barsOpen=false; lvPaint(); }
   const sw=e.target.closest('[data-ed-s]');
   const b=e.target.closest('button')||sw; if(!b) return;
   const d=b===sw?{ed:sw.dataset.edS}:b.dataset;
   if(d.lv){
     const a=d.lv;
     if(a==='exit') lvSet(false);
+    else if(a==='bars'){ LV.barsOpen=!LV.barsOpen; lvPaint(); }
     else if(a==='bpm-'||a==='bpm+'){ const el=$('bpm'); el.value=clamp(+el.value+(a==='bpm+'?1:-1),+el.min,+el.max); el.dispatchEvent(new Event('input',{bubbles:true})); lvPaint(); }
     else if(a==='swing'){ const el=$('swing'); let v=+el.value+5; if(v>+el.max) v=+el.min; el.value=v; el.dispatchEvent(new Event('input',{bubbles:true})); lvPaint(); }
     else if(a==='rec'){ $('recbtn').click(); setTimeout(lvPaint,50); }
     return;
   }
+  if(d.lvbar){ LV.barsOpen=false; const bb=document.querySelector('#bars [data-bars="'+d.lvbar+'"]'); if(bb) bb.click(); LV.next=null; lvRender(); return; }
   if(d.diceLv){ lvDice(d.diceLv,b); return; }
   if(d.sec){
     if(SONG.on) return;
@@ -5991,13 +6004,13 @@ function lvEdit(){
 }
 function lvPaint(){
   if(!lvOn()||!LV.built) return;
-  const nm=state.section?SONG_NAME[state.section]:'No pattern picked';
+  const nm=state.section?SONG_NAME[state.section]:'None yet';
   const L=loopLen(), nb=Math.max(1,Math.ceil(L/16));
   const stp=playing?(ROLL.step<0?0:ROLL.step%L):-1, cur=stp<0?-1:Math.floor(stp/16);
   let bars=''; for(let i=0;i<Math.min(nb,8);i++) bars+=`<i class="${i===cur?'c':(i<cur?'d':'')}"></i>`;
   const nx=SONG.on?(SONG.steps[SONG.i+1]?SONG_NAME[SONG.steps[SONG.i+1].id]:(SONG.rep?SONG_NAME[SONG.steps[0].id]:'End')):(LV.next?SONG_NAME[LV.next]:'&mdash;');
-  const now=$('lvnow'); const k=nm+'|'+nb+'|'+cur+'|'+nx+'|'+SONG.on+'|'+(SONG.on?SONG.loops+'/'+SONG.i:'');
-  if(now.dataset.k!==k){ now.dataset.k=k; now.innerHTML=`<div><div class="lv-lbl">Now</div><b>${esc(nm)}</b>${playing?` <small>bar ${cur+1} of ${nb}</small>`:''}</div><div class="lv-bars">${bars}</div><div class="lv-nx"><div class="lv-lbl">Next</div><b>${nx}</b></div>`; }
+  const now=$('lvnow'); const k=nm+'|'+nb+'|'+cur+'|'+nx+'|'+SONG.on+'|'+(SONG.on?SONG.loops+'/'+SONG.i:'')+'|'+state.bars+'|'+!!LV.barsOpen+'|'+playing;
+  if(now.dataset.k!==k){ now.dataset.k=k; const sb=state.bars; now.innerHTML=`<div class="lv-nl"><div class="lv-lbl">Now</div><b>${esc(nm)}</b>${playing?`<small>bar ${cur+1} of ${nb}</small>`:'<small>stopped</small>'}</div><div class="lv-nc"><div class="lv-bars">${bars}</div><button class="lvb lv-barbtn" data-lv="bars" aria-expanded="${!!LV.barsOpen}">${sb} bar${sb>1?'s':''} &#9662;</button></div><div class="lv-nx"><div class="lv-lbl">Next</div><b>${nx}</b></div>${LV.barsOpen?`<div class="lv-barpop">${[1,2,3,4].map(n=>`<button class="lvb${n===sb?' on':''}" data-lvbar="${n}">${n} bar${n>1?'s':''}</button>`).join('')}</div>`:''}`; }
   { const inf=$('lvinfo'), fl=LV.flash&&Date.now()<LV.flashT, en=$('engname').textContent||''; const k2=fl?'F'+LV.flash:'N'+genreObj().name+'|'+en+'|'+loopLen(); if(inf.dataset.k!==k2){ inf.dataset.k=k2; if(fl) inf.innerHTML='<b class="lv-flash">'+esc(LV.flash)+'</b>'; else inf.textContent=genreObj().name+(en?' · '+en:'')+' · '+loopLen()/16+' bar'+(loopLen()>16?'s':''); } }
   $('lvbpmv').textContent=state.bpm; $('lvsw').textContent='Swing '+$('swing').value+'%';
   const p=$('lvplay'); p.textContent=playing?'Stop':playIdle(); p.classList.toggle('on',playing);
@@ -6027,6 +6040,7 @@ function lvDice(k,btn){
   const main=document.querySelector('[data-dice="'+k+'"]');
   const pick=a=>a[Math.floor(Math.random()*a.length)];
   if(k==='fx'){ lvFxDice(); return; }
+  if(k==='sec'&&playing&&!SONG.on){ const ids=SECTION_IDS.filter(id=>id!=='allt'&&id!==state.section&&id!==LV.next); LV.next=pick(ids); lvSecs(); lvPaint(); return; }
   if(k==='chg'){ const o=pick([['vary','Vary'],['fill','Fill'],['tweak','Tweak']]); const el=$(o[0]); if(el) el.click(); lvFlash('Change: '+o[1]); lvRender(); return; }
   if(main) main.click();
   setTimeout(()=>{
