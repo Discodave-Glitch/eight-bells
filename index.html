@@ -13945,6 +13945,21 @@ x.strokeStyle='#888';x.lineWidth=3;x.beginPath();x.arc(lx,ly-16,12,Math.PI,0);x.
 for(const m of Z.mo){m.a+=pd*m.v*(ON?1:.1);const rr=m.r*(.7+.3*Math.sin(now/700+m.ph))+Z.fl*20,mx=lx+Math.cos(m.a)*rr,my=ly-6+Math.sin(m.a*1.3)*rr*.5,fl=Math.sin(now/25+m.ph)*5;x.fillStyle='#e8dcc0';x.beginPath();x.ellipse(mx-4,my-fl*.4,5,3+Math.abs(fl)*.3,-.4,0,7);x.fill();x.beginPath();x.ellipse(mx+4,my-fl*.4,5,3+Math.abs(fl)*.3,.4,0,7);x.fill();Rc('#6a5a3a',mx-1,my-2,2,6)}
 txt('GLOWS '+Z.n,16,24,'#ffd890','left',14)}
 
+function sNw58(){const g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,'#6a7688');g.addColorStop(1,'#a8b4c4');x.fillStyle=g;x.fillRect(0,0,W,H);
+if(!Z.i){Z.i=1;Z.lv=.25;Z.rn=[];Z.gu=[];Z.pi=[];Z.ov=[];Z.cd=[];Z.rp=[];Z.hc=Array(8).fill(0);Z.hv=0;Z.dr=0;Z.n=0}
+Rc('#5a6a40',0,320,W,60);Rc('#a8845a',0,40,330,290);for(let r=0;r<12;r++)for(let c=0;c<7;c++)Rc('rgba(0,0,0,.1)',c*48+(r%2)*24,40+r*24,46,2);Rc('#9fd6ee',60,150,60,80);Rc('#f8f4ec',60,150,60,3);Rc('#f8f4ec',88,150,3,80);Rc('#f8f4ec',60,188,60,3);
+x.fillStyle='#5a3a3a';x.beginPath();x.moveTo(-20,50);x.lineTo(150,-10);x.lineTo(340,50);x.lineTo(340,70);x.lineTo(-20,70);x.fill();
+x.fillStyle='#a8b0bc';x.fillRect(330,60,60,6);Rc('#8a909c',384,60,8,246);
+hits.forEach(i=>{Z.hv=1;Z.n++;Z.hc[i]=1;Z.lv=Math.min(1,Z.lv+.02);for(let k=0;k<5;k++)Z.cd.push({x:430+i*16+rnd(-4,4),y:-rnd(0,60),v:rnd(420,520),c:Tc(T[i]),i});Z.rp.push({x:430+i*16,r:2,c:Tc(T[i])})});Z.hv*=Math.pow(.2,dt);
+const rate=ON?(60+190*Z.hv+60*msum()):0;Z.ac=(Z.ac||0)+pd*rate;while(Z.ac>1){Z.ac--;Z.rn.push({x:rnd(-10,700),y:-10,v:rnd(400,500)})}
+Z.rn=Z.rn.filter(d=>{d.y+=d.v*pd;d.x-=30*pd;if(d.x<340&&d.y>=50+(d.x<150?Math.max(0,(d.x+20)/170*-60):Math.max(0,(340-d.x)/190*-60))*-1-0&&d.y<72&&false)return false;if(d.x>=330&&d.x<=390&&d.y>=60&&d.y<68){Z.lv=Math.min(1,Z.lv+.0006);return false}if(d.x>=400&&d.x<=650&&d.y>=250+(1-Z.lv)*70&&d.y<340){if(d.x>405&&d.x<585&&Z.lv<1)Z.lv=Math.min(1,Z.lv+.0005);return false}if(d.y>=326){return false}x.strokeStyle='rgba(215,230,245,.55)';x.lineWidth=1.2;x.beginPath();x.moveTo(d.x,d.y);x.lineTo(d.x+3,d.y-13);x.stroke();return true});
+const ink=(ON?(.25+Z.hv)*.7:0);if(Math.random()<ink)Z.pi.push({y:66,a:1});Z.pi=Z.pi.filter(p=>{p.y+=pd*240;if(p.y>268)return false;Ci('rgba(120,190,245,.95)',388,p.y,2.5);return true});
+if(Math.random()<ink){Z.gu.push({x:332,a:1})}Z.gu=Z.gu.filter(g=>{g.x+=pd*130;if(g.x>388)return false;Ci('rgba(120,190,245,.95)',g.x,65,2);return true});
+Z.cd=Z.cd.filter(d=>{d.y+=d.v*pd;const top=250+(1-Z.lv)*70;if(d.y>=top-10&&d.y<340){return false}x.strokeStyle=d.c;x.lineWidth=3;x.beginPath();x.moveTo(d.x,d.y);x.lineTo(d.x,d.y-16);x.stroke();return true});const bx=490,by=190;x.fillStyle='#2a6a3a';x.beginPath();x.roundRect?x.roundRect(bx-70,by,140,130,8):x.rect(bx-70,by,140,130);x.fill();for(let k=0;k<4;k++)Rc('rgba(0,0,0,.25)',bx-70,by+16+k*30,140,4);Rc('#1a4a28',bx-76,by-6,152,12);Rc('#aab',bx-30,by-16,60,10);
+const wl=by+128-Z.lv*118;x.fillStyle='rgba(110,190,240,.65)';x.fillRect(bx-66,wl,132,by+126-wl);Rc('rgba(255,255,255,.4)',bx-66,wl,132,2);Rc('#aab',bx+66,by+104,26,8);Rc('#888',bx+84,by+100,8,16);if(Z.lv>=1&&Math.random()<.6)Z.ov.push({x:bx+rnd(-60,60),y:by-6,vx:rnd(-60,60),vy:-rnd(60,140),c:'#78b8e8',a:.9,r:2.4});Z.ov=Gp(Z.ov,520);Z.rp=Z.rp.filter(p=>{p.r+=pd*60;if(p.r>26)return false;x.globalAlpha=1-p.r/26;x.strokeStyle=p.c;x.lineWidth=2.5;x.beginPath();x.ellipse(p.x+6,wl+3,p.r,p.r*.28,0,0,7);x.stroke();x.globalAlpha=1;return true});for(let i=0;i<8;i++){Z.hc[i]*=Math.pow(.15,dt);const mu=T[i].m,cx=420+i*16;x.globalAlpha=mu?.25:1;Ci(Tc(T[i]),cx+6,352,5+Z.hc[i]*5);x.globalAlpha=1;if(mu){x.strokeStyle='#fff';x.lineWidth=1.5;x.beginPath();x.moveTo(cx,346);x.lineTo(cx+12,358);x.stroke()}}
+Rc('#8a909c',384,300,8,6);Z.dr=Math.max(0,Z.dr);if(Z.lv>=.98)Z.lv=.7;
+txt('LEVEL '+Math.round(Z.lv*100)+'%',16,24,'#e8eef8','left',14)}
+
 function sCk(){
  if(!Z.i){Z.i=1;Z.runs=0;Z.wk=0;Z.balls=0;Z.ph='idle';Z.t=0;Z.out='dot';Z.ball=null;Z.msg=[];Z.pend=0;Z.cool=0;Z.bails=null;Z.stumpsDown=0;Z.sw=0;Z.fx=[[300,318],[430,314],[110,290],[600,300],[560,158],[250,156]].map(p=>({x:p[0],y:p[1],bx:p[0],by:p[1],st:0,hold:0}));Z.rn=0;Z.bat=0;Z.cheer=0}
  const en=Qen(),bp=Qbp();Z.cheer*=Math.pow(.08,dt);Z.cool-=dt;Z.sw=Math.max(0,Z.sw-dt*4);
