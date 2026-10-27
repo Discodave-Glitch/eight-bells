@@ -16667,6 +16667,27 @@ function sQrb(){Wdisco();
 if(!Z.i){Z.i=1;Z.p=Array(8).fill(0);Z.n=0}
 hits.forEach(i=>{Z.p[i]=1;Z.n++});
 for(let i=0;i<8;i++){Z.p[i]*=Math.pow(.05,dt);const px=spx(i),p=Z.p[i],bob=Math.sin(now/200+i)*3,c=Tc(T[i]);x.save();x.translate(px,300-p*14);Rc('#aab',-14,-60+bob,28,34);Rc('#889',-12,-26,24,8);Rc('#aab',-12,-52+bob-24,24,22);Ci(p>.1?'#ff6a6a':c,-6,-46+bob-14,3);Ci(p>.1?'#ff6a6a':c,6,-46+bob-14,3);Rc('#222',-6,-34+bob-14,12,2);x.strokeStyle='#889';x.lineWidth=4;x.beginPath();x.moveTo(-14,-52);x.lineTo(-24,-36-p*30);x.moveTo(14,-52);x.lineTo(24,-36-p*30);x.stroke();Rc('#667',-10,-20,6,20);Rc('#667',4,-20,6,20);Rc(c,-6,-50+bob,12,12);Rc('#667',-14,0,12,6);Rc('#667',2,0,12,6);Rc('#889',-1,-76+bob,2,8);Ci(c,0,-78+bob,3);x.restore()}
+{const cl=['#E8503A','#3a8ae8','#F5C84B','#3ad0a0','#7F77DD','#e87ab0','#f07a30','#4ac0d0'],ex=Math.min(1,.4+Z.n*0+msum()*.3+(Z.p.reduce((a,b)=>a+b,0))*.3);Rc('rgba(10,5,30,.55)',0,352,W,28);
+for(let k=0;k<10;k++){const px=26+k*68+(k%2)*10,ph=k*1.37,bt=now/(ON?150:260)+ph,jp=Math.abs(Math.sin(bt))*(8+ex*14),sw=Math.sin(bt*.5)*(8+ex*6),by=372-jp,c=cl[k%8],sc=1.05+(k%3)*.08,mv=k%4;
+x.save();x.translate(px+sw,by);x.scale(sc,sc);Ci('rgba(0,0,0,.3)',-sw,jp/sc+2,10);
+// legs
+x.strokeStyle='#1a1030';x.lineWidth=6;x.beginPath();x.moveTo(-3,-18);x.lineTo(-9+Math.sin(bt)*6,2);x.moveTo(3,-18);x.lineTo(9-Math.sin(bt)*6,2);x.stroke();
+// body (shirt) + disco collar
+Rc(c,-9,-46,18,30);Rc('rgba(255,255,255,.35)',-9,-46,18,5);
+// head + hair
+Ci('#f0b090',0,-54,8);Rc(['#2a1a10','#F5C84B','#7a3a1a','#111'][k%4],-8,-62,16,6);if(k%3===1){Ci('#e87ab0',0,-66,9)}
+// arms by move
+x.strokeStyle='#f0b090';x.lineWidth=4.5;x.beginPath();
+if(mv===0){x.moveTo(-9,-42);x.lineTo(-18,-60-Math.sin(bt)*6);x.moveTo(9,-42);x.lineTo(18,-60+Math.sin(bt)*6)}
+else if(mv===1){x.moveTo(-9,-42);x.lineTo(-20,-52);x.lineTo(-22,-68-Math.abs(Math.sin(bt))*6);x.moveTo(9,-42);x.lineTo(14,-34);x.lineTo(8,-26)}
+else if(mv===2){x.moveTo(-9,-42);x.lineTo(-22,-46+Math.sin(bt*2)*8);x.moveTo(9,-42);x.lineTo(22,-46-Math.sin(bt*2)*8)}
+else{x.moveTo(-9,-42);x.lineTo(-16,-64);x.moveTo(9,-42);x.lineTo(16,-64);x.moveTo(-16,-64);x.lineTo(-10,-70);x.moveTo(16,-64);x.lineTo(10,-70)}
+x.stroke();
+// sparkle on suit
+if(Math.sin(now/100+ph)>.8)Ci('rgba(255,255,255,.9)',rnd(-8,8),-40+rnd(-4,4),1.6);
+x.restore()}
+// disco light wash on the crowd
+const lg=x.createLinearGradient(0,330,0,380);lg.addColorStop(0,'rgba(255,255,255,0)');lg.addColorStop(1,'hsla('+(now/20%360)+',90%,60%,.12)');x.fillStyle=lg;x.fillRect(0,330,W,50)}
 txt('BEEPS '+Z.n,16,28,'#c8c8ff','left',14)}
 
 function boat(i,px,py,hp){const c=Tc(T[i]),k=i%3,t=now/700+i*1.3,dx=Math.sin(t*.6)*16,rk=Math.sin(t)*.09,by=py+Math.sin(t*1.3)*3;
