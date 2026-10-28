@@ -736,7 +736,7 @@ html.st-lock,html.st-lock body{overflow:hidden}
  .pm-knobs{order:2;grid-template-columns:repeat(8,1fr);grid-template-rows:none;gap:2px;align-content:start}
  .pm-kn{grid-row:auto;grid-column:auto}
  /* phone order, left to right: Bass, Stab, Lead, Kit, Tempo, Section, Volume, Swing */
- .pm-kn[data-n="6"]{order:0}.pm-kn[data-n="4"]{order:1}.pm-kn[data-n="7"]{order:2}.pm-kn[data-n="5"]{order:3}.pm-kn[data-n="2"]{order:4}.pm-kn[data-n="3"]{order:5}.pm-kn[data-n="0"]{order:6}.pm-kn[data-n="1"]{order:7}
+ .pm-kn[data-n="6"]{order:0}.pm-kn[data-n="7"]{order:1}.pm-kn[data-n="4"]{order:2}.pm-kn[data-n="5"]{order:3}.pm-kn[data-n="2"]{order:4}.pm-kn[data-n="3"]{order:5}.pm-kn[data-n="0"]{order:6}.pm-kn[data-n="1"]{order:7}
  .pm-kn i{width:30px;height:30px}.pm-kn i::after{top:2px;height:10px;transform-origin:50% 11px}
  .pm-kn b{display:none}
  .pm-kn span{display:block;max-width:44px;font-size:9px;line-height:1.1;white-space:normal;text-align:center;overflow:hidden}
@@ -5243,7 +5243,7 @@ function meterPaint(){
   });
 }
 function sfx(f,key,pan,lvl){ const keep=master; try{ if(lvl===0) return; if(key&&ac&&masterReal) master=busFor(key,pan,lvl); f(); }catch(e){ SFX_ERR++; SFX_LAST=String(e&&e.message||e); if(SFX_ERR<=3){ try{ const m=$('recmsg'); if(m&&!REC.on) m.textContent='A sound could not play on this browser ('+(e&&e.message?e.message:'error')+'; instruments: '+['bass','stab','arp','lead'].map(patchId).join(', ')+'). Playback carries on without it.'; }catch(_){} } }finally{ master=keep; } }
-let SFX_ERR=0, SFX_LAST='', TICKN=0; const BUILD='b1605';
+let SFX_ERR=0, SFX_LAST='', TICKN=0; const BUILD='b1610';
 function schedule(step,time){
   const preview=cfg.target!=='midi'||!midi.out, send=canSend();
   if(preview){
@@ -6513,14 +6513,14 @@ function padLightTest(){
   go();
 }
 function padShowBank(n){ if(PADS.bank===n) return; PADS.bank=n; padGrid(); padPaint(); }
-const PAD_KN=['Volume','Swing','Tempo','Section','Stab sound','Kit','Bass sound','Lead sound'];
+const PAD_KN=['Volume','Swing','Tempo','Section','Lead sound','Kit','Bass sound','Stab sound'];
 function padKitList(){ return ['auto'].concat(Object.keys(KITS)); }
 // What a knob does, and where it sits (0 to 1), so the on-screen knob can follow the real one.
 const PAD_PGROUPS={bass:['Bass'],lead:['Leads'],stab:['Stabs and chords','Keys and organs','Pads'],arp:['Plucks and bells','Keys and organs','Leads','World']};
 function padPatchList(role){ return ['auto'].concat(PATCH_LIST.filter(p=>PAD_PGROUPS[role].includes(p[2])).map(p=>p[0])); }
 function padPatchName(id){ const p=PATCH_LIST.find(x=>x[0]===id); return p?p[1]:id; }
 function padSecIds(){ return SECTION_IDS.filter(x=>x!=='allt'); }
-const PAD_KROLE={4:'stab',6:'bass',7:'lead'};
+const PAD_KROLE={4:'lead',6:'bass',7:'stab'};
 function padKnobInfoA(n){
   if(n===0) return ['Volume',(+$('pvol').value-10)/140];
   if(n===1) return ['Swing',(+$('swing').value-50)/25];
