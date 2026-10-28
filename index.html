@@ -6514,7 +6514,7 @@ function padKitStep(d){
 // A knob sends dozens of values a second. Only the latest value is applied, about 12 times a second, so the page is never flooded.
 function padKnobFlush(){ PADS.kt=0; const q=PADS.kq; PADS.kq={}; Object.keys(q).forEach(n=>{ try{ if(+n>=8) padKnobB(+n-8,q[n]); else padKnobA(+n,q[n]); }catch(_){} }); if(padOn()){ padKnobsPaint(); } }
 function padCtl(cc){ const c=PADS.cc; for(const k of ['prev','next','play','stop','rec']) if(c[k]===cc) return k; let i=c.k.indexOf(cc); if(i>=0) return 'k'+i; i=c.kb.indexOf(cc); return i>=0?'b'+i:null; }
-const PAD_CTL_NAME={prev:'< (previous)',next:'> (next)',play:'Play',stop:'Stop',rec:'Record'};
+const PAD_CTL_NAME={prev:'< (previous)',next:'> (next)',play:'Play',stop:'Pause',rec:'Record'};
 function padCtlName(k){ return PAD_CTL_NAME[k]||((k[0]==='b'?'Bank B knob ':'Knob ')+(+k.slice(1)+1)); }
 function padCtlSet(k,cc){
   ['prev','next','play','stop','rec'].forEach(x=>{ if(PADS.cc[x]===cc) PADS.cc[x]=-1; }); PADS.cc.k=PADS.cc.k.map(x=>x===cc?-1:x); PADS.cc.kb=PADS.cc.kb.map(x=>x===cc?-1:x);
@@ -6536,11 +6536,10 @@ function padCC(cc,val){
   padTick(); if(padOn()) padPaint();
 }
 // Which bank a pad note belongs to. The pad's own PAD BANK button sends no message, but it shifts the notes by 16: first bank = Drums, second bank = whatever "Pad bank B plays" says.
-// A bank picked on screen stays until the pad's own bank changes (a different note range is heard), so a pad hit never undoes your choice.
+// The pad's own bank wins: a hit from its bank A flips the screen to A, and a hit from its bank B flips it to B. The on-screen chips pick the bank for on-screen taps and for pads with no bank button (the tick box).
 function padBankFor(idx){
   const hb=idx>>4;
   if(PADS.soft) return PADS.bank;
-  if(PADS.pin){ if(PADS.pinHb===undefined) PADS.pinHb=hb; if(hb===PADS.pinHb) return PADS.bank; PADS.pin=false; }
   return hb===0?0:PADS.hwB;
 }
 function padMsg(e){
@@ -6681,7 +6680,7 @@ function padBuild(){
    '<div class="pm-chips" id="pmchips">'+chips+'</div>'+
    '<div class="pm-dev"><div class="pm-knobs" id="pmknobs">'+kn+'</div><div class="pm-grid" id="pmgrid"></div>'+
    '<div class="pm-btns"><button class="lvb pm-b" id="pmprev" title="Previous track" aria-label="Previous">&lt;</button><button class="lvb pm-b" id="pmnext" title="Next track" aria-label="Next">&gt;</button>'+
-   '<button class="lvb pm-b pm-play" id="pmplay" title="Play" aria-label="Play" aria-pressed="false">&#9654;&#65038;</button><button class="lvb pm-b" id="pmstop" title="Stop" aria-label="Stop">&#9632;</button><button class="lvb pm-b pm-rec" id="pmrec" title="Record your pad hits into the loop" aria-label="Record pad hits" aria-pressed="false">&#9679;</button></div></div>'+
+   '<button class="lvb pm-b pm-play" id="pmplay" title="Play" aria-label="Play" aria-pressed="false">&#9654;&#65038;</button><button class="lvb pm-b" id="pmstop" title="Pause (stops the loop)" aria-label="Pause">&#10074;&#10074;</button><button class="lvb pm-b pm-rec" id="pmrec" title="Record your pad hits into the loop" aria-label="Record pad hits" aria-pressed="false">&#9679;</button></div></div>'+
    '<p class="pm-hint" id="pmtrk"></p><div class="pm-tl" id="pmtl" aria-label="Tracks"></div><div class="pm-row" id="pmsteps" hidden><button class="lvb" data-pst="tp">◀ Track</button><button class="lvb" data-pst="tn">Track ▶</button><button class="lvb" data-pst="bp">◀ Bar</button><button class="lvb" data-pst="bn">Bar ▶</button></div>'+
    '<p class="pm-last" id="pmlast" aria-live="polite"></p><p class="pm-hint" id="pmhint"></p>'+
    '<details class="pm-set"><summary>Pad settings</summary>'+
