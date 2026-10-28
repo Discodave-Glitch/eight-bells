@@ -404,7 +404,7 @@ function makePlan(c,n){ // decide what comes next ahead of time, so the status r
   P.gname=gname(P.gid); return P;
 }
 function planNext(c){ const n=D(c.id==='A'?'B':'A'); rollFade(); AU.plan=makePlan(c,n); AU.style=AU.plan.style; }
-function nowText(c){ const sec=ev(c,'state.section'), nm=(SECS.find(x=>x[0]===sec)||[0,''])[1]; return 'Deck '+c.id+' \u00b7 '+ev(c,'genreObj().name')+' \u00b7 '+getBpm(c)+' BPM \u00b7 '+keyName(c)+(nm?' \u00b7 '+nm:'')+' \u00b7 track '+AU.tr+(AU.max?' of '+AU.max:'')+' \u00b7 energy '+Math.round(AU.e*100)+'% ('+(AU.shape||'')+')'+((AU.voxNow&&Date.now()-AU.voxNow.t<9000)?' \u00b7 vocal: '+AU.voxNow.text:''); }
+function nowText(c){ const sec=ev(c,'state.section'), nm=(SECS.find(x=>x[0]===sec)||[0,''])[1]; return 'Deck '+c.id+' \u00b7 '+ev(c,'genreObj().name')+' \u00b7 bar '+(barsOf(c)+1)+' of '+(AU.slow?AU.len/2:AU.len)+' \u00b7 '+getBpm(c)+' BPM \u00b7 '+keyName(c)+(nm?' \u00b7 '+nm:'')+' \u00b7 track '+AU.tr+(AU.max?' of '+AU.max:'')+' \u00b7 energy '+Math.round(AU.e*100)+'% ('+(AU.shape||'')+')'+((AU.voxNow&&Date.now()-AU.voxNow.t<9000)?' \u00b7 vocal: '+AU.voxNow.text:''); }
 function nextText(c,left){ if(lastTrack(c)) return 'Next: final outro, echo and filter fade, then stop'; const P=AU.plan; if(!P) return ''; const k={euphoric:'slow euphoric half-time',peak:'big club peak',back:'back up to full tempo',normal:''}[P.kind]; return 'Next: '+P.style+' into '+P.gname+(k?' ('+k+')':'')+' at '+P.tgt+' BPM, '+P.fade+'-bar overlap '+(left>1?'in about '+left+' bars':'at the end of this phrase'); }
 function buildReport(){
   if(!LOG.length&&!TRK.length) return '';
@@ -578,7 +578,7 @@ function autoTick(){
   else if(AU.phase==='mix'){
     const barMs=240000/getBpm(c), p=Math.min(1,(Date.now()-AU.t0)/(AU.fadeMix*barMs));
     autoMix(c,n,warp(p,AU.hold||0));
-    autoSay('Mixing Deck '+c.id+' into Deck '+n.id+' ('+ev(n,'genreObj().name')+') with a '+AU.style+' \u00b7 '+Math.round(p*100)+'%','Now: '+(p<.3?'bringing the new tune in':(p<.3+(AU.hold||0)?'both tunes playing side by side':(p<.85?'swapping the bass and mids across':'echoing the old tune out'))));
+    autoSay('Mixing Deck '+c.id+' into Deck '+n.id+' ('+ev(n,'genreObj().name')+') with a '+AU.style+' \u00b7 '+Math.round(p*100)+'% \u00b7 bar '+(barsOf(c)+1)+' of '+(AU.slow?AU.len/2:AU.len),'Now: '+(p<.3?'bringing the new tune in':(p<.3+(AU.hold||0)?'both tunes playing side by side':(p<.85?'swapping the bass and mids across':'echoing the old tune out'))));
     if(p>=0.5&&!AU.half){ AU.half=true; fxHit(c,'Echo',240000/getBpm(c)/2); queueSec(n,rndSec(AU.ne<.6?['half','bld','bridge']:['drop','chorus','half','bld'],'')); }
     if(p>=0.8&&!AU.third){ AU.third=true; const pk=rndSec(AU.ne<.6?['bridge','half','chorus']:(AU.ne>=.9?['drop','drop','chorus']:['drop','chorus','bridge']),''); queueSec(n,pk); if(pk==='drop'&&voxRoll(.8)) voxLoopEnd(n,'shout'); else if(voxRoll(.12)) voxLoopEnd(n,'shout'); if(pk==='drop'){ const bt=60000/getBpm(n); setTimeout(()=>{ if(AU.on) fxHit(n,'Loop 1/8',bt); },bt*2); } } // loops tighten into the drop // half-beat delay-style roll into the drop
     if(p>=0.85&&!AU.fourth){ AU.fourth=true; fxHit(c,'Echo',60000/getBpm(c)*4); } // echo out the old track
