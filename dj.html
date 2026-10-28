@@ -117,7 +117,7 @@ input[type=range]{width:100%;accent-color:var(--ink);min-height:28px;margin:0}
     <div class="row"><span id="midimsg" class="chip"></span></div>
     <div class="row"><button id="wiz">Guided setup</button><button id="learn">Learn one control</button><button id="clearmap">Clear mappings</button></div>
     <div class="chip" id="mon">Last message from your controller: none yet</div>
-    <p class="hint">Guided setup walks through the controls one by one. When a control lights up yellow, press or move the matching control on your deck. Tap Skip for any it does not have. Your choices are remembered on this device. Jog wheel: turn it to nudge the tempo. CUE: hold it to preview, or tap it while playing to restart from the top. Pads button cycles Effects 1-4, 5-8 and Patterns 1-4, 5-8. Double-tap an EQ or filter knob to centre it.</p>
+    <p class="hint">Guided setup walks through the controls one by one. When a control lights up yellow, press or move the matching control on your deck. Tap Skip for any it does not have. Your choices are remembered on this device. Jog wheel: turn it to nudge the tempo. CUE: hold it to preview, or tap it while playing to restart from the top. Double-tap an EQ or filter knob to centre it.</p>
     <p class="hint">SMC-PAD pads: Bank A pads are effects, Bank B pads are patterns (the pad's own Bank button picks). Left two columns are Deck A, right two columns are Deck B, with the same effect or pattern on both sides of each row (bottom row: Loop 1/4 and Loop 1/8, then Stutter and Reverse, then Tape stop and Low-pass, top row: High-pass and Echo). Knob bank A (CC 30 to 37): knob 1 master volume, knob 2 crossfader, then pairs for Deck A and Deck B: knobs 3 and 4 volumes, 5 and 6 filters, 7 and 8 tempos. Knob bank B (CC 38 to 45) is the EQ: Treble, Mid, Bass, Filter for Deck A, then the same four for Deck B. Buttons work like Pad mode in Eight Bells: &lt; and &gt; (CC 25, 26) change the genre of the highlighted deck, Play (27) and Stop (28) run both decks, Record (29) picks which deck is highlighted. If bank B does nothing on your pad, use Learn one control to teach it.</p>
     <p id="msg"></p>
   </details>
@@ -162,6 +162,7 @@ function knobHTML(label,ctl,inputAttrs,min,max,val,vid,aria){
   return '<div class="kn" data-ctl="'+ctl+'" data-kind="abs"><span class="kl">'+label+'</span><div class="kd"><svg viewBox="0 0 60 60" aria-hidden="true"><circle cx="30" cy="30" r="26" class="kb"/><g class="dial"><line x1="30" y1="30" x2="30" y2="8" class="ki"/></g></svg><input type="range" min="'+min+'" max="'+max+'" value="'+val+'" '+inputAttrs+' aria-label="'+aria+'"></div><span class="kv" id="'+vid+'"></span></div>';
 }
 const PLATTER='<svg viewBox="0 0 200 200" aria-hidden="true"><g class="spin"><circle cx="100" cy="100" r="96" fill="#0a0d14" stroke="var(--c)" stroke-width="5"/><circle cx="100" cy="100" r="84" fill="none" stroke="#1c2434" stroke-width="2"/><circle cx="100" cy="100" r="72" fill="none" stroke="#1c2434" stroke-width="2"/><circle cx="100" cy="100" r="60" fill="none" stroke="#1c2434" stroke-width="2"/><path d="M100 100 L100 46 A54 54 0 0 1 146.8 73 Z" fill="#202a3d"/><path d="M100 100 L146.8 127 A54 54 0 0 1 100 154 Z" fill="#202a3d"/><path d="M100 100 L53.2 127 A54 54 0 0 1 53.2 73 Z" fill="#202a3d"/><circle cx="100" cy="100" r="15" fill="var(--c)"/><circle cx="100" cy="100" r="5" fill="#0a0d14"/><circle cx="100" cy="17" r="6" fill="var(--c)"/></g></svg>';
+function FLIP(a){ const r=a.map((x,k)=>[x,k]); return r.slice(4).concat(r.slice(0,4)); } // top row shows items 5 to 8, bottom row 1 to 4, like the pad
 function deckHTML(d,opts){
   const i=d.id;
   return '<section class="deck '+i+'" id="deck'+i+'" aria-label="Deck '+i+'">'+
@@ -171,10 +172,8 @@ function deckHTML(d,opts){
    '<div class="plrow"><div class="plat" data-ctl="jog:'+i+'" data-kind="rel" data-d="'+i+'" role="img" aria-label="Jog platter, deck '+i+'. Drag to nudge the tempo.">'+PLATTER+'</div>'+
    '<div class="pitch"><span class="lbl">Pitch <i class="bt">A'+(i==='A'?7:8)+'</i></span><input class="vf" type="range" orient="vertical" min="40" max="240" step="1" data-t="'+i+'" data-ctl="tempo:'+i+'" data-kind="abs" aria-label="Tempo, deck '+i+'"></div></div>'+
    '<div class="trans"><button data-ctl="sync:'+i+'" data-kind="btn" data-a="sync" data-d="'+i+'">SYNC</button><button data-ctl="cue:'+i+'" data-kind="hold" data-hold="1" data-d="'+i+'">CUE</button><button class="play" id="pl'+i+'" data-ctl="play:'+i+'" data-kind="btn" data-a="play" data-d="'+i+'">PLAY</button></div>'+
-   '<div class="lbl"><span>Patterns (queue for the end of the loop)</span></div><div class="grid4" id="secs'+i+'">'+SECS.map((x,k)=>'<button class="sb" data-ctl="sec:'+i+':'+k+'" data-kind="btn" data-a="sec" data-d="'+i+'" data-k="'+k+'">'+x[1]+'</button>').join('')+'</div>'+
-   '<div class="lbl"><span>Effects (hold)</span></div><div class="grid4" id="fxs'+i+'">'+FXN.map((n,k)=>'<button class="fb" data-ctl="fx:'+i+':'+k+'" data-kind="hold" data-hold="1" data-d="'+i+'" data-k="'+k+'">'+n.replace(' sweep','')+'</button>').join('')+'</div>'+
-   '<div class="lbl"><span>Controller pads</span></div><div class="padbar"><button data-ctl="mode:'+i+'" data-kind="btn" data-a="mode" data-d="'+i+'" id="mode'+i+'" style="flex:1"></button></div>'+
-   '<div class="pads4">'+[0,1,2,3].map(k=>'<button class="pad" id="pad'+i+k+'" data-ctl="pad:'+i+':'+k+'" data-kind="hold" data-hold="1" data-d="'+i+'" data-pad="'+k+'"></button>').join('')+'</div>'+
+   '<div class="lbl"><span>Patterns (queue for the end of the loop)</span></div><div class="grid4" id="secs'+i+'">'+FLIP(SECS).map(([x,k])=>'<button class="sb" data-ctl="sec:'+i+':'+k+'" data-kind="btn" data-a="sec" data-d="'+i+'" data-k="'+k+'">'+x[1]+'</button>').join('')+'</div>'+
+   '<div class="lbl"><span>Effects (hold)</span></div><div class="grid4" id="fxs'+i+'">'+FLIP(FXN).map(([n,k])=>'<button class="fb" data-ctl="fx:'+i+':'+k+'" data-kind="hold" data-hold="1" data-d="'+i+'" data-k="'+k+'">'+n.replace(' sweep','')+'</button>').join('')+'</div>'+
    '</section>';
 }
 function stripHTML(d){
@@ -198,7 +197,7 @@ function buildUI(){
   decks.forEach(d=>{ $('deck'+d.id).querySelector('select').value=d.genre; d.page=0; d.held={}; });
   paintPads(); refreshMapped(); setFocus(S.focus);
 }
-function paintPads(){
+function paintPads(){ return; /* on-screen pads removed */
   decks.forEach(d=>{
     const mode=d.page>>1, base=(d.page&1)*4;
     $('mode'+d.id).textContent='Pads: '+PAGES[d.page];
@@ -251,7 +250,7 @@ function cue(d,on){
 }
 function padAct(d,j,on,mode){ // j is 0 to 7, mode 0 effects or 1 patterns
   if(mode===0) fx(d,j,on); else if(on) section(d,SECS[j][0]);
-  const pg=mode*2+(j>=4?1:0), b=$('pad'+d.id+(j%4)); if(b&&d.page===pg) b.classList.toggle('hit',on);
+  if(mode===0){ const b=document.querySelector('#fxs'+d.id+' [data-k="'+j+'"]'); if(b) b.classList.toggle('hold',on); }
 }
 
 /* ---------- named controls: used by taps, the platter and MIDI learn ---------- */
@@ -300,9 +299,7 @@ function paint(){
     $('pl'+d.id).textContent=st.p?'PAUSE':'PLAY'; $('pl'+d.id).classList.toggle('on',st.p);
     $('deck'+d.id).classList.toggle('playing',st.p);
     if(d.spinBpm!==st.b){ d.spinBpm=st.b; const sec=(240/st.b).toFixed(2)+'s'; $('deck'+d.id).style.setProperty('--spin',sec); }
-    const mode=d.page>>1, base=(d.page&1)*4;
-    for(let k=0;k<4;k++){ const b=$('pad'+d.id+k), sid=SECS[base+k][0]; b.classList.toggle('cur',mode===1&&sid===st.s); b.classList.toggle('q',mode===1&&sid===st.n); }
-    $('secs'+d.id).querySelectorAll('button').forEach((b,k)=>{ b.classList.toggle('cur',SECS[k][0]===st.s); b.classList.toggle('q',SECS[k][0]===st.n); });
+    $('secs'+d.id).querySelectorAll('button').forEach(b=>{ const k=+b.dataset.k; b.classList.toggle('cur',SECS[k][0]===st.s); b.classList.toggle('q',SECS[k][0]===st.n); });
     if(!d.base) d.base=st.b;
   });
 }
@@ -364,8 +361,8 @@ function refreshMapped(){
   document.querySelectorAll('[data-ctl]').forEach(el=>el.classList.toggle('mapped',have.has(el.dataset.ctl)));
 }
 function wizList(){
-  const L=[]; ['A','B'].forEach(i=>{ ['play','cue','sync','treb','mid','bass','filt','vol','tempo','jog'].forEach(c=>L.push(c+':'+i)); for(let k=0;k<4;k++) L.push('pad:'+i+':'+k); L.push('mode:'+i); });
-  L.push('xf','mv'); return L;
+  const L=[]; ['A','B'].forEach(i=>{ ['play','cue','sync','treb','mid','bass','filt','vol','tempo','jog'].forEach(c=>L.push(c+':'+i)); });
+  L.push('xf','mv','prev','next','playall','stopall','focus'); return L;
 }
 function setTarget(id){
   document.querySelectorAll('.learning').forEach(e=>e.classList.remove('learning'));
