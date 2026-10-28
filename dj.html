@@ -70,6 +70,8 @@ input[type=range]{width:100%;accent-color:var(--ink);min-height:28px;margin:0}
 .strip>b{color:var(--c)}
 .kn{display:flex;flex-direction:column;align-items:center;gap:0;border-radius:10px;padding:2px}
 .kn .kl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.kn .kl{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;line-height:1.15;text-align:center;white-space:nowrap}.kn .kl .bt{margin:1px 0 2px}
+body.nolbl .bt{display:none}
 .bt{font-style:normal;font-size:9px;color:#07090e;background:var(--ink);border-radius:5px;padding:0 3px;margin-left:2px;letter-spacing:0}
 .pitch .bt{display:block;margin:0 auto}
 .deck.focus{box-shadow:0 0 0 3px var(--c)}
@@ -167,6 +169,7 @@ input[type=range]{width:100%;accent-color:var(--ink);min-height:28px;margin:0}
     <div class="row"><button id="gfx" title="Change the deck graphic">Deck: Bell</button><button id="auto" data-ctl="auto" data-kind="btn" aria-pressed="false">Auto DJ: off</button><select id="autolen" aria-label="Auto DJ length of each track"><option value="16">Each track 16 bars</option><option value="32">Each track 32 bars</option><option value="64" selected>Each track 64 bars</option></select><button id="bothplay">Play both</button><button id="bothstop">Stop both</button><details class="ctlp" id="ctlp"><summary>Setup</summary><div class="ctlbody">
     <div class="row"><span id="midimsg" class="chip"></span></div>
     <div class="row"><button id="wiz">Guided setup</button><button id="learn">Learn one control</button><button id="teachA">Teach knob bank A</button><button id="teachB">Teach knob bank B</button><button id="clearmap">Clear mappings</button></div>
+    <label class="row chip" style="cursor:pointer"><input type="checkbox" id="padlbl" checked> Show pad labels (A3, B5 and so on) next to the knobs and faders</label>
     <div class="chip" id="padnote"></div>
     <div class="chip" id="mon">Last message from your controller: none yet</div>
     <p class="hint">Guided setup walks through the controls one by one. When a control lights up yellow, press or move the matching control on your deck. Tap Skip for any it does not have. Your choices are remembered on this device. Jog wheel: turn it to nudge the tempo. CUE: hold it to preview, or tap it while playing to restart from the top. Double-tap an EQ or filter knob to centre it.</p>
@@ -243,6 +246,7 @@ const G_X8='<svg viewBox="0 0 200 200" aria-hidden="true"><circle cx="100" cy="1
 const G_X9='<svg viewBox="0 0 200 200" aria-hidden="true"><circle cx="100" cy="100" r="96" fill="#e9b25a" stroke="var(--c)" stroke-width="4"/><g class="spin"><circle cx="100" cy="100" r="84" fill="#d9822b"/><circle cx="100" cy="100" r="76" fill="#f4c15d"/><circle cx="148.86401628086725" cy="117.78504745293478" r="9" fill="#c0392b"/><circle cx="94.77065543514051" cy="159.77168188550473" r="9" fill="#c0392b"/><circle cx="52.72922785541402" cy="108.33511252801266" r="9" fill="#c0392b"/><circle cx="70.99999999999997" cy="49.770526580502576" r="9" fill="#c0392b"/><circle cx="132.13938048432698" cy="61.697777844051096" r="9" fill="#c0392b"/><circle cx="111.0" cy="119.05255888325765" r="9" fill="#c0392b"/><circle cx="77.4473771011382" cy="91.79151656018395" r="9" fill="#c0392b"/><circle cx="104.51485261934018" cy="74.39499842168259" r="9" fill="#c0392b"/><line x1="100" y1="100" x2="100" y2="24" stroke="#d9822b" stroke-width="2" transform="rotate(0 100 100)"/><line x1="100" y1="100" x2="100" y2="24" stroke="#d9822b" stroke-width="2" transform="rotate(45 100 100)"/><line x1="100" y1="100" x2="100" y2="24" stroke="#d9822b" stroke-width="2" transform="rotate(90 100 100)"/><line x1="100" y1="100" x2="100" y2="24" stroke="#d9822b" stroke-width="2" transform="rotate(135 100 100)"/><line x1="100" y1="100" x2="100" y2="24" stroke="#d9822b" stroke-width="2" transform="rotate(180 100 100)"/><line x1="100" y1="100" x2="100" y2="24" stroke="#d9822b" stroke-width="2" transform="rotate(225 100 100)"/><line x1="100" y1="100" x2="100" y2="24" stroke="#d9822b" stroke-width="2" transform="rotate(270 100 100)"/><line x1="100" y1="100" x2="100" y2="24" stroke="#d9822b" stroke-width="2" transform="rotate(315 100 100)"/></g></svg>';
 const GFX=[['Nuke',G_NUKE],['Bell',G_BELL],['Vinyl',G_VINYL],['Disc',G_DISC],['Radar',G_RADAR],['Gear',G_GEAR],['Vortex',G_VORTEX],['Mandala',G_MANDALA],['Turbine',G_TURBINE],['Planet',G_PLANET],['Sun',G_X0],['Eye',G_X1],['Yin Yang',G_X2],['Snowflake',G_X3],['Atom',G_X4],['Speaker',G_X5],['Dartboard',G_X6],['Cassette',G_X7],['Tyre',G_X8],['Pizza',G_X9]];
 const gfxFor=id=>GFX[GFXI][1].replace(/(id="|url\(#)(dsk|swp)/g,'$1$2'+id);
+function setLbl(on){ document.body.classList.toggle('nolbl',!on); const c=$('padlbl'); if(c) c.checked=on; try{ localStorage.setItem('ebdj.lbl',on?'1':'0'); }catch(e){} }
 let GFXI=1; try{ const v=localStorage.getItem('ebdj.gfx'); if(v!==null) GFXI=Math.max(0,Math.min(GFX.length-1,+v||0)); }catch(e){}
 function setGfx(i){ GFXI=((i%GFX.length)+GFX.length)%GFX.length; try{ localStorage.setItem('ebdj.gfx',String(GFXI)); }catch(e){} document.querySelectorAll('.plat').forEach(p=>{ p.innerHTML=gfxFor(p.dataset.d); }); const b=$('gfx'); if(b) b.textContent='Deck: '+GFX[GFXI][0]; }
 function FLIP(a){ const r=a.map((x,k)=>[x,k]); return r.slice(4).concat(r.slice(0,4)); } // top row shows items 5 to 8, bottom row 1 to 4, like the pad
@@ -635,7 +639,7 @@ function wireUI(){
   const pup=e=>{ const p=e.target.closest&&e.target.closest('.plat'); if(p) p._drag=false; };
   document.addEventListener('pointerup',pup); document.addEventListener('pointercancel',pup);
   document.addEventListener('dblclick',e=>{ const k=e.target.closest&&e.target.closest('.kd'); if(!k) return; const inp=k.querySelector('input'); if(inp.dataset.eq||inp.dataset.f){ inp.value=0; inp.dispatchEvent(new Event('input',{bubbles:true})); } });
-  $('gfx').addEventListener('click',()=>setGfx(GFXI+1)); $('gfx').textContent='Deck: '+GFX[GFXI][0];
+  $('gfx').addEventListener('click',()=>setGfx(GFXI+1)); { let on=true; try{ on=localStorage.getItem('ebdj.lbl')!=='0'; }catch(e){} setLbl(on); $('padlbl').addEventListener('change',e=>setLbl(e.target.checked)); } $('gfx').textContent='Deck: '+GFX[GFXI][0];
   $('auto').addEventListener('click',()=>autoOn(!AU.on)); $('autolen').addEventListener('change',()=>{ if(AU.on){ AU.len=+$('autolen').value; AU.fade=Math.min(16,Math.floor(AU.len/2)); } });
   $('bothplay').addEventListener('click',bothPlay); $('bothstop').addEventListener('click',bothStop);
   $('wiz').addEventListener('click',()=>learnStart(wizList()));
