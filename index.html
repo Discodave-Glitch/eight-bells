@@ -1111,7 +1111,7 @@ html.st-lock,html.st-lock body{overflow:hidden}
 <script>
 const HAS_MIDI=true;
 /*CORE*/
-let RNG=Math.random;
+let RNG=Math.random, V2=true; /* V2: built-in rhythms get a little variation each time. Seeds of 6 characters or fewer (made before this) keep their exact old patterns. */
 function rnd(){ return RNG(); }
 function seedFrom(str){
   let h=1779033703^str.length;
@@ -1119,7 +1119,8 @@ function seedFrom(str){
   let a=h>>>0;
   return ()=>{ a=(a+0x6D2B79F5)|0; let t=Math.imul(a^(a>>>15),1|a); t=(t+Math.imul(t^(t>>>7),61|t))^t; return ((t^(t>>>14))>>>0)/4294967296; };
 }
-function newSeed(){ const A='abcdefghjkmnpqrstuvwxyz23456789'; let r=''; for(let i=0;i<6;i++) r+=A[Math.floor(Math.random()*A.length)]; return r; }
+function useSeed(seed){ RNG=seedFrom(seed); V2=String(seed||'').length>=7; }
+function newSeed(){ const A='abcdefghjkmnpqrstuvwxyz23456789'; let r=''; for(let i=0;i<7;i++) r+=A[Math.floor(Math.random()*A.length)]; return r; }
 function pick(a){ return a[Math.floor(rnd()*a.length)]; }
 // Shuffle bag for the dice: deals out every option in a random order before any comes round again, and never deals the same one twice in a row.
 const BAGS={};
@@ -2788,9 +2789,23 @@ function chordOf(m,scaleName,key){
 
 function newRanks(){ return Array.from({length:64},()=>rint(0,99)/100); }
 function ensureRk(t){ if(!t.rk) t.rk=newRanks(); if(!t.rk2) t.rk2=newRanks(); if(t.busy==null) t.busy=50; }
+// A little variation on a built-in rhythm: add an off-beat hit, drop one, nudge one a step, or rotate the whole thing. Kick and snare only ever gain a hit, so the backbone stays.
+function mutateFixed(fx,B,voice){
+  let a=fx.slice(); if(!a.length||rnd()<0.3) return a;
+  const core=(voice==='kick'||voice==='snare'), n=core?1:rint(1,2);
+  for(let m=0;m<n;m++){
+    const op=core?0:rint(0,3);
+    if(op===0){ const f=[]; for(let i=0;i<B;i++) if(!a.includes(i)&&(i%2===1||i%4===2)) f.push(i); if(f.length&&a.length<B-2) a.push(pick(f)); }
+    else if(op===1){ const c=a.filter(i=>i!==0); if(a.length>2&&c.length) a.splice(a.indexOf(pick(c)),1); }
+    else if(op===2){ const c=a.filter(i=>i!==0); if(c.length){ const x=pick(c), y=(x+pick([-1,1])+B)%B; if(!a.includes(y)){ a.splice(a.indexOf(x),1); a.push(y); } } }
+    else if(B>=8){ const s=pick([2,4]); a=a.map(x=>(x+s)%B); }
+  }
+  return [...new Set(a)].sort((x,y)=>x-y);
+}
 function buildTrack(rule,genreBase,bars,voice){
   const B = rule.baseChoices ? pick(rule.baseChoices) : (rule.base||genreBase);
-  const fx = rule.fixed ? (Array.isArray(rule.fixed[0]) ? pick(rule.fixed) : rule.fixed) : [];
+  let fx = rule.fixed ? (Array.isArray(rule.fixed[0]) ? pick(rule.fixed) : rule.fixed) : [];
+  if(V2&&fx.length) fx=mutateFixed(fx,B,voice);
   let k16 = rule.k ? rint(rule.k[0],rule.k[1]) : 0;
   if(rule.baseChoices) k16 = clamp(k16,1,Math.max(1,B-1));
   const r = rule.rot===ANY ? rint(0,B-1) : (rule.rot ? pick(rule.rot) : 0);
@@ -3347,7 +3362,7 @@ let KEYFORCE=null; /* a share code carries the key, so a pattern made with the G
 function rollSeed(){
   const el=$('seed'), typed=el?el.value.trim():'';
   state.seed=(typed&&typed!==state.seed)?typed:newSeed();
-  RNG=seedFrom(state.seed);
+  useSeed(state.seed);
   if(el) el.value=state.seed;
 }
 function setGenre(id){
@@ -5086,6 +5101,83 @@ PATCH_LIST.push(
  ['mandolin','Mandolin','Plucks and bells'],['nylon','Nylon guitar','Plucks and bells'],['steelgtr','Steel guitar','Plucks and bells'],['shamisen','Shamisen','Plucks and bells'],['oud','Oud','Plucks and bells'],['dulcimer','Dulcimer','Plucks and bells'],['balafon','Balafon','Plucks and bells'],['handpan','Handpan','Plucks and bells'],['crystal','Crystal bell','Plucks and bells'],['toybell','Toy bell','Plucks and bells'],
  ['didgeridoo','Didgeridoo','World'],['panflute','Pan flute','World'],['ocarina','Ocarina','World'],['shaku','Shakuhachi','World'],['erhu','Erhu','World']
 );
+/* ---------- More instruments (build b1630): built from a few recipes so each is a small description ---------- */
+(function(){
+  // Subtractive: w = [[wave, frequency multiple, cents, gain]], a filter that can sweep, and an envelope.
+  function sub(o){ return (t,f,v,d)=>{ const {flt,g}=pxChain(t,0,o.ft||'lowpass',o.f0,o.f1==null?null:o.f1,o.fT==null?0.2:o.fT,o.q||1);
+    o.w.forEach(w=>{ const os=pxOsc(w[0],f*(w[1]||1),t,d+0.5,w[2]||0); if(w[3]!=null&&w[3]!==1){ const x=ac.createGain(); x.gain.value=w[3]; os.connect(x); x.connect(flt); } else os.connect(flt); });
+    pxAdsr(g,t,o.g*v,o.a==null?0.005:o.a,o.d==null?0.1:o.d,o.s==null?0.7:o.s,o.r==null?0.1:o.r,o.h==null?d:Math.min(d,o.h)); }; }
+  // FM: one carrier, one modulator, an index that falls over time.
+  function fm(o){ return (t,f,v,d)=>{ const life=d+o.r+0.3, g=ac.createGain(), c=pxOsc('sine',f,t,life), m=pxOsc('sine',f*o.ratio,t,life), mg=ac.createGain();
+    mg.gain.setValueAtTime(f*o.i0,t); mg.gain.exponentialRampToValueAtTime(Math.max(0.01,f*o.i1),t+o.dec); m.connect(mg); mg.connect(c.frequency); c.connect(g); g.connect(master);
+    pxAdsr(g,t,o.g*v,o.a==null?0.003:o.a,o.d==null?0.15:o.d,o.s==null?0.4:o.s,o.r,o.h==null?d:Math.min(d,o.h)); }; }
+  // Breathy reed or flute: a tone with a little filtered noise on top.
+  function breath(o){ return (t,f,v,d)=>{ sub(o)(t,f,v,d); pxNoise(t,'bandpass',Math.min(9000,f*o.nm),o.nq||2,o.ng*v,d+0.1); }; }
+  const S=(w,f0,f1,fT,q,g,a,dd,s,r,h)=>sub({w,f0,f1,fT,q,g,a,d:dd,s,r,h});
+  const L=[
+   // Bass
+   ['widebass','Wide saw bass','Bass',S([['sawtooth',1,-14],['sawtooth',1,14],['sawtooth',1,0],['sine',0.5]],1100,350,0.25,2,0.12,0.005,0.1,0.8,0.1)],
+   ['plucksub','Pluck bass','Bass',S([['sawtooth',1],['square',1,6]],2400,200,0.12,3,0.15,0.002,0.1,0.1,0.08,0.15)],
+   ['dirtyfm','Dirty FM bass','Bass',fm({ratio:1,i0:6,i1:1,dec:0.3,g:0.3,s:0.5,r:0.1})],
+   ['hollowbass','Hollow bass','Bass',S([['triangle',1],['sine',2,0,0.5]],700,null,0,4,0.3,0.01,0.1,0.6,0.1)],
+   ['electrobass','Electro bass','Bass',S([['square',1],['sawtooth',0.5]],1800,400,0.2,6,0.17,0.003,0.12,0.5,0.08)],
+   ['offbass','Offbeat bass','Bass',S([['sawtooth',1]],900,300,0.1,3,0.22,0.003,0.08,0.4,0.06,0.15)],
+   ['syncbass','Sync bass','Bass',S([['sawtooth',1],['sawtooth',1.5,4]],1500,500,0.2,8,0.16,0.003,0.1,0.6,0.08)],
+   ['chipbass','Chip bass','Bass',S([['square',1],['triangle',0.5]],8000,null,0,0.5,0.14,0.002,0.05,0.8,0.04)],
+   // Keys
+   ['glasskeys','Glass keys','Keys and organs',fm({ratio:4,i0:3,i1:0.5,dec:0.6,g:0.3,s:0.2,r:0.5})],
+   ['softpiano','Soft piano','Keys and organs',S([['triangle',1],['sine',2,0,0.4]],3000,500,0.4,0.7,0.3,0.004,0.3,0.15,0.4)],
+   ['dreamkeys','Dream keys','Keys and organs',fm({ratio:2,i0:1.2,i1:0.2,dec:1.2,g:0.28,s:0.5,r:1,a:0.01})],
+   ['gospelorgan','Gospel organ','Keys and organs',S([['sine',1],['sine',2,0,0.7],['sine',3,0,0.5],['sine',4,0,0.4],['sine',6,0,0.3],['sine',8,0,0.2]],6000,null,0,0.5,0.11,0.01,0.02,0.95,0.07)],
+   ['stagepiano','Stage piano','Keys and organs',fm({ratio:1,i0:2.5,i1:0.3,dec:0.25,g:0.3,s:0.3,r:0.35})],
+   ['pulsekeys','Pulse keys','Keys and organs',S([['square',1],['triangle',2,0,0.4]],2000,900,0.3,1,0.16,0.004,0.2,0.3,0.12)],
+   // Stabs and chords
+   ['superstab','Super stab','Stabs and chords',S([['sawtooth',1,-20],['sawtooth',1,-10],['sawtooth',1],['sawtooth',1,10],['sawtooth',1,20]],4000,900,0.15,1,0.08,0.003,0.15,0.35,0.08)],
+   ['softstab','Soft stab','Stabs and chords',S([['triangle',1,-6],['sawtooth',1,6]],1500,600,0.2,0.8,0.14,0.005,0.15,0.4,0.12)],
+   ['hardstab','Hard stab','Stabs and chords',S([['square',1],['sawtooth',1,8]],5000,1200,0.1,3,0.12,0.002,0.1,0.2,0.07,0.1)],
+   ['detunestab','Detune stab','Stabs and chords',S([['sawtooth',1,-25],['sawtooth',1,25]],2600,1000,0.18,1.2,0.13,0.004,0.14,0.4,0.1)],
+   ['voxstab','Vox stab','Stabs and chords',S([['sawtooth',1,-6],['sawtooth',1,6]],800,500,0.2,6,0.14,0.008,0.12,0.5,0.12,0.25)],
+   ['jazzchord','Jazz chord','Stabs and chords',fm({ratio:1,i0:1.5,i1:0.2,dec:0.4,g:0.26,s:0.5,r:0.4})],
+   // Pads
+   ['slowpad','Slow pad','Pads',S([['sawtooth',1,-9],['sawtooth',1,9],['sawtooth',1,0]],900,1500,2,0.8,0.08,0.6,0.2,0.85,0.8)],
+   ['softstrings','Soft strings','Pads',S([['sawtooth',1,-6],['sawtooth',1,6],['triangle',1]],2200,null,0,0.7,0.1,0.35,0.2,0.85,0.5)],
+   ['airypad','Airy pad','Pads',S([['triangle',1,-8],['triangle',2,8,0.5]],3500,null,0,0.6,0.16,0.5,0.2,0.8,0.7)],
+   ['darkdrone','Dark drone pad','Pads',S([['sawtooth',1,-5],['sawtooth',0.5,5]],500,null,0,0.9,0.12,0.8,0.2,1,0.9)],
+   ['brightpad','Bright pad','Pads',S([['sawtooth',1,-16],['sawtooth',1,-8],['sawtooth',1],['sawtooth',1,8],['sawtooth',1,16]],4500,null,0,0.7,0.07,0.25,0.2,0.85,0.5)],
+   ['movepad','Moving pad','Pads',S([['sawtooth',1,-7],['sawtooth',1,7]],700,2400,0.8,1,0.1,0.4,0.2,0.85,0.7)],
+   // Leads
+   ['plucksaw','Pluck saw lead','Leads',S([['sawtooth',1],['sawtooth',1,9]],3500,500,0.2,2,0.12,0.003,0.2,0.2,0.1)],
+   ['softlead','Soft lead','Leads',S([['triangle',1],['sine',2,0,0.3]],3000,null,0,0.6,0.18,0.02,0.1,0.8,0.12)],
+   ['brightpulse','Bright pulse lead','Leads',S([['square',1],['square',2,8,0.4]],5000,2500,0.3,1.5,0.1,0.004,0.1,0.8,0.08)],
+   ['detunelead','Detuned lead','Leads',S([['sawtooth',1,-12],['sawtooth',1,12]],3800,null,0,1,0.1,0.01,0.1,0.8,0.1)],
+   ['octlead','Octave lead','Leads',S([['sawtooth',1],['sawtooth',2,5,0.7]],4200,null,0,1,0.1,0.006,0.1,0.8,0.08)],
+   ['reedlead','Reed lead','Leads',S([['square',1],['sawtooth',1,4,0.5]],2500,null,0,2,0.12,0.03,0.1,0.8,0.1)],
+   ['fmbell','FM bell lead','Leads',fm({ratio:3.5,i0:2,i1:0.3,dec:0.5,g:0.24,s:0.3,r:0.4})],
+   // Plucks and bells
+   ['softpluck','Soft pluck','Plucks and bells',S([['triangle',1],['sine',2,0,0.5]],2500,400,0.2,0.7,0.25,0.002,0.2,0.05,0.1,0.02)],
+   ['brightpluck','Bright pluck','Plucks and bells',S([['sawtooth',1]],6000,800,0.12,1.2,0.2,0.002,0.2,0.03,0.1,0.02)],
+   ['digipluck','Digital pluck','Plucks and bells',fm({ratio:3,i0:4,i1:0.1,dec:0.12,g:0.26,s:0.02,r:0.3,h:0.02})],
+   ['woodblock','Wood pluck','Plucks and bells',S([['sine',1],['triangle',2,0,0.5]],1800,null,0,4,0.28,0.001,0.08,0.02,0.1,0.02)],
+   ['glasspluck','Glass pluck','Plucks and bells',fm({ratio:5,i0:2,i1:0.1,dec:0.3,g:0.2,s:0.02,r:0.6,h:0.02})],
+   ['rubberpluck','Rubber pluck','Plucks and bells',S([['square',1]],900,300,0.15,8,0.22,0.002,0.12,0.05,0.08,0.03)],
+   ['pizzsynth','Pizzicato synth','Plucks and bells',S([['sawtooth',1]],3000,500,0.06,1,0.22,0.002,0.08,0.02,0.06,0.02)],
+   ['chimepluck','Chime pluck','Plucks and bells',fm({ratio:7.13,i0:1.5,i1:0.1,dec:0.6,g:0.2,s:0.02,r:0.9,h:0.02})],
+   // Brass and reeds
+   ['softbrass','Soft brass','Brass and reeds',S([['sawtooth',1,-5],['sawtooth',1,5]],900,1800,0.1,1,0.15,0.06,0.1,0.8,0.12)],
+   ['bigbrass','Big brass','Brass and reeds',S([['sawtooth',1,-8],['sawtooth',1],['sawtooth',1,8]],700,2500,0.1,1.2,0.11,0.05,0.1,0.8,0.12)],
+   ['mutebrass','Muted brass','Brass and reeds',S([['square',1],['sawtooth',1,5,0.5]],1400,null,0,3,0.14,0.02,0.1,0.75,0.08)],
+   ['synthhorn','Synth horn','Brass and reeds',S([['sawtooth',1,-7],['sawtooth',1,7],['sine',1,0,0.6]],1200,2200,0.15,1,0.13,0.08,0.1,0.85,0.14)],
+   // Strings and bowed
+   ['legato','Legato strings','Strings and bowed',S([['sawtooth',1,-7],['sawtooth',1,7]],2000,null,0,0.8,0.12,0.15,0.2,0.85,0.4)],
+   ['staccato','Staccato strings','Strings and bowed',S([['sawtooth',1,-6],['sawtooth',1,6]],2800,1000,0.15,0.8,0.15,0.004,0.1,0.2,0.1,0.15)],
+   ['warmcello','Warm cello','Strings and bowed',S([['sawtooth',1],['triangle',1,3]],900,null,0,1,0.2,0.08,0.1,0.85,0.2)],
+   // World
+   ['nay','Nay flute','World',breath({w:[['sine',1],['triangle',2,0,0.2]],f0:4000,q:0.5,g:0.2,a:0.04,d:0.1,s:0.85,r:0.12,nm:2,nq:2,ng:0.05})],
+   ['pungi','Pungi','World',S([['square',1],['sawtooth',1,10,0.4]],2200,null,0,4,0.12,0.03,0.1,0.85,0.08)],
+   ['rebab','Rebab','World',S([['sawtooth',1],['triangle',2,4,0.3]],1500,null,0,3,0.16,0.05,0.1,0.8,0.15)]
+  ];
+  L.forEach(x=>{ if(PATCHES[x[0]]) return; PATCHES[x[0]]=x[3]; PATCH_LIST.push([x[0],x[1],x[2]]); });
+})();
 Object.assign(NAME_PATCH,{'HORN STAB':'horn','SYN BRASS':'trumpet','DARK STR':'strings','LOFI FLUTE':'flute'});
 function mkKit(name,c){
   return {name,
@@ -5254,7 +5346,7 @@ function meterPaint(){
   });
 }
 function sfx(f,key,pan,lvl){ const keep=master; try{ if(lvl===0) return; if(key&&ac&&masterReal) master=busFor(key,pan,lvl); f(); }catch(e){ SFX_ERR++; SFX_LAST=String(e&&e.message||e); if(SFX_ERR<=3){ try{ const m=$('recmsg'); if(m&&!REC.on) m.textContent='A sound could not play on this browser ('+(e&&e.message?e.message:'error')+'; instruments: '+['bass','stab','arp','lead'].map(patchId).join(', ')+'). Playback carries on without it.'; }catch(_){} } }finally{ master=keep; } }
-let SFX_ERR=0, SFX_LAST='', TICKN=0; const BUILD='b1625';
+let SFX_ERR=0, SFX_LAST='', TICKN=0; const BUILD='b1630';
 function schedule(step,time){
   const preview=cfg.target!=='midi'||!midi.out, send=canSend();
   if(preview){
@@ -5410,7 +5502,7 @@ function autoRoll(){
   AUTO.lastCode='';
   const pool=AUTO.mode==='any'?autoPool():[];
   if(pool.length){ setGenre(pool[Math.floor(Math.random()*pool.length)].id); state.bpm=keep.bpm; state.key=keep.key; }
-  else{ state.seed=newSeed(); RNG=seedFrom(state.seed); generate(); }
+  else{ state.seed=newSeed(); useSeed(state.seed); generate(); }
   state.section=null; state.change=null; state.solo=state.solo||[];
   if($('seed')) $('seed').value=state.seed;
 }
