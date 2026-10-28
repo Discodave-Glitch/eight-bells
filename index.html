@@ -675,7 +675,8 @@ html.st-lock,html.st-lock body{overflow:hidden}
 .pm-tr.sel .pm-dots{order:3}.pm-tr.sel small{order:4}
 .pm-st,.pm-last,.pm-hint{margin:0;font-size:13px;color:var(--muted);line-height:1.3}
 .pm-last{min-height:1.3em;color:var(--ink)}
-#pmst,#pmlast,#pmtrk{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden}
+.pm-undo{height:24px;min-height:0;padding:0 10px;font-size:12px;vertical-align:middle;margin-left:4px}
+#pmst,#pmtrk{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden}
 #pmst{font-size:12px;-webkit-line-clamp:2}
 .pm-chips{display:grid;grid-template-columns:1fr 1fr auto;gap:6px}
 .pm-chips .lvb{min-height:34px;font-size:12px;padding:0 4px}
@@ -5239,7 +5240,7 @@ function meterPaint(){
   });
 }
 function sfx(f,key,pan,lvl){ const keep=master; try{ if(lvl===0) return; if(key&&ac&&masterReal) master=busFor(key,pan,lvl); f(); }catch(e){ SFX_ERR++; SFX_LAST=String(e&&e.message||e); if(SFX_ERR<=3){ try{ const m=$('recmsg'); if(m&&!REC.on) m.textContent='A sound could not play on this browser ('+(e&&e.message?e.message:'error')+'; instruments: '+['bass','stab','arp','lead'].map(patchId).join(', ')+'). Playback carries on without it.'; }catch(_){} } }finally{ master=keep; } }
-let SFX_ERR=0, SFX_LAST='', TICKN=0; const BUILD='b1575';
+let SFX_ERR=0, SFX_LAST='', TICKN=0; const BUILD='b1585';
 function schedule(step,time){
   const preview=cfg.target!=='midi'||!midi.out, send=canSend();
   if(preview){
@@ -6175,7 +6176,7 @@ function lvBuild(){
   const L=$('live');
   L.innerHTML=`<div class="lv-turn">Live view works upright on a phone.<br>Turn your phone back to portrait.</div>
   <div class="lv-in">
-   <div class="lv-top" style="order:0"><span><b>Eight Bells</b> <span class="lv-sub">Live view</span></span><span class="lv-info" id="lvinfo"></span></div>
+   <div class="lv-top" style="order:0"><span><b>Eight Bells</b> <span class="lv-sub">Live view</span> <button class="lv-split" id="lvundo" data-lv="undo" hidden title="Undo the last change to a track">Undo</button></span><span class="lv-info" id="lvinfo"></span></div>
    <div class="lv-l"><div class="lv-now" id="lvnow" style="order:1"></div>
     <div class="lv-secs" id="lvsecs" style="order:4"></div>
     <div class="lv-dice" id="lvdice" style="order:5"></div>
@@ -6203,6 +6204,7 @@ function lvClick(e){
   if(d.lv){
     const a=d.lv;
     if(a==='exit') lvSet(false);
+    if(a==='undo'){ const bk=$('back'); if(bk&&!bk.disabled) bk.click(); $('lvundo').hidden=true; lvRender(); return; }
     if(a==='pad'){ lvSet(false); const pb=$('padbtn'); if(pb&&!padOn()) pb.click(); }
     else if(a==='stage'){ lvSet(false); const sb=$('stagebtn'); if(sb) sb.click(); }
     else if(a==='split'){ const sb=document.querySelector('#solos [data-splitd]'); if(sb) sb.click(); lvRender(); }
@@ -6220,7 +6222,7 @@ function lvClick(e){
     else LV.next=(LV.next===d.sec)?null:d.sec;
     lvPaint(); lvSecs(); return;
   }
-  if(d.pt!==undefined){ const r=lvTracks()[+d.pt]; if(r) padRedo(r); lvRender(); return; }
+  if(d.pt!==undefined){ const r=lvTracks()[+d.pt]; if(r&&padRedo(r)) lvUndoShow(); lvRender(); return; }
   if(d.m!==undefined){ const r=lvTracks()[+d.m]; lvPress(r,'mute'); return; }
   if(d.so!==undefined){ const r=lvTracks()[+d.so]; if(r.kind==='v'){ VSOLO=!VSOLO; if(canSend()) allOff(); lvRender(); return; } const sb=document.querySelector(typeof r.sk==='string'?`#solos [data-solol="${r.sk.slice(1)}"]`:`#solos [data-solo="${r.sk}"]`); if(sb) sb.click(); lvRender(); return; }
   if(d.lk!==undefined){ const r=lvTracks()[+d.lk]; lvPress(r,'lock'); return; }
@@ -6231,13 +6233,14 @@ function lvClick(e){
   if(d.ea==='done'){ LV.edit=null; lvRender(); return; }
   if(d.ea==='prev'||d.ea==='next'){ const r=lvEditRow(); if(!r) return; const nb=Math.max(1,Math.ceil(r.n/16)); LV.bar=(LV.bar+(d.ea==='next'?1:nb-1))%nb; lvEdit(); return; }
   if(d.es!==undefined){ const r=lvEditRow(), c=r&&lvCard(r); if(!c) return; const keep=state.mode; state.mode='hit'; const sel=r.kind==='v'?`[data-vact="cell"][data-s="${d.es}"]`:r.kind==='s'?`[data-act="cell"][data-s="${d.es}"]`:`.lane[data-j="${r.j}"] [data-act="cell"][data-s="${d.es}"]`; const cell=c.querySelector(sel); if(cell) cell.click(); state.mode=keep; return; }
-  if(d.ea==='redo'||d.ea==='clearbar'||d.ea==='lock'){ const r=lvEditRow(), c=r&&lvCard(r); if(!c) return;
+  if(d.ea==='redo'||d.ea==='clearbar'||d.ea==='lock'){ const r=lvEditRow(), c=r&&lvCard(r); if(!c) return; if(d.ea!=='lock') lvUndoShow();
     if(d.ea==='lock'){ lvPress(r,'lock'); return; }
     if(d.ea==='redo'){ const bt=r.kind==='v'?c.querySelector('[data-vact="new"]'):r.kind==='s'?c.querySelector('[data-act="redo"]'):c.querySelector(`.lane[data-j="${r.j}"] [data-act="redo"]`); if(bt) bt.click(); return; }
     const keep=state.mode; state.mode='hit';
     for(let s=LV.bar*16;s<Math.min(r.n,LV.bar*16+16);s++){ const rr=lvEditRow(); if(rr&&(rr.kind==='v'?lvEditCells(rr)[s]:rr.cells[s])){ const cc=lvCard(rr); const sel=rr.kind==='v'?`[data-vact="cell"][data-s="${s}"]`:rr.kind==='s'?`[data-act="cell"][data-s="${s}"]`:`.lane[data-j="${rr.j}"] [data-act="cell"][data-s="${s}"]`; const cell=cc&&cc.querySelector(sel); if(cell) cell.click(); } }
     state.mode=keep; return; }
 }
+function lvUndoShow(){ const u=$('lvundo'); if(!u) return; u.hidden=false; clearTimeout(lvUndoShow.t); lvUndoShow.t=setTimeout(()=>{ u.hidden=true; },12000); }
 function padRedo(r){ const c=lvCard(r); if(!c) return false; const bt=r.kind==='v'?c.querySelector('[data-vact="new"]'):r.kind==='s'?c.querySelector('[data-act="redo"]'):c.querySelector('.lane[data-j="'+r.j+'"] [data-act="redo"]'); if(!bt) return false; bt.click(); return true; }
 function lvPress(r,act){ const c=lvCard(r); if(!c) return; if(r.kind==='v'){ const bt=c.querySelector(act==='mute'?'[data-vact="mute"]':'[data-vact="on"]'); if(bt) bt.click(); lvRender(); return; } const sel=r.kind==='s'?`[data-act="${act}"]`:(act==='mute'?`.lane[data-j="${r.j}"] [data-act="mute"]`:`[data-act="${act}"]`); const bt=c.querySelector(sel); if(bt) bt.click(); }
 function lvEditRow(){ if(!LV.edit) return null; return lvTracks().find(r=>lvKey(r)===LV.edit.key)||null; }
@@ -6422,7 +6425,7 @@ function padBank(b,i,vel,via){
   else if(b===4){ padFlash(i,vel); padNote(i,vel,via); }
   else{ padFlash(i,vel); padLaunch(i); }
 }
-function padSay(m){ PADS.last=m; const l=$('pmlast'); if(l) l.textContent=m; }
+function padSay(m,undo){ PADS.last=m; const l=$('pmlast'); if(!l) return; l.textContent=m; if(undo){ const b=document.createElement('button'); b.type='button'; b.className='lvb pm-undo'; b.textContent='Undo'; b.addEventListener('click',()=>{ const bk=$('back'); if(bk&&!bk.disabled) bk.click(); padSay('Undone.'); PADS.tls=''; padTick(); }); l.appendChild(document.createTextNode(' ')); l.appendChild(b); } }
 // Bank B (the controller's PAD BANK button shifts its notes up 16): the 16 punch effects, held while the pad is pressed. Sloop, or the browser preview.
 function padFx(i,on){
   if(on&&!(cfg.device==='sloop'||fxLocalMode())){ padSay('Punch effects are for Sloop, or for the browser preview (when no FM-1 output is connected).'); return; }
@@ -6712,13 +6715,13 @@ function padTrackLine(){
 // Mute, solo and lock for a track, the same buttons as Live view.
 function padRowAct(a,key){
   const r=lvTracks().find(x=>lvKey(x)===key); if(!r) return;
-  if(a==='p'){ if(padRedo(r)) padSay(r.name+': new pattern. Press Back to undo.'); else padSay('That track is not on screen right now.'); padTick(); return; }
+  if(a==='p'){ if(padRedo(r)) padSay(r.name+': new pattern.',true); else padSay('That track is not on screen right now.'); padTick(); return; }
   if(a==='m') lvPress(r,'mute');
   else if(a==='l') lvPress(r,'lock');
   else if(a==='c'){
     const c=lvCard(r); const bt=c&&(r.kind==='v'?c.querySelector('[data-vact="clear"]'):r.kind==='s'?c.querySelector('[data-act="clear"]'):c.querySelector('.lane[data-j="'+r.j+'"] [data-act="clear"]'));
     if(!bt){ padSay('That track is not on screen right now.'); return; }
-    bt.click(); padSay(r.name+' cleared. Press Back to undo.'); padTick(); return;
+    bt.click(); padSay(r.name+' cleared.',true); padTick(); return;
   }
   else if(r.kind==='v'){ VSOLO=!VSOLO; if(canSend()) allOff(); }
   else{ const sb=document.querySelector(typeof r.sk==='string'?'#solos [data-solol="'+r.sk.slice(1)+'"]':'#solos [data-solo="'+r.sk+'"]'); if(sb) sb.click(); }
