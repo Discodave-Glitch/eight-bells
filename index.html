@@ -6418,6 +6418,32 @@ function padPendApply(){
 }
 function padSelCol(){ const r=padStepRow(); return r?r.col:'#c9743a'; }
 function padDrumCol(t){ const key='d'+t.k+'l'+t.j; if(key===PADS.ckey){ const r=lvTracks().find(x=>lvKey(x)===key); if(r) return r.col; } return PAD_COL[t.j%4]; }
+
+// Pad lights test. The SMC-PAD's light protocol is not public, so this sends note-on messages to the pad (the usual way pad lights are set)
+// at stepped velocities. Watch the pad and note which velocity gives which colour; then the lights can follow what is on screen.
+const PAD_LV=[0,1,2,3,4,5,6,7,8,9,10,12,15,20,30,40,50,60,64,80,90,100,110,127];
+function padLightOuts(){
+  const s=$('pmlout'); if(!s) return; const o=midi.access?[...midi.access.outputs.values()]:[], keep=s.value;
+  s.innerHTML=o.length?o.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.name||p.id)+'</option>').join(''):'<option value="">No output found (tap Connect MIDI)</option>';
+  const want=keep||(o.find(p=>PADS.port&&p.name===PADS.port.name)||{}).id; if(want&&o.some(p=>p.id===want)) s.value=want;
+}
+function padLightPort(){ const s=$('pmlout'), p=s&&midi.access&&midi.access.outputs.get(s.value); return p||null; }
+function padLightSend(b){ const p=padLightPort(); if(p){ try{ p.send(b); }catch(_){} } }
+function padLightStop(msg){ clearTimeout(PADS.lt); PADS.lt=0; const b=$('pmltest'); if(b) b.textContent='Start lights test'; if(msg!=null&&$('pmltxt')) $('pmltxt').textContent=msg; }
+function padLightOff(){ const ch=(+$('pmlch').value-1)&15; for(let n=0;n<16;n++){ padLightSend([0x80|ch,PADS.base+n,0]); padLightSend([0x90|ch,PADS.base+n,0]); } }
+function padLightTest(){
+  if(PADS.lt){ padLightStop('Lights test stopped.'); padLightOff(); return; }
+  const p=padLightPort(); if(!p){ padLightStop('Choose the pad as the output first (tap Connect MIDI).'); return; }
+  if(padBad(p)){ padLightStop('That output is the FM-1. Choose the pad.'); return; }
+  const ch=(+$('pmlch').value-1)&15; let k=0; $('pmltest').textContent='Stop lights test';
+  const go=()=>{
+    if(k>=PAD_LV.length){ padLightOff(); padLightStop('Test finished. Tell Claude which velocities gave which colours, or that nothing changed.'); return; }
+    const v=PAD_LV[k++]; for(let n=0;n<16;n++) padLightSend([0x90|ch,PADS.base+n,v]);
+    $('pmltxt').textContent='Velocity '+v+' sent to all 16 pads ('+k+' of '+PAD_LV.length+'). Note the colour you see.';
+    PADS.lt=setTimeout(go,PADS.lstep||1500);
+  };
+  go();
+}
 function padShowBank(n){ if(PADS.bank===n) return; PADS.bank=n; padGrid(); padPaint(); }
 const PAD_KN=['Volume','Swing','Tempo','Kit','–','–','–','–'];
 function padKitList(){ return ['auto'].concat(Object.keys(KITS)); }
@@ -6692,11 +6718,14 @@ function padBuild(){
     '<div class="pm-row"><label class="pm-k">Bank B plays <select id="pmhwb"><option value="1">Punch effects</option><option value="2">Step input</option><option value="3">Launcher</option></select></label></div>'+
     '<div class="pm-row"><label class="pm-k"><input type="checkbox" id="pmsoft"> My pad has fewer banks: use the on-screen bank for its pads</label></div>'+
     '<div class="pm-row"><button class="lvb pm-sm" id="pmreset">Back to M-VAVE SMC-PAD settings</button></div>'+
+    '<div class="pm-row"><label class="pm-k">Pad lights test: output <select id="pmlout"></select></label><label class="pm-k">channel <select id="pmlch">'+Array.from({length:16},(_,n)=>'<option value="'+(n+1)+'">'+(n+1)+'</option>').join('')+'</select></label></div>'+
+    '<div class="pm-row"><button class="lvb pm-sm" id="pmltest">Start lights test</button><button class="lvb pm-sm" id="pmloff">Lights off</button></div><p class="pm-hint" id="pmltxt">Sends colour messages to the pad, one step a second and a half. Watch the pad and note the colours.</p>'+
     '<p class="pm-hint">Learn pads: tap it, then hit the bottom-left pad, so that pad is pad 1. Any 16-pad controller that sends notes works this way. Teach a button or knob: choose it, tap Learn, then press or turn it on your controller.</p>'+
    '</details></div>';
   $('pmexit').addEventListener('click',()=>padSet(false));
-  $('pmconn').addEventListener('click',async()=>{ await connectMidi(); if(midi.access) padRefreshIns([...midi.access.inputs.values()]); padPaint(); });
+  $('pmconn').addEventListener('click',async()=>{ await connectMidi(); if(midi.access) padRefreshIns([...midi.access.inputs.values()]); padLightOuts(); padPaint(); });
   $('pmin').addEventListener('change',e=>padListen(e.target.value));
+  $('pmltest').addEventListener('click',padLightTest); $('pmloff').addEventListener('click',()=>{ padLightStop('Lights off sent.'); padLightOff(); });
   $('pmlearn').addEventListener('click',()=>{ PADS.learn=!PADS.learn; PADS.cl=null; $('pmlast').textContent=PADS.learn?'Hit the bottom-left pad on your controller now.':''; padPaint(); });
   $('pmclearn').addEventListener('click',()=>{ PADS.cl=PADS.cl?null:$('pmcsel').value; PADS.learn=false; $('pmlast').textContent=PADS.cl?'Press or turn '+padCtlName(PADS.cl)+' on your controller now.':''; padPaint(); });
   $('pmcsel').addEventListener('change',()=>{ PADS.cl=null; padPaint(); });
@@ -6746,11 +6775,11 @@ function padSet(on){
   if(on){
     padBuild(); window.scrollTo(0,0);
     if(!canSend()){ try{ ensureAudio(); ac.resume(); }catch(_){} }
-    padGrid(); padKitOpts();
-    if(midi.access){ padRefreshIns([...midi.access.inputs.values()]); padAuto(); }
+    padGrid(); padKitOpts(); padLightOuts();
+    if(midi.access){ padRefreshIns([...midi.access.inputs.values()]); padAuto(); padLightOuts(); }
     padPaint(); PADS.timer=setInterval(padPaint,300); PADS.fast=setInterval(padTick,90);
   }else{
-    PADS.ckey=''; clearInterval(PADS.timer); clearInterval(PADS.fast); PADS.learn=false; PADS.rec=false; PADS.edit=false; PADS.bank=0; PADS.held.forEach(i=>padFx(i,false)); PADS.held.clear(); PADS.fxHw.forEach(i=>padFx(i,false)); PADS.fxHw.clear(); PADS.pin=false;
+    PADS.ckey=''; padLightStop(); clearInterval(PADS.timer); clearInterval(PADS.fast); PADS.learn=false; PADS.rec=false; PADS.edit=false; PADS.bank=0; PADS.held.forEach(i=>padFx(i,false)); PADS.held.clear(); PADS.fxHw.forEach(i=>padFx(i,false)); PADS.fxHw.clear(); PADS.pin=false;
     if(PADS.dirty){ PADS.dirty=false; renderTracks(); }
     padListen('');
   }
