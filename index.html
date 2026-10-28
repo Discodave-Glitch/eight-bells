@@ -5243,7 +5243,7 @@ function meterPaint(){
   });
 }
 function sfx(f,key,pan,lvl){ const keep=master; try{ if(lvl===0) return; if(key&&ac&&masterReal) master=busFor(key,pan,lvl); f(); }catch(e){ SFX_ERR++; SFX_LAST=String(e&&e.message||e); if(SFX_ERR<=3){ try{ const m=$('recmsg'); if(m&&!REC.on) m.textContent='A sound could not play on this browser ('+(e&&e.message?e.message:'error')+'; instruments: '+['bass','stab','arp','lead'].map(patchId).join(', ')+'). Playback carries on without it.'; }catch(_){} } }finally{ master=keep; } }
-let SFX_ERR=0, SFX_LAST='', TICKN=0; const BUILD='b1610';
+let SFX_ERR=0, SFX_LAST='', TICKN=0; const BUILD='b1615';
 function schedule(step,time){
   const preview=cfg.target!=='midi'||!midi.out, send=canSend();
   if(preview){
@@ -6520,7 +6520,9 @@ const PAD_PGROUPS={bass:['Bass'],lead:['Leads'],stab:['Stabs and chords','Keys a
 function padPatchList(role){ return ['auto'].concat(PATCH_LIST.filter(p=>PAD_PGROUPS[role].includes(p[2])).map(p=>p[0])); }
 function padPatchName(id){ const p=PATCH_LIST.find(x=>x[0]===id); return p?p[1]:id; }
 function padSecIds(){ return SECTION_IDS.filter(x=>x!=='allt'); }
-const PAD_KROLE={4:'lead',6:'bass',7:'stab'};
+// Knob 7 = Track 1, knob 8 = Track 2, knob 5 = Track 3: each sets the sound of whatever role that track has in the current genre (Track 3 is an Arp in most genres, a Lead in a few).
+const PAD_KTRK={6:0,7:1,4:2}, PAD_KDEF=['bass','stab','lead'];
+function padKRole(n){ const i=PAD_KTRK[n]; if(i==null) return null; const t=state.synth&&state.synth[i]; return (t&&t.role&&PAD_PGROUPS[t.role])?t.role:PAD_KDEF[i]; }
 function padKnobInfoA(n){
   if(n===0) return ['Volume',(+$('pvol').value-10)/140];
   if(n===1) return ['Swing',(+$('swing').value-50)/25];
@@ -6528,7 +6530,7 @@ function padKnobInfoA(n){
   if(n===5){ const ks=padKitList(), i=Math.max(0,ks.indexOf(PV.kit)); return ['Kit',i/(ks.length-1)]; }
   if(n===3){ const ids=padSecIds(), i=ids.indexOf(LV.next||state.section); return ['Section',i<0?0:i/(ids.length-1)]; }
   if(n===7&&PADS.bank===2){ const r=padStepRow(), nb=r?padStepBars(r):1; return ['Bar',nb>1?PADS.cbar/(nb-1):0]; }
-  const role=PAD_KROLE[n]; if(role){ const l=padPatchList(role), i=Math.max(0,l.indexOf(PV.patch[role]||'auto')); return [role[0].toUpperCase()+role.slice(1)+' sound',i/(l.length-1)]; }
+  const role=padKRole(n); if(role){ const l=padPatchList(role), i=Math.max(0,l.indexOf(PV.patch[role]||'auto')); return [role[0].toUpperCase()+role.slice(1)+' sound',i/(l.length-1)]; }
   return ['–',0];
 }
 function padKnobA(n,val){
@@ -6544,8 +6546,8 @@ function padKnobA(n,val){
     else{ clearTimeout(PADS.st); PADS.st=setTimeout(()=>{ try{ if(!playing&&!SONG.on&&state.section!==id){ goSection(id); LV.next=null; padSay('Section: '+SONG_NAME[id]+'.'); } }catch(_){} },350); m='Section '+SONG_NAME[id]; }
   }
   else if(n===7&&PADS.bank===2){ const r=padStepRow(); if(r){ const nb=padStepBars(r); PADS.cbar=Math.min(nb-1,Math.floor(f*nb*0.999)); padGrid(); m='Bar '+(PADS.cbar+1)+' of '+nb; } }
-  else if(PAD_KROLE[n]){
-    const role=PAD_KROLE[n], l=padPatchList(role), id=l[Math.min(l.length-1,Math.floor(f*l.length))];
+  else if(padKRole(n)){
+    const role=padKRole(n), l=padPatchList(role), id=l[Math.min(l.length-1,Math.floor(f*l.length))];
     if((PV.patch[role]||'auto')!==id){ PV.patch[role]=id; savePV(); if(typeof renderPreview==='function') renderPreview(); clearTimeout(PADS.at);
       if(!playing) PADS.at=setTimeout(()=>{ try{ ensureAudio(); ac.resume(); vSynth(ac.currentTime+0.02,role==='bass'?40:role==='lead'?64:55,role,0.8,0.5); }catch(_){} },250); }
     m=role[0].toUpperCase()+role.slice(1)+' sound: '+(id==='auto'?'Auto':padPatchName(id));
