@@ -118,7 +118,7 @@ input[type=range]{width:100%;accent-color:var(--ink);min-height:28px;margin:0}
     <div class="row"><button id="wiz">Guided setup</button><button id="learn">Learn one control</button><button id="clearmap">Clear mappings</button></div>
     <div class="chip" id="mon">Last message from your controller: none yet</div>
     <p class="hint">Guided setup walks through the controls one by one. When a control lights up yellow, press or move the matching control on your deck. Tap Skip for any it does not have. Your choices are remembered on this device. Jog wheel: turn it to nudge the tempo. CUE: hold it to preview, or tap it while playing to restart from the top. Double-tap an EQ or filter knob to centre it.</p>
-    <p class="hint">SMC-PAD pads: Bank A pads are effects, Bank B pads are patterns (the pad's own Bank button picks). Left two columns are Deck A, right two columns are Deck B, with the same effect or pattern on both sides of each row (bottom row: Loop 1/4 and Loop 1/8, then Stutter and Reverse, then Tape stop and Low-pass, top row: High-pass and Echo). Knob bank A (CC 30 to 37): knob 1 master volume, knob 2 crossfader, then pairs for Deck A and Deck B: knobs 3 and 4 volumes, 5 and 6 filters, 7 and 8 tempos. Knob bank B (CC 38 to 45) is the EQ: Treble, Mid, Bass, Filter for Deck A, then the same four for Deck B. Buttons work like Pad mode in Eight Bells: &lt; and &gt; (CC 25, 26) change the genre of the highlighted deck, Play (27) and Stop (28) run both decks, Record (29) picks which deck is highlighted. If bank B does nothing on your pad, use Learn one control to teach it.</p>
+    <p class="hint">SMC-PAD pads: Bank A pads are effects, Bank B pads are patterns (the pad's own Bank button picks). Pads 1 to 8 (bottom two rows) are Deck A and pads 9 to 16 (top two rows) are Deck B, read left to right: Intro, Build-up, Drop, Chorus, then Break, Bridge, Half, Outro (effects: Loop 1/4, Loop 1/8, Stutter, Reverse, then Tape stop, Low-pass, High-pass, Echo). Knob bank A (CC 30 to 37): knob 1 master volume, knob 2 crossfader, then pairs for Deck A and Deck B: knobs 3 and 4 volumes, 5 and 6 filters, 7 and 8 tempos. Knob bank B (CC 38 to 45) is the EQ: Treble, Mid, Bass, Filter for Deck A, then the same four for Deck B. Buttons work like Pad mode in Eight Bells: &lt; and &gt; (CC 25, 26) change the genre of the highlighted deck, Play (27) and Stop (28) run both decks, Record (29) picks which deck is highlighted. If bank B does nothing on your pad, use Learn one control to teach it.</p>
     <p id="msg"></p>
   </details>
 </div>
@@ -305,7 +305,7 @@ function paint(){
 }
 
 /* ---------- MIDI ---------- */
-function padHit(i,on,bank){ const r=i>>2, c=i&3, d=D(c<2?'A':'B'); if(d) padAct(d,r*2+(c&1),on,bank); } // left two columns = Deck A, right two = Deck B, same effect or pattern on both sides of each row
+function padHit(i,on,bank){ const d=D(i<8?'A':'B'); if(d) padAct(d,i%8,on,bank); } // pads 1 to 8 (bottom two rows) are Deck A, pads 9 to 16 (top two rows) are Deck B, each read left to right
 let heldBank={};
 function onNote(note,on){
   let bank=null,i=-1; if(note>=36&&note<=51){ bank=0; i=note-36; } else if(note>=52&&note<=67){ bank=1; i=note-52; } else return;
