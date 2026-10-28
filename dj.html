@@ -97,6 +97,10 @@ body.nolbl .bt{display:none}
 #wizbar[hidden]{display:none}
 #wiztxt{flex:1 1 220px;font-weight:600}
 .ctlp{margin:0;padding:0;border:0;background:none;position:static}
+#autost i{font-style:normal;display:inline-block;white-space:inherit}
+#autost span.mq i{white-space:nowrap;animation:mq var(--dur,10s) ease-in-out infinite alternate}
+@keyframes mq{0%,12%{transform:translateX(0)}88%,100%{transform:translateX(var(--mq,0px))}}
+@media (prefers-reduced-motion:reduce){ #autost span.mq i{animation:none} #autost span{overflow-x:auto} }
 #autost{display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 16px}#autonx{color:var(--ink);opacity:.85;text-align:right;margin-left:auto}
 #rpt{width:100%;box-sizing:border-box;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:8px;font:12px/1.35 ui-monospace,Menlo,Consolas,monospace}
 #mkgood,#mkbad{padding:0 10px;min-width:44px}
@@ -119,7 +123,7 @@ body.nolbl .bt{display:none}
   .top h1{font-size:clamp(15px,2.2vh,24px);white-space:nowrap}.top h1 small{display:none}
   .top .row{flex-wrap:nowrap;gap:5px}.top button,.top select{min-height:clamp(30px,4vh,46px);font-size:clamp(12px,1.6vh,17px);padding:0 10px}
   @media (max-width:720px){ .top button,.top select{padding:0 6px} .top .row{gap:3px} #mkgood,#mkbad{min-width:32px;padding:0 4px} }
-  #autost{flex:none;margin:0 0 4px!important;min-height:14px!important;font-size:11px;white-space:nowrap;overflow:hidden;flex-wrap:nowrap}#autost span{min-width:0;overflow:hidden;text-overflow:ellipsis}#autost #auton{flex:1 1 52%}#autost #autonx{flex:1 1 48%}
+  #autost{flex:none;margin:0 0 4px!important;min-height:14px!important;font-size:11px;white-space:nowrap;overflow:hidden;flex-wrap:nowrap}#autost span{min-width:0;overflow:hidden;white-space:nowrap}#autost #auton{flex:1 1 52%}#autost #autonx{flex:1 1 48%}
   .console{flex:1 1 auto;min-height:0;grid-template-columns:minmax(0,1fr) clamp(190px,26vw,420px) minmax(0,1fr);gap:clamp(6px,1vh,14px);--k:clamp(22px,6.6vh,72px);--gb:clamp(28px,4.4vh,60px)}
   .deck{padding:clamp(6px,1vh,14px);gap:clamp(5px,.8vh,12px);min-height:0;overflow:hidden;border-width:2px;border-radius:14px}
   .dh{flex:none;gap:5px}.dh b{font-size:clamp(14px,2vh,22px)}.dh select{min-height:clamp(30px,4vh,48px);font-size:clamp(13px,1.7vh,18px)}
@@ -175,6 +179,7 @@ body.nolbl .bt{display:none}
     <div class="row"><button id="wiz">Guided setup</button><button id="learn">Learn one control</button><button id="teachA">Teach knob bank A</button><button id="teachB">Teach knob bank B</button><button id="clearmap">Clear mappings</button></div>
     <label class="row chip" style="cursor:pointer"><input type="checkbox" id="padlbl" checked> Show pad labels (A3, B5 and so on) next to the knobs and faders</label>
     <div class="chip" id="padnote"></div>
+    <div class="row"><b class="chip">Vocals and samples</b><select id="voxuse" aria-label="Vocals and samples Auto DJ may use"><option value="off">Off</option><option value="voices" selected>Built-in voices</option><option value="all">Built-in voices + my samples</option></select><select id="voxoften" aria-label="How often Auto DJ uses vocals and samples"><option value="rare">Only at big moments</option><option value="some">Now and then</option><option value="often" selected>Often</option></select></div>
     <div class="row"><b class="chip">Set report</b><button id="rptcopy">Copy</button><button id="rptshare">Share</button><button id="rptdl">Download</button></div>
     <textarea id="rpt" readonly rows="6" aria-label="Auto DJ set report" placeholder="Start Auto DJ and the report builds as it plays."></textarea>
     <div class="chip" id="mon">Last message from your controller: none yet</div>
@@ -183,7 +188,7 @@ body.nolbl .bt{display:none}
     <p id="msg"></p>
   </div></details></div>
   </div>
-  <div class="chip" id="autost" style="min-height:1.4em;margin:-4px 0 8px"><span id="auton"></span><span id="autonx"></span></div>
+  <div class="chip" id="autost" style="min-height:1.4em;margin:-4px 0 8px"><span id="auton"><i></i></span><span id="autonx"><i></i></span></div>
   <div class="console" id="console"></div>
 </div>
 <div id="wizbar" hidden><span id="wiztxt"></span><button id="wizskip">Skip</button><button id="wizstop">Done</button></div>
@@ -364,7 +369,12 @@ const LOG=[], TRK=[];
 function stamp(ms){ const s=Math.max(0,Math.round(ms/1000)), h=Math.floor(s/3600), m=Math.floor(s%3600/60), x=s%60; return (h?h+':':'')+(h?String(m).padStart(2,'0'):m)+':'+String(x).padStart(2,'0'); }
 function saveLog(){ try{ localStorage.setItem('ebdj.report',JSON.stringify({LOG:LOG.slice(-1500),TRK:TRK,set:AU.setInfo||'',t0:AU.tStart||0})); }catch(e){} }
 function alog(kind,text){ if(!AU.tStart||(!AU.on&&kind!=='stop')) return; LOG.push({t:Date.now()-AU.tStart,kind:kind,text:text,tr:AU.tr}); if(LOG.length>3000) LOG.shift(); AU.lastEv=text; if(kind!=='fx'&&kind!=='section'&&kind!=='eq'&&kind!=='sound') saveLog(); }
-function autoSay(t,nx){ const a=$('auton'), b=$('autonx'); if(!a||!b){ const e=$('autost'); if(e) e.textContent=t; return; } a.textContent=t; b.textContent=nx!==undefined?nx:''; }
+function mqFit(sp){ // if the text is wider than its box (phone or tablet on its side), let it drift to and fro so it can all be read
+  const i=sp.firstChild; if(!i) return; const over=Math.ceil(i.scrollWidth-sp.clientWidth), on=sp.classList.contains('mq');
+  if(over>4){ if(!on) sp.classList.add('mq'); const cur=parseFloat(sp.style.getPropertyValue('--mq'))||0; if(Math.abs(cur+over)>6){ sp.style.setProperty('--mq',-over+'px'); sp.style.setProperty('--dur',Math.max(6,over/22)+'s'); } }
+  else if(on){ sp.classList.remove('mq'); sp.style.removeProperty('--mq'); }
+}
+function autoSay(t,nx){ const a=$('auton'), b=$('autonx'); if(!a||!b){ const e=$('autost'); if(e) e.textContent=t; return; } a.firstChild.textContent=t; b.firstChild.textContent=nx!==undefined?nx:''; mqFit(a); mqFit(b); }
 function pickGenre(bpm,not){
   if(!AU.gen) AU.gen=decks[0].win.eval('GENRES.map(function(g){return [g.id,g.bpm[0],g.bpm[1]]})');
   let c=AU.gen.filter(g=>not.indexOf(g[0])<0&&g[1]<=bpm+5&&g[2]>=bpm-5); // beginners' tip: stay within about 5 BPM
@@ -394,7 +404,7 @@ function makePlan(c,n){ // decide what comes next ahead of time, so the status r
   P.gname=gname(P.gid); return P;
 }
 function planNext(c){ const n=D(c.id==='A'?'B':'A'); rollFade(); AU.plan=makePlan(c,n); AU.style=AU.plan.style; }
-function nowText(c){ const sec=ev(c,'state.section'), nm=(SECS.find(x=>x[0]===sec)||[0,''])[1]; return 'Deck '+c.id+' \u00b7 '+ev(c,'genreObj().name')+' \u00b7 '+getBpm(c)+' BPM \u00b7 '+keyName(c)+(nm?' \u00b7 '+nm:'')+' \u00b7 track '+AU.tr+(AU.max?' of '+AU.max:'')+' \u00b7 energy '+Math.round(AU.e*100)+'% ('+(AU.shape||'')+')'; }
+function nowText(c){ const sec=ev(c,'state.section'), nm=(SECS.find(x=>x[0]===sec)||[0,''])[1]; return 'Deck '+c.id+' \u00b7 '+ev(c,'genreObj().name')+' \u00b7 '+getBpm(c)+' BPM \u00b7 '+keyName(c)+(nm?' \u00b7 '+nm:'')+' \u00b7 track '+AU.tr+(AU.max?' of '+AU.max:'')+' \u00b7 energy '+Math.round(AU.e*100)+'% ('+(AU.shape||'')+')'+((AU.voxNow&&Date.now()-AU.voxNow.t<9000)?' \u00b7 vocal: '+AU.voxNow.text:''); }
 function nextText(c,left){ if(lastTrack(c)) return 'Next: final outro, echo and filter fade, then stop'; const P=AU.plan; if(!P) return ''; const k={euphoric:'slow euphoric half-time',peak:'big club peak',back:'back up to full tempo',normal:''}[P.kind]; return 'Next: '+P.style+' into '+P.gname+(k?' ('+k+')':'')+' at '+P.tgt+' BPM, '+P.fade+'-bar overlap '+(left>1?'in about '+left+' bars':'at the end of this phrase'); }
 function buildReport(){
   if(!LOG.length&&!TRK.length) return '';
@@ -419,8 +429,9 @@ function trkPush(d,P,style){ TRK.push({i:AU.tr,deck:d.id,genre:ev(d,'genreObj().
 function lastTrack(c){ if(AU.max&&AU.tr>=AU.max) return true; return !!(AU.endAt&&AU.endAt-Date.now()<48*240000/getBpm(c)); } // out of tracks, or less than a track's worth of time left
 function autoOn(on){
   AU.on=on; clearInterval(AU.timer); const b=$('auto'); b.textContent='Auto DJ: '+(on?'on':'off'); b.classList.toggle('on',on); b.setAttribute('aria-pressed',on?'true':'false');
-  if(!on){ if(AU.phase!=='finished'&&AU.tStart) alog('stop','Auto DJ switched off'); AU.phase='idle'; AU.endAt=0; wakeOn(false); autoSay(''); refreshReport(); return; }
+  if(!on){ voxOffAll(); if(AU.phase!=='finished'&&AU.tStart) alog('stop','Auto DJ switched off'); AU.phase='idle'; AU.endAt=0; wakeOn(false); autoSay(''); refreshReport(); return; }
   AU.len=+$('autolen').value||64; AU.fade=Math.min(32,Math.floor(AU.len/2)); rollFade(); { const v=($('autoset')&&$('autoset').value)||'0'; AU.max=/^m/.test(v)?0:(+v||0); AU.endAt=/^m/.test(v)?Date.now()+(+v.slice(1))*60000:0; wakeOn(true); } AU.tStart=Date.now(); LOG.length=0; TRK.length=0; AU.slow=false; AU.nslow=false; AU.built=false; AU.tr=1; AU.shape=['ramp','wave','story'][Math.floor(Math.random()*3)]; AU.e=energyAt(1); AU.chorus=false; AU.chQ=false; AU.fourth=false;
+  VOXOK=null; voxPrep(); voxOffAll();
   const pa=playing(decks[0]), pb=playing(decks[1]);
   AU.cur=pb&&!pa?'B':'A'; const c=D(AU.cur), n=D(AU.cur==='A'?'B':'A');
   if(playing(n)) setPlay(n,false);
@@ -437,11 +448,40 @@ function pickFrom(list,bpm,not,tol){ if(!AU.gen) AU.gen=decks[0].win.eval('GENRE
 function euphSounds(d){ // soft pads, strings, bells and a round bass for the dreamy parts
   return ev(d,"(function(){ var map={bass:['Bass'],stab:['Pads','Keys and organs'],arp:['Plucks and bells'],lead:['Strings and bowed','Leads']}; Object.keys(map).forEach(function(r){ var l=PATCH_LIST.filter(function(p){return map[r].indexOf(p[2])>=0}).map(function(p){return p[0]}).filter(function(x){return PATCHES[x]}); if(l.length) PV.patch[r]=bagPick('patch-'+r,l); }); if(typeof savePV==='function') savePV(); if(typeof renderPreview==='function') renderPreview(); })()");
 }
+/* ---------- vocals and samples: Eight Bells' Sample track used as a flair move ---------- */
+const VOXG={ riser:['breath','whisper','gasp','siren','oohup','sigh'], shout:['ahstab','ayy','hey','oi','ow','whoa','woo','wow','yeah','yo','yow','ohyeah','uhhuh','hup','chant','hee','hah'],
+  vowel:['ah','oo','oh','aw','ae','choir','falsetto','gospel','lead_oh','male_ah','hum','stack','oohup','aahdown'], scat:['ba','bap','doo','doobie','dum','hoo','la','nana','scat','shabada','bbhat','bbkick','bbsnare'] };
+const VOXSPEC={ riser:{k:4,r:0,mode:'fixed',hold:2,level:.5,space:45,loops:1}, shout:{k:1,r:0,mode:'fixed',hold:1,level:.72,space:30,loops:1}, vowel:{k:2,r:0,mode:'sing',hold:8,level:.5,space:70,loops:2}, scat:{k:7,r:0,mode:'walk',hold:1,level:.55,space:30,loops:1}, sample:{k:1,r:0,mode:'fixed',hold:0,level:.62,space:35,loops:1} };
+let VOXOK=null, VOXS=[], voxT={A:null,B:null};
+const voxMode=()=>($('voxuse')&&$('voxuse').value)||'off', voxFreq=()=>({rare:.25,some:.55,often:1})[($('voxoften')&&$('voxoften').value)||'often']||1;
+function voxPrep(){ // which voices this build of Eight Bells has, and which of your samples are short enough to use
+  try{ VOXOK=new Set(ev(decks[0],'Object.keys(VOXP)')); }catch(e){ VOXOK=new Set(); }
+  VOXS=[]; if(voxMode()!=='all') return;
+  try{ const all=ev(decks[0],'Array.from(SMETA.values()).map(function(m){return [m.id,m.name]})')||[]; all.slice(0,10).forEach(a=>{ decks.forEach(d=>ev(d,"sampBuf('"+a[0]+"')")); });
+    setTimeout(()=>{ VOXS=all.filter(a=>{ const dur=ev(decks[0],"(function(id){var b=SBUF.get(id);return b?b.duration:-1})('"+a[0]+"')"); return dur>0&&dur<=8; }); },1500); }catch(e){}
+}
+function voxOff(d){ clearTimeout(voxT[d.id]); voxT[d.id]=null; try{ ev(d,"VOX.on=false; if(typeof renderVox==='function') renderVox();"); }catch(e){} }
+function voxOffAll(){ decks.forEach(voxOff); }
+function voxPick(kind){ if(kind==='sample'){ if(!VOXS.length) return null; return VOXS[Math.floor(Math.random()*VOXS.length)]; } if(!VOXOK) voxPrep(); const l=(VOXG[kind]||[]).filter(x=>VOXOK.has(x)); if(!l.length) return null; const id=l[Math.floor(Math.random()*l.length)]; return [id,id]; }
+function voxFire(d,kind,loopsOverride){ // set one lane on the Sample track, switch it on for a loop or two, then off again
+  if(voxMode()==='off') return false; const p=voxPick(kind); if(!p) return false; const sp=VOXSPEC[kind]; clearTimeout(voxT[d.id]);
+  const nm=ev(d,"(function(id){ return VOXP[id]?VOXP[id].label:((SMETA.get(id)||{}).name||id); })('"+p[0]+"')");
+  const lane=Object.assign({},{snd:p[0],k:sp.k,r:kind==='scat'?Math.floor(Math.random()*4):sp.r,mode:sp.mode,hold:sp.hold,level:sp.level,pitch:0,wseed:1+Math.floor(Math.random()*9)});
+  const n=+ev(d,'loopLen()')||16, stepMs=60000/getBpm(d)/4, ms=(loopsOverride||sp.loops)*n*stepMs;
+  ev(d,"(function(L,sp){ VOX.eng='synth'; VOX.lanes=[Object.assign({},LANE0,L)]; VOX.sel=0; VOX.space=sp; VOX.mute=false; VOX.on=true; try{ voxWarm(); if(VB) VB.wet.gain.value=sp/100*1.1; }catch(e){} if(typeof renderVox==='function') renderVox(); })("+JSON.stringify(lane)+","+sp.space+")");
+  voxT[d.id]=setTimeout(()=>voxOff(d),ms+60);
+  AU.voxNow={text:(kind==='sample'?'your sample "':'"')+nm+'"',t:Date.now(),kind:kind}; alog('voice','Deck '+d.id+': '+(kind==='sample'?'your sample ':'voice ')+'"'+nm+'" ('+kind+')'); return true;
+}
+function voxLoopEnd(d,kind){ // fire on the bar line: a moment before the next loop starts, so its first step lands on the beat
+  if(voxMode()==='off') return; const ms=+ev(d,'(function(){var n=loopLen();return (n-(gstep%n))*stepMsOf(state.bpm)})()')||0;
+  setTimeout(()=>{ if(AU.on) voxFire(d,kind); },Math.max(0,ms-250));
+}
+const voxRoll=base=>voxMode()!=='off'&&Math.random()<base*voxFreq();
 function bigBuild(c){ // club-land: strip back, riser, loops tighten, then the drop lands on the beat
   const bt=60000/getBpm(c), bar=bt*4, ok=()=>AU.on&&AU.cur===c.id&&AU.phase==='play';
-  queueSec(c,'bld'); fxHit(c,'High-pass sweep',bar*3.5);
+  queueSec(c,'bld'); fxHit(c,'High-pass sweep',bar*3.5); if(voxRoll(.9)) voxFire(c,'riser',Math.max(1,Math.ceil(bar*3/((bt/4)*(+ev(c,'loopLen()')||16)))));
   setTimeout(()=>{ if(ok()) fxHit(c,'Loop 1/8',bt); },bar*3.5+bt*2);
-  setTimeout(()=>{ if(ok()){ queueSec(c,'drop'); startSwell(c); } },bar*4);
+  setTimeout(()=>{ if(ok()){ queueSec(c,'drop'); startSwell(c); if(voxRoll(.9)) voxLoopEnd(c,'shout'); } },bar*4);
 }
 const midPool=()=>AU.e<.6?['brk','bridge','half','bld','chorus']:(AU.e>=.9?['drop','chorus','drop','bld','half']:MIDSEC);
 function rndSec(pool,not){ const c=pool.filter(x=>x!==not); return c[Math.floor(Math.random()*c.length)]; }
@@ -476,6 +516,7 @@ function swellTick(c){
 function autoFlair(c){ // now and then: a sound swap or a short effect hit on the deck that is playing
   const b=barsOf(c); if(b<AU.flairAt) return; AU.flairAt=b+[6,8,10,12][Math.floor(Math.random()*4)];
   const beat=60000/getBpm(c);
+  if(voxRoll(.22)){ const k=AU.slow||AU.e<.6?'vowel':(AU.e>=.9?(Math.random()<.5?'shout':'scat'):(Math.random()<.5?'shout':'scat')); if(voxMode()==='all'&&VOXS.length&&Math.random()<.18) voxLoopEnd(c,'sample'); else voxLoopEnd(c,k); return; }
   const r=Math.random(); if(r<0.4) startSwell(c); else if(r<0.6) swapSound(c);
   else { const e=[['Echo',4],['Echo',2],['Low-pass sweep',8],['High-pass sweep',6]][Math.floor(Math.random()*4)]; fxHit(c,e[0],beat*e[1]); } // only effects that keep the groove going
 }
@@ -539,9 +580,9 @@ function autoTick(){
     autoMix(c,n,warp(p,AU.hold||0));
     autoSay('Mixing Deck '+c.id+' into Deck '+n.id+' ('+ev(n,'genreObj().name')+') with a '+AU.style+' \u00b7 '+Math.round(p*100)+'%','Now: '+(p<.3?'bringing the new tune in':(p<.3+(AU.hold||0)?'both tunes playing side by side':(p<.85?'swapping the bass and mids across':'echoing the old tune out'))));
     if(p>=0.5&&!AU.half){ AU.half=true; fxHit(c,'Echo',240000/getBpm(c)/2); queueSec(n,rndSec(AU.ne<.6?['half','bld','bridge']:['drop','chorus','half','bld'],'')); }
-    if(p>=0.8&&!AU.third){ AU.third=true; const pk=rndSec(AU.ne<.6?['bridge','half','chorus']:(AU.ne>=.9?['drop','drop','chorus']:['drop','chorus','bridge']),''); queueSec(n,pk); if(pk==='drop'){ const bt=60000/getBpm(n); setTimeout(()=>{ if(AU.on) fxHit(n,'Loop 1/8',bt); },bt*2); } } // loops tighten into the drop // half-beat delay-style roll into the drop
+    if(p>=0.8&&!AU.third){ AU.third=true; const pk=rndSec(AU.ne<.6?['bridge','half','chorus']:(AU.ne>=.9?['drop','drop','chorus']:['drop','chorus','bridge']),''); queueSec(n,pk); if(pk==='drop'&&voxRoll(.8)) voxLoopEnd(n,'shout'); else if(voxRoll(.12)) voxLoopEnd(n,'shout'); if(pk==='drop'){ const bt=60000/getBpm(n); setTimeout(()=>{ if(AU.on) fxHit(n,'Loop 1/8',bt); },bt*2); } } // loops tighten into the drop // half-beat delay-style roll into the drop
     if(p>=0.85&&!AU.fourth){ AU.fourth=true; fxHit(c,'Echo',60000/getBpm(c)*4); } // echo out the old track
-    if(p>=1){ setPlay(c,false); c.eq={l:0,m:0,h:0}; c.filt=0; n.eq={l:0,m:0,h:0}; n.filt=0; applyMix(); AU.cur=n.id; AU.g0=0; AU.lastBar=Math.floor(barsOf(n)); AU.flairAt=Math.floor(barsOf(n))+6; AU.chorus=false; AU.chQ=false; AU.built=false; AU.slow=AU.nslow; AU.tr++; AU.e=energyAt(AU.tr); AU.phase='play'; trkPush(n,AU.pend,AU.style); alog('mix','Deck '+n.id+' is now the main deck (track '+AU.tr+')'); planNext(n); }
+    if(p>=1){ setPlay(c,false); voxOff(c); c.eq={l:0,m:0,h:0}; c.filt=0; n.eq={l:0,m:0,h:0}; n.filt=0; applyMix(); AU.cur=n.id; AU.g0=0; AU.lastBar=Math.floor(barsOf(n)); AU.flairAt=Math.floor(barsOf(n))+6; AU.chorus=false; AU.chQ=false; AU.built=false; AU.slow=AU.nslow; AU.tr++; AU.e=energyAt(AU.tr); AU.phase='play'; trkPush(n,AU.pend,AU.style); alog('mix','Deck '+n.id+' is now the main deck (track '+AU.tr+')'); planNext(n); }
   }
   else if(AU.phase==='end'){ // planned ending: outro, echo and a long filter close, then stop
     const barMs=240000/getBpm(c), p=Math.min(1,(Date.now()-AU.t0)/(AU.fadeMix*barMs));
@@ -743,6 +784,7 @@ function wireUI(){
   document.addEventListener('pointerup',pup); document.addEventListener('pointercancel',pup);
   document.addEventListener('dblclick',e=>{ const k=e.target.closest&&e.target.closest('.kd'); if(!k) return; const inp=k.querySelector('input'); if(inp.dataset.eq||inp.dataset.f){ inp.value=0; inp.dispatchEvent(new Event('input',{bubbles:true})); } });
   $('gfx').addEventListener('click',()=>setGfx(GFXI+1)); { let on=true; try{ on=localStorage.getItem('ebdj.lbl')!=='0'; }catch(e){} setLbl(on); $('padlbl').addEventListener('change',e=>setLbl(e.target.checked)); } $('gfx').textContent='Deck: '+GFX[GFXI][0];
+  ['voxuse','voxoften'].forEach(id=>{ try{ const v=localStorage.getItem('ebdj.'+id); if(v&&[...$(id).options].some(o=>o.value===v)) $(id).value=v; }catch(e){} $(id).addEventListener('change',()=>{ try{ localStorage.setItem('ebdj.'+id,$(id).value); }catch(e){} if(id==='voxuse'){ VOXOK=null; voxPrep(); if(voxMode()==='off') voxOffAll(); } }); });
   $('mkgood').addEventListener('click',()=>markSet(true)); $('mkbad').addEventListener('click',()=>markSet(false)); $('rptcopy').addEventListener('click',reportCopy); $('rptshare').addEventListener('click',reportShare); $('rptdl').addEventListener('click',reportDownload); $('ctlp').addEventListener('toggle',refreshReport);
   try{ const r=JSON.parse(localStorage.getItem('ebdj.report')||'null'); if(r&&r.LOG&&!LOG.length){ r.LOG.forEach(x=>LOG.push(x)); (r.TRK||[]).forEach(x=>TRK.push(x)); AU.setInfo=r.set||''; AU.tStart=r.t0||0; refreshReport(); } }catch(e){}
   $('auto').addEventListener('click',()=>autoOn(!AU.on)); $('autolen').addEventListener('change',()=>{ if(AU.on){ AU.len=+$('autolen').value; AU.fade=Math.min(32,Math.floor(AU.len/2)); } });
@@ -765,7 +807,7 @@ $('go').addEventListener('click',()=>{
 });
 boot();
 // for tests
-window.__djTest={planNext:planNext,LOG:LOG,TRK:TRK,buildReport:buildReport,markSet:markSet,makePlan:makePlan,nowText:nowText,nextText:nextText,warp:warp,rollFade:rollFade,fadeBars:fadeBars,EUPH:EUPH,CLUB:CLUB,bigBuild:bigBuild,lastTrack:lastTrack,matchKey:matchKey,barsOf:barsOf,gstepOf:gstepOf,pickGenre:pickGenre,energyAt:energyAt,SHAPES:SHAPES,GFX:GFX,setGfx:setGfx,startSwell:startSwell,swellTick:swellTick,freshDeck:freshDeck,swapSound:swapSound,autoFlair:autoFlair,autoStepSecs:autoStepSecs,autoMix:autoMix,STYLES:STYLES,AU:AU,autoOn:autoOn,timing:timing,barTime:barTime,PC:PC,stepGenre:stepGenre,decks:decks,S:S,knob:knob,knobB:knobB,onMidi:onMidi,onNote:onNote,applyMix:applyMix,cross:cross,MAP:()=>MAP};
+window.__djTest={autoSay:autoSay,voxFire:voxFire,voxLoopEnd:voxLoopEnd,voxOff:voxOff,voxPrep:voxPrep,VOXG:VOXG,VOXS:()=>VOXS,planNext:planNext,LOG:LOG,TRK:TRK,buildReport:buildReport,markSet:markSet,makePlan:makePlan,nowText:nowText,nextText:nextText,warp:warp,rollFade:rollFade,fadeBars:fadeBars,EUPH:EUPH,CLUB:CLUB,bigBuild:bigBuild,lastTrack:lastTrack,matchKey:matchKey,barsOf:barsOf,gstepOf:gstepOf,pickGenre:pickGenre,energyAt:energyAt,SHAPES:SHAPES,GFX:GFX,setGfx:setGfx,startSwell:startSwell,swellTick:swellTick,freshDeck:freshDeck,swapSound:swapSound,autoFlair:autoFlair,autoStepSecs:autoStepSecs,autoMix:autoMix,STYLES:STYLES,AU:AU,autoOn:autoOn,timing:timing,barTime:barTime,PC:PC,stepGenre:stepGenre,decks:decks,S:S,knob:knob,knobB:knobB,onMidi:onMidi,onNote:onNote,applyMix:applyMix,cross:cross,MAP:()=>MAP};
 })();
 </script>
 </body>
