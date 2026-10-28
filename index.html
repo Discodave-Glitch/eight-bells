@@ -5240,7 +5240,7 @@ function meterPaint(){
   });
 }
 function sfx(f,key,pan,lvl){ const keep=master; try{ if(lvl===0) return; if(key&&ac&&masterReal) master=busFor(key,pan,lvl); f(); }catch(e){ SFX_ERR++; SFX_LAST=String(e&&e.message||e); if(SFX_ERR<=3){ try{ const m=$('recmsg'); if(m&&!REC.on) m.textContent='A sound could not play on this browser ('+(e&&e.message?e.message:'error')+'; instruments: '+['bass','stab','arp','lead'].map(patchId).join(', ')+'). Playback carries on without it.'; }catch(_){} } }finally{ master=keep; } }
-let SFX_ERR=0, SFX_LAST='', TICKN=0; const BUILD='b1585';
+let SFX_ERR=0, SFX_LAST='', TICKN=0; const BUILD='b1590';
 function schedule(step,time){
   const preview=cfg.target!=='midi'||!midi.out, send=canSend();
   if(preview){
@@ -6264,7 +6264,7 @@ function lvRender(){
   if(!lvOn()||!LV.built) return;
   lvSecs(); lvPaint(); { const sp=$('lvsplit'); if(sp){ sp.textContent=SPLITD?'Drums: split':'Split drums'; sp.classList.toggle('on',SPLITD); } }
   const rows=lvTracks(), n=rows.length;
-  let h=rows.map((r,i)=>`<div class="lv-trk${r.muted?' mu':''}${LV.edit&&LV.edit.key===lvKey(r)?' sel':''}" data-r="${i}" style="--c:${r.col}"><button class="lv-nm" data-ed="${i}"><i></i>${esc(r.name)}</button><div class="lv-stw" data-ed-s="${i}"><div class="lv-st" style="grid-template-columns:repeat(${r.n},1fr)">${lvStrip(r.cells,r.n)}<em class="lv-ph"></em></div><div class="lv-lv"><u style="width:${Math.min(100,(r.lvl==null?100:r.lvl)/1.25)}%"></u></div></div><button class="lv-m" data-pt="${i}" title="New pattern for this track">P</button><button class="lv-m${r.muted?' on':''}" data-m="${i}">M</button><button class="lv-m${r.sel?' so':''}" data-so="${i}">S</button><button class="lv-m${r.kind==='v'?(r.locked?'':' on'):(r.locked?' on':'')}" data-lk="${i}">${r.kind==='v'?(r.locked?'Off':'On'):'Lk'}</button></div>`).join('');
+  let h=rows.map((r,i)=>`<div class="lv-trk${r.muted?' mu':''}${LV.edit&&LV.edit.key===lvKey(r)?' sel':''}" data-r="${i}" style="--c:${r.col}"><button class="lv-nm" data-ed="${i}"><i></i>${esc(r.name)}</button><div class="lv-stw" data-ed-s="${i}"><div class="lv-st" style="grid-template-columns:repeat(${r.n},1fr)">${lvStrip(r.cells,r.n)}<em class="lv-ph"></em></div><div class="lv-lv"><u style="width:${Math.min(100,(r.lvl==null?100:r.lvl))}%"></u></div></div><button class="lv-m" data-pt="${i}" title="New pattern for this track">P</button><button class="lv-m${r.muted?' on':''}" data-m="${i}">M</button><button class="lv-m${r.sel?' so':''}" data-so="${i}">S</button><button class="lv-m${r.kind==='v'?(r.locked?'':' on'):(r.locked?' on':'')}" data-lk="${i}">${r.kind==='v'?(r.locked?'Off':'On'):'Lk'}</button></div>`).join('');
   $('lvtrks').innerHTML=h;
   $('lvtrks').classList.toggle('many',n>10);
   lvEdit();
