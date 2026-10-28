@@ -5240,7 +5240,7 @@ function meterPaint(){
   });
 }
 function sfx(f,key,pan,lvl){ const keep=master; try{ if(lvl===0) return; if(key&&ac&&masterReal) master=busFor(key,pan,lvl); f(); }catch(e){ SFX_ERR++; SFX_LAST=String(e&&e.message||e); if(SFX_ERR<=3){ try{ const m=$('recmsg'); if(m&&!REC.on) m.textContent='A sound could not play on this browser ('+(e&&e.message?e.message:'error')+'; instruments: '+['bass','stab','arp','lead'].map(patchId).join(', ')+'). Playback carries on without it.'; }catch(_){} } }finally{ master=keep; } }
-let SFX_ERR=0, SFX_LAST='', TICKN=0; const BUILD='b1595';
+let SFX_ERR=0, SFX_LAST='', TICKN=0; const BUILD='b1600';
 function schedule(step,time){
   const preview=cfg.target!=='midi'||!midi.out, send=canSend();
   if(preview){
@@ -6510,19 +6510,19 @@ function padLightTest(){
   go();
 }
 function padShowBank(n){ if(PADS.bank===n) return; PADS.bank=n; padGrid(); padPaint(); }
-const PAD_KN=['Volume','Swing','Tempo','Section','Kit','–','–','–'];
+const PAD_KN=['Volume','Swing','Tempo','Section','Stab sound','Kit','Bass sound','Lead sound'];
 function padKitList(){ return ['auto'].concat(Object.keys(KITS)); }
 // What a knob does, and where it sits (0 to 1), so the on-screen knob can follow the real one.
 const PAD_PGROUPS={bass:['Bass'],lead:['Leads'],stab:['Stabs and chords','Keys and organs','Pads'],arp:['Plucks and bells','Keys and organs','Leads','World']};
 function padPatchList(role){ return ['auto'].concat(PATCH_LIST.filter(p=>PAD_PGROUPS[role].includes(p[2])).map(p=>p[0])); }
 function padPatchName(id){ const p=PATCH_LIST.find(x=>x[0]===id); return p?p[1]:id; }
 function padSecIds(){ return SECTION_IDS.filter(x=>x!=='allt'); }
-const PAD_KROLE={5:'bass',6:'lead',7:'stab'};
+const PAD_KROLE={4:'stab',6:'bass',7:'lead'};
 function padKnobInfoA(n){
   if(n===0) return ['Volume',(+$('pvol').value-10)/140];
   if(n===1) return ['Swing',(+$('swing').value-50)/25];
   if(n===2) return ['Tempo',(state.bpm-40)/200];
-  if(n===4){ const ks=padKitList(), i=Math.max(0,ks.indexOf(PV.kit)); return ['Kit',i/(ks.length-1)]; }
+  if(n===5){ const ks=padKitList(), i=Math.max(0,ks.indexOf(PV.kit)); return ['Kit',i/(ks.length-1)]; }
   if(n===3){ const ids=padSecIds(), i=ids.indexOf(LV.next||state.section); return ['Section',i<0?0:i/(ids.length-1)]; }
   if(n===7&&PADS.bank===2){ const r=padStepRow(), nb=r?padStepBars(r):1; return ['Bar',nb>1?PADS.cbar/(nb-1):0]; }
   const role=PAD_KROLE[n]; if(role){ const l=padPatchList(role), i=Math.max(0,l.indexOf(PV.patch[role]||'auto')); return [role[0].toUpperCase()+role.slice(1)+' sound',i/(l.length-1)]; }
@@ -6533,7 +6533,7 @@ function padKnobA(n,val){
   if(n===0){ const v=10+Math.round(f*140); $('pvol').value=v; $('pvol').dispatchEvent(new Event('input',{bubbles:true})); m='Preview volume '+v+'%'; }
   else if(n===1){ const v=50+Math.round(f*25); $('swing').value=v; $('swing').dispatchEvent(new Event('input',{bubbles:true})); m='Swing '+v+'%'; }
   else if(n===2){ const v=40+Math.round(f*200); $('bpm').value=v; $('bpm').dispatchEvent(new Event('input',{bubbles:true})); m='Tempo '+v+' BPM'; }
-  else if(n===4){ const ks=padKitList(), k=ks[Math.min(ks.length-1,Math.floor(f*ks.length))]; if(PV.kit!==k){ PV.kit=k; savePV(); if(typeof renderPreview==='function') renderPreview(); } m='Kit: '+(k==='auto'?'Auto':KITS[k].name); }
+  else if(n===5){ const ks=padKitList(), k=ks[Math.min(ks.length-1,Math.floor(f*ks.length))]; if(PV.kit!==k){ PV.kit=k; savePV(); if(typeof renderPreview==='function') renderPreview(); } m='Kit: '+(k==='auto'?'Auto':KITS[k].name); }
   else if(n===3){
     const ids=padSecIds(), id=ids[Math.min(ids.length-1,Math.floor(f*ids.length))];
     if(SONG.on){ m='a song is playing, so the song chooses the sections'; }
