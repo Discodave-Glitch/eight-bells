@@ -4369,7 +4369,7 @@ function fxBuild(master,comp){
 }
 function fxCap(on){
   const F=FXB; if(!F||F.c!==ac) return; const cap=F.cap;
-  try{ if(on&&!cap.on){ master.connect(cap.sp); cap.sp.connect(cap.mute); cap.mute.connect(ac.destination); cap.on=true; } else if(!on&&cap.on){ cap.on=false; master.disconnect(cap.sp); cap.sp.disconnect(); cap.mute.disconnect(); } }catch(_){}
+  try{ if(on&&!cap.on){ master.connect(cap.sp); cap.sp.connect(cap.mute); cap.mute.connect(ac.destination); cap.on=true; } else if(!on&&cap.on){ cap.on=false; try{ cap.sp.disconnect(); }catch(_){} try{ cap.mute.disconnect(); }catch(_){} } }catch(_){}
 }
 function fxSlice(sec){
   const F=FXB; if(!F||!F.cap.on) return null; const cap=F.cap, n=Math.max(64,Math.min(cap.N-1,Math.floor(sec*ac.sampleRate))), b=ac.createBuffer(2,n,ac.sampleRate), L=b.getChannelData(0), R=b.getChannelData(1);
