@@ -640,6 +640,62 @@ html.st-lock,html.st-lock body{overflow:hidden}
 .stagev.st-imm .st-ftrk.show{opacity:1;pointer-events:auto}
 .stagev .st-ftrk .sb{border-color:transparent;color:#151213;height:38px;min-width:64px;padding:0 10px;font-size:13px}
 .stagev .st-ftrk .sb.off{background:#241e20!important;color:#7a7073;border-color:#4a4144}
+.padm{position:fixed;inset:0;z-index:101;background:var(--bg);color:var(--ink);display:flex;flex-direction:column;overflow-y:auto;padding:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left))}
+.padm[hidden]{display:none}
+.pm-in{width:100%;max-width:780px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
+.pm-top{display:flex;justify-content:space-between;align-items:center;font-size:15px}
+.pm-sub{color:var(--muted);font-weight:600}
+.pm-x{flex:none;width:72px}
+.pm-st,.pm-last,.pm-hint{margin:0;font-size:13px;color:var(--muted);line-height:1.35}
+.pm-last{min-height:2.7em;color:var(--ink)}
+.pm-chips{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.pm-chips .lvb{min-height:34px;font-size:12px;padding:0 4px}
+.padm .pm-chips .lvb.on{background:var(--ink);color:var(--bg);box-shadow:none}
+.pm-dev{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;padding:14px;border-radius:20px;background:var(--surface);border:1px solid var(--line);box-shadow:0 2px 10px rgba(0,0,0,.12)}
+.pm-knobs{display:grid;grid-template-columns:repeat(2,58px);grid-template-rows:repeat(4,1fr);gap:8px 10px;align-content:space-between}
+.pm-kn{grid-row:var(--gr);grid-column:var(--gc);display:flex;flex-direction:column;align-items:center;gap:1px;touch-action:none;user-select:none;-webkit-user-select:none;cursor:ns-resize;font-size:10px;color:var(--muted);text-align:center;line-height:1.1}
+.pm-kn i{display:block;width:42px;height:42px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#4a4f5c,#22252d);border:2px solid var(--line);position:relative;box-sizing:border-box}
+.pm-kn i::after{content:"";position:absolute;left:50%;top:3px;width:3px;height:13px;margin-left:-1.5px;border-radius:2px;background:#f1f3f8;transform-origin:50% 16px;transform:rotate(var(--r,-135deg))}
+.pm-kn b{font-size:11px;color:var(--ink)}
+.pm-kn span{max-width:58px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pm-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;min-width:0}
+.pm-pad{aspect-ratio:1;min-width:0;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:14px 3px 4px;cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;position:relative;overflow:hidden;font-weight:700;font-size:13px;text-align:center;line-height:1.15}
+.pm-pad::before{content:"";position:absolute;inset:0;background:var(--c,#2f7f95);opacity:.16;transition:opacity .12s}
+.pm-pad>*{position:relative}
+.pm-pad em{position:absolute;left:6px;top:4px;font-style:normal;font-weight:600;font-size:9px;letter-spacing:.05em;color:var(--muted)}
+.pm-pad small{color:var(--muted);font-weight:500;font-size:10px}
+.pm-pad select{width:92%;font:inherit;font-size:11px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:6px;min-height:24px;padding:0 2px}
+.pm-pad.on::before{opacity:.7}
+.pm-pad.now{outline:3px solid var(--ink);outline-offset:-3px}
+.pm-pad.q{border-style:dashed;border-color:var(--ink);border-width:2px}
+.pm-pad.dis{opacity:.3;pointer-events:none}
+.pm-pad.hit::before{opacity:calc(.4 + var(--v,.8)*.55);transition:none}
+.pm-btns{display:flex;flex-direction:column;gap:8px;justify-content:space-between}
+.pm-b{flex:1 1 0;width:50px;min-height:40px;font-size:16px;padding:0}
+.pm-btns .pm-b:nth-child(-n+2){font-size:20px;font-weight:800}
+.padm .pm-play.on{background:#2f9f6a;color:#fff;box-shadow:none}
+.pm-rec{color:#d9534f}
+.padm .pm-rec.on{background:#d9534f;color:#fff;box-shadow:none}
+.pm-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pm-row select{flex:1 1 140px;min-width:0;font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;min-height:36px;padding:0 6px}
+.pm-sm{flex:none;padding:0 12px}
+.pm-k{display:flex;align-items:center;gap:6px;font-size:13px;flex:1 1 140px}
+.pm-k select{flex:1;min-width:0}
+.pm-set{border:1px solid var(--line);border-radius:12px;padding:8px 12px;background:var(--surface);display:flex;flex-direction:column;gap:8px}
+.pm-set>summary{cursor:pointer;font-weight:700;font-size:14px;min-height:28px;display:flex;align-items:center}
+.pm-set[open]>summary{margin-bottom:8px}
+.pm-set[open]{gap:10px}
+.padm .lvb{font-size:13px}
+.padm .lvb[aria-pressed="true"]:not(.pm-b){box-shadow:inset 0 0 0 2px var(--ink)}
+@media(max-width:600px){
+ .pm-dev{grid-template-columns:1fr;gap:12px;padding:10px}
+ .pm-grid{order:1}
+ .pm-knobs{order:2;grid-template-columns:repeat(4,1fr);grid-template-rows:none;gap:10px 4px}
+ .pm-kn{grid-row:auto;grid-column:auto}
+ .pm-btns{order:3;flex-direction:row}
+ .pm-b{width:auto;min-height:44px}
+ .pm-pad{font-size:12px}
+}
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#2f7f95">
@@ -649,12 +705,13 @@ html.st-lock,html.st-lock body{overflow:hidden}
   <button id="themebtn" class="themebtn" type="button" aria-label="Switch between light and dark" title="Switch between light and dark"></button>
   <header class="brand">
     <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Eight Bells logo"><circle cx="32" cy="32" r="30" fill="#2f7f95" stroke="#e0b04a" stroke-width="2.5"/><circle cx="32.0" cy="8.0" r="3" fill="#e0b04a"/><circle cx="49.0" cy="15.0" r="3" fill="#1d5568"/><circle cx="56.0" cy="32.0" r="3" fill="#e0b04a"/><circle cx="49.0" cy="49.0" r="3" fill="#e0b04a"/><circle cx="32.0" cy="56.0" r="3" fill="#1d5568"/><circle cx="15.0" cy="49.0" r="3" fill="#e0b04a"/><circle cx="8.0" cy="32.0" r="3" fill="#e0b04a"/><circle cx="15.0" cy="15.0" r="3" fill="#1d5568"/><circle cx="32" cy="19" r="2.2" fill="#e0b04a"/><path d="M21 43c2.5-4 3.5-8 3.5-13 0-5 3-8 7.5-8s7.5 3 7.5 8c0 5 1 9 3.5 13z" fill="#f2ede9" stroke="#0b0909" stroke-width="1.2" stroke-linejoin="round"/><rect x="20" y="42.5" width="24" height="3" rx="1.5" fill="#e0b04a" stroke="#0b0909" stroke-width="1"/><circle cx="32" cy="48.5" r="2.6" fill="#0b0909"/></svg>
-    <div class="brandtxt"><p class="from"><a href="https://github.com/Discodave-Glitch/slipway" target="_blank" rel="noopener">From the maker of Slipway</a></p><h1>Eight Bells <small class="ver">V3<span id="buildtag"> &middot; V3-stage</span></small></h1>
+    <div class="brandtxt"><p class="from"><a href="https://github.com/Discodave-Glitch/slipway" target="_blank" rel="noopener">From the maker of Slipway</a></p><h1>Eight Bells <small class="ver">V3<span id="buildtag"> &middot; V3-pads</span></small></h1>
     <p class="sub">Beats and melodies for the M-VAVE FM-1 and its custom firmwares, built from 28 engines, from Euclidean rhythms to world cycles, chaos and Markov chains. Up to 8 tracks depending on the firmware, up to 64 steps each.<span id="midisub"> It can play the pattern on the FM-1 itself over USB MIDI.</span></p></div>
   </header>
   <div class="waves" aria-hidden="true"></div>
   <div class="toolrow" role="group" aria-label="Output tools">
       <button id="livebtn" class="mini perfbtn" aria-pressed="false" title="A one-screen view for playing live: Now and Next, every track, big punch effects">Live view</button>
+      <button id="padbtn" class="mini perfbtn" aria-pressed="false" title="Play the FM-1 drums from a pad controller such as the M-VAVE SMC-PAD, or from the screen and keyboard">Pad mode</button>
       <button id="perfbtn" class="mini perfbtn" title="Hide everything except the transport, tracks, Sample track and effects">Performance view</button>
       <label class="tvol"><span>Volume</span><input id="pvol" type="range" min="10" max="150" value="100" aria-label="Preview volume"></label>
       <button id="tcolall" class="mini" title="Minimise or expand every track">Minimise tracks</button>
@@ -967,6 +1024,7 @@ html.st-lock,html.st-lock body{overflow:hidden}
 </main>
 <div id="recs" class="recs" hidden role="dialog" aria-label="Recordings"><div class="recs-in"><div class="recs-top"><b>Recordings</b><button class="mini" data-rclose="1">Close</button></div><div id="recslist"></div><p class="hint">Kept in this browser only, the last 10. Recording also saves a WAV file to your downloads each time.</p></div></div>
 <div id="live" class="live" hidden role="dialog" aria-label="Live view"></div>
+<div id="padm" class="padm" hidden role="dialog" aria-label="Pad mode"></div>
 <div id="stage" class="stagev" hidden role="dialog" aria-label="Stage">
 <canvas id="stbg" width="160" height="90" aria-hidden="true"></canvas>
 <div class="st-in">
@@ -4121,6 +4179,7 @@ function refreshIns(){
   const pick=ins.find(p=>p.id===prev)||ins.find(p=>FM1_NAME.test(p.name||''))||ins[0];
   if(pick) sel.value=pick.id;
   if(mon.port&&!ins.some(p=>p.id===mon.port.id)) monStop();
+  if(typeof padRefreshIns==='function') padRefreshIns(ins);
 }
 function monToggle(){
   if(mon.port){ monStop(); return; }
@@ -6114,6 +6173,7 @@ function lvSet(on){
   if(on){ lvBuild(); LV.next=null; LV.edit=null; LV.bar=0; document.documentElement.classList.add('lv-lock'); window.scrollTo(0,0); lvRender(); requestAnimationFrame(lvLoop); }
   else document.documentElement.classList.remove('lv-lock');
   const b=$('livebtn'); if(b) b.setAttribute('aria-pressed',String(on));
+  if(typeof padLive==='function') padLive(on);
 }
 var HAS_LIVE_OK=true;
 function lvSecs(){
@@ -6176,6 +6236,349 @@ function lvStep(){
 }
 $('livebtn').addEventListener('click',()=>lvSet(!lvOn()));
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&lvOn()) lvSet(false); });
+
+/* ---------- Pad mode: play the FM-1 drums (or the browser kits) from a pad controller, the screen or the keyboard.
+   The pad plugs into this computer, and this page passes each hit on to the FM-1 as that firmware's own drum note.
+   It never changes the notes the pattern sends. ---------- */
+const PADS={base:36,map:[],also:false,rec:false,edit:false,learn:false,cl:null,cc:null,bank:0,soft:false,ckey:'',cbar:0,held:new Map(),port:null,pid:'',built:false,dirty:false,last:'',timer:null};
+try{ const j=JSON.parse(localStorage.getItem('eb_pads')||'null'); if(j&&typeof j==='object'){
+  if(Number.isInteger(j.base)&&j.base>=0&&j.base<=111) PADS.base=j.base;
+  if(Array.isArray(j.map)) PADS.map=j.map.slice(0,16).map(x=>(typeof x==='string'&&/^(off|[01]\.[0-3])$/.test(x))?x:'');
+  PADS.also=!!j.also; PADS.soft=!!j.soft;
+  if(j.cc&&typeof j.cc==='object'){ const ok=x=>Number.isInteger(x)&&x>=-1&&x<=127; const c={}; ['prev','next','play','stop','rec'].forEach(k=>{ if(ok(j.cc[k])) c[k]=j.cc[k]; }); if(Array.isArray(j.cc.k)&&j.cc.k.length===8&&j.cc.k.every(ok)) c.k=j.cc.k.slice(); PADS.cc=c; } } }catch(_){}
+// Default controller numbers: the M-VAVE SMC-PAD (community profile). Any other controller can be taught with "Learn a button or knob" in Pad settings.
+const PAD_CC0={prev:25,next:26,play:27,stop:28,rec:29,k:[30,31,32,33,34,35,36,37]};
+PADS.cc=Object.assign({},PAD_CC0,PADS.cc||{}); PADS.cc.k=(PADS.cc.k||PAD_CC0.k).slice();
+while(PADS.map.length<16) PADS.map.push('');
+function padSave(){ try{ localStorage.setItem('eb_pads',JSON.stringify({base:PADS.base,map:PADS.map,also:PADS.also,soft:PADS.soft,cc:PADS.cc})); }catch(_){} }
+function padOn(){ const e=$('padm'); return !!e&&!e.hidden; }
+// Pads 1-4 (bottom row) are Drums lanes 1-4, pads 5-8 are the second drum set if the firmware has one, then the same again above.
+function padDefault(i){ return ((i>>2)&1&&drumSets().length>1?'1.':'0.')+(i%4); }
+function padTarget(i){
+  const v=PADS.map[i]||padDefault(i); if(v==='off') return null;
+  const sets=drumSets(), a=v.split('.'), k=sets[+a[0]]?+a[0]:0, d=sets[k]; if(!d||!d.lanes.length) return null;
+  return {k,j:Math.min(+a[1],d.lanes.length-1)};
+}
+function padName(t){ const sets=drumSets(), l=sets[t.k].lanes[t.j]; return (sets.length>1?(t.k?'Drums 2 ':'Drums 1 '):'')+l.label; }
+const PAD_COL=['#d9534f','#e0a030','#2f9f95','#8a63c9'];
+function padFlash(i,vel){
+  const el=document.querySelector('#pmgrid .pm-pad[data-i="'+i+'"]'); if(!el) return;
+  el.style.setProperty('--v',String(Math.max(0.1,vel/127))); el.classList.add('hit');
+  clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('hit'),130);
+}
+function padSound(t,vel,i){
+  try{
+    ensureAudio(); if(ac.state==='suspended') ac.resume();
+    const d=drumSets()[t.k], l=d.lanes[t.j], j=t.j, v=vel/127, tt=ac.currentTime+0.004;
+    const lv=(l.lvl==null?1:l.lvl/100)*(d.lvl==null?1:d.lvl/100), sid=PV.samp['d'+Math.min(j,3)];
+    sfx(()=>{ if(sid&&SBUF.has(sid)) samplePlay(sid,null,tt,v,0);
+      else if(j===0) vKick(tt,v); else if(j===1) vSnare(tt,v); else if(j===2) vHat(tt,v); else vPerc(tt,i,v); },'d'+t.k+'l'+j,Math.max(-100,Math.min(100,(l.pan||0)+(d.pan||0))),lv);
+  }catch(_){}
+}
+// While the pattern plays, a pad hit can also be written into the loop at the nearest step (a normal edit: Undo takes it back).
+function padRecord(t,vel){
+  if(!PADS.rec||!playing||!ac||ROLL.step<0) return;
+  const d=drumSets()[t.k]; if(!d||d.locked) return; const l=d.lanes[t.j]; if(!l) return;
+  const stepSec=stepMsOf(state.bpm)/1000, frac=(ac.currentTime-ROLL.t)/stepSec;
+  const pos=(ROLL.step+(frac>=0.5?1:0))%d.n;
+  l.cells[pos]=1; l.vel[pos]=vel; PADS.dirty=true;
+}
+function padHit(i,vel,via){
+  vel=Math.max(1,Math.min(127,vel|0)); padFlash(i,vel);
+  const t=padTarget(i);
+  if(!t){ PADS.last='Pad '+(i+1)+' is switched off.'; padPaint(); return; }
+  const l=drumSets()[t.k].lanes[t.j]; let sent=false;
+  if(canSend()){
+    const dc=(t.k?cfg.dch2:cfg.dch)-1, m=cfg.drum[t.j];
+    if(dc>=0&&m!=null){ mSend([0x90|dc,m,vel]); mSend([0x80|dc,m,0],performance.now()+120); sent=true; }
+  }
+  if(!sent||PADS.also) padSound(t,vel,i);
+  padRecord(t,vel);
+  PADS.last='Pad '+(i+1)+(via?' ('+via+')':'')+' → '+padName(t)+', velocity '+vel+(sent?'. Sent to the FM-1 as note '+cfg.drum[t.j]+'.':'. Played in the browser.')+(PADS.rec&&playing&&!drumSets()[t.k].locked?' Recorded.':'');
+  const e=$('pmlast'); if(e) e.textContent=PADS.last;
+}
+const PAD_BANKS=['Bank A: drums','Bank B: effects','Bank C: step input','Bank D: launcher'];
+// Bank D: the bottom two rows queue the sections for the end of the loop, the top two rows fire dice rolls. Both reuse Live view's own code.
+const PAD_LAUNCH=[['intro','sec'],['bld','sec'],['drop','sec'],['chorus','sec'],['brk','sec'],['bridge','sec'],['half','sec'],['outro','sec'],['eng','dice'],['gen','dice'],['inst','dice'],['sec','dice'],['chg','dice'],['solo','dice'],['fx','dice'],['auto','dice']];
+function padLaunchName(i){ const x=PAD_LAUNCH[i]; if(x[1]==='sec') return SONG_NAME[x[0]]; const d=LV_DICE.find(y=>y[0]===x[0]); return '\u{1F3B2} '+(d?d[1]:x[0]); }
+function padLaunch(i){
+  const x=PAD_LAUNCH[i]; if(!x) return;
+  lvBuild();
+  if(x[1]==='sec'){
+    const id=x[0];
+    if(SONG.on){ padSay('A song is playing, so the song chooses the sections.'); return; }
+    if(!playing){ goSection(id); LV.next=null; padSay('Section: '+SONG_NAME[id]+'.'); }
+    else{ LV.next=(LV.next===id)?null:id; padSay(LV.next?SONG_NAME[id]+' is queued for the end of the loop.':'Queue cleared.'); }
+  }else{ lvDice(x[0],document.createElement('button')); padSay('Dice: '+padLaunchName(i).replace(/^\S+\s/,'')+'.'); }
+}
+// Bank C: the 16 pads are the 16 steps of one bar of the chosen track (the same bar editor as Live view).
+function padStepRow(){ const rs=lvTracks(); return rs.find(r=>lvKey(r)===PADS.ckey)||rs[0]; }
+function padStepBars(r){ return Math.max(1,Math.ceil(r.n/16)); }
+function padStepMove(dir){
+  const rs=lvTracks(); let k=rs.findIndex(r=>lvKey(r)===PADS.ckey); if(k<0) k=0;
+  const r=rs[(k+dir+rs.length)%rs.length]; PADS.ckey=lvKey(r); PADS.cbar=Math.min(PADS.cbar,padStepBars(r)-1);
+  padSay('Step input: '+r.name+'.'); padGrid(); padPaint();
+}
+function padBarMove(dir){ const r=padStepRow(); if(!r) return; const nb=padStepBars(r); PADS.cbar=(PADS.cbar+dir+nb)%nb; padGrid(); padPaint(); }
+function padStepToggle(i){
+  const r=padStepRow(); if(!r) return; const s=PADS.cbar*16+i;
+  if(s>=r.n){ padSay(r.name+' has only '+r.n+' steps.'); return; }
+  const c=lvCard(r); if(!c){ padSay('That track is not on screen right now.'); return; }
+  const keep=state.mode; state.mode='hit';
+  const sel=r.kind==='v'?'[data-vact="cell"][data-s="'+s+'"]':r.kind==='s'?'[data-act="cell"][data-s="'+s+'"]':'.lane[data-j="'+r.j+'"] [data-act="cell"][data-s="'+s+'"]';
+  const cell=c.querySelector(sel); if(cell) cell.click(); state.mode=keep;
+  const r2=padStepRow(), on=r2&&lvEditCells(r2)[s];
+  padSay(r.name+' step '+(s+1)+(on?' on.':' off.'));
+}
+function padBank(b,i,vel,via){
+  if(b===0) padHit(i,vel,via);
+  else if(b===1){ padFlash(i,vel); padFx(i,true); }
+  else if(b===2){ padFlash(i,vel); padStepToggle(i); }
+  else{ padFlash(i,vel); padLaunch(i); }
+}
+function padSay(m){ PADS.last=m; const l=$('pmlast'); if(l) l.textContent=m; }
+// Bank B (the controller's PAD BANK button shifts its notes up 16): the 16 punch effects, held while the pad is pressed. Sloop, or the browser preview.
+function padFx(i,on){
+  if(on&&!(cfg.device==='sloop'||fxLocalMode())){ padSay('Punch effects are for Sloop, or for the browser preview (when no FM-1 output is connected).'); return; }
+  const b=document.querySelector('#fxkeys [data-fx="'+i+'"]'); if(!b) return;
+  try{ b.dispatchEvent(new PointerEvent(on?'pointerdown':'pointerup',{bubbles:true,pointerId:900+i,pointerType:'touch'})); }catch(_){ return; }
+  if(on) padSay('Pad '+(17+i)+' (bank B) → '+FX_LIST[i][1]+', held while pressed.');
+}
+function padShowBank(n){ if(PADS.bank===n) return; PADS.bank=n; padGrid(); padPaint(); }
+const PAD_KN=['Volume','Swing','Tempo','Kit','–','–','–','–'];
+function padKitList(){ return ['auto'].concat(Object.keys(KITS)); }
+// What a knob does, and where it sits (0 to 1), so the on-screen knob can follow the real one.
+function padKnobInfo(n){
+  if(n===0) return ['Volume',(+$('pvol').value-10)/140];
+  if(n===1) return ['Swing',(+$('swing').value-50)/25];
+  if(n===2) return ['Tempo',(state.bpm-40)/200];
+  if(n===3){ const ks=padKitList(), i=Math.max(0,ks.indexOf(PV.kit)); return ['Kit',i/(ks.length-1)]; }
+  if(n===7&&PADS.bank===2){ const r=padStepRow(), nb=r?padStepBars(r):1; return ['Bar',nb>1?PADS.cbar/(nb-1):0]; }
+  return ['–',0];
+}
+function padKnob(n,val){
+  const f=Math.max(0,Math.min(127,val))/127; let m;
+  if(n===0){ const v=10+Math.round(f*140); $('pvol').value=v; $('pvol').dispatchEvent(new Event('input',{bubbles:true})); m='Preview volume '+v+'%'; }
+  else if(n===1){ const v=50+Math.round(f*25); $('swing').value=v; $('swing').dispatchEvent(new Event('input',{bubbles:true})); m='Swing '+v+'%'; }
+  else if(n===2){ const v=40+Math.round(f*200); $('bpm').value=v; $('bpm').dispatchEvent(new Event('input',{bubbles:true})); m='Tempo '+v+' BPM'; }
+  else if(n===3){ const ks=padKitList(), k=ks[Math.min(ks.length-1,Math.floor(f*ks.length))]; if(PV.kit!==k){ PV.kit=k; savePV(); if(typeof renderPreview==='function') renderPreview(); } m='Kit: '+(k==='auto'?'Auto':KITS[k].name); }
+  else if(n===7&&PADS.bank===2){ const r=padStepRow(); if(r){ const nb=padStepBars(r); PADS.cbar=Math.min(nb-1,Math.floor(f*nb*0.999)); padGrid(); m='Bar '+(PADS.cbar+1)+' of '+nb; } }
+  else m='not assigned';
+  padSay('Knob '+(n+1)+' → '+m+'.');
+}
+function padKitStep(d){
+  const ks=['auto'].concat(Object.keys(KITS)); let i=ks.indexOf(PV.kit); if(i<0) i=0; i=(i+d+ks.length)%ks.length;
+  PV.kit=ks[i]; savePV(); if(typeof renderPreview==='function') renderPreview(); padSay('Kit: '+(ks[i]==='auto'?'Auto':KITS[ks[i]].name)+'.');
+}
+// The SMC-PAD's buttons and knobs (community-documented map, channel 1): CC 25 and 26 are < and >, 27 Play, 28 Stop, 29 Record, 30 to 37 the eight knobs.
+function padCtl(cc){ const c=PADS.cc; for(const k of ['prev','next','play','stop','rec']) if(c[k]===cc) return k; const i=c.k.indexOf(cc); return i>=0?'k'+i:null; }
+const PAD_CTL_NAME={prev:'< (previous)',next:'> (next)',play:'Play',stop:'Stop',rec:'Record'};
+function padCtlName(k){ return PAD_CTL_NAME[k]||('Knob '+(+k.slice(1)+1)); }
+function padCtlSet(k,cc){
+  ['prev','next','play','stop','rec'].forEach(x=>{ if(PADS.cc[x]===cc) PADS.cc[x]=-1; }); PADS.cc.k=PADS.cc.k.map(x=>x===cc?-1:x);
+  if(k[0]==='k') PADS.cc.k[+k.slice(1)]=cc; else PADS.cc[k]=cc; padSave();
+}
+function padCC(cc,val){
+  if(PADS.cl){ const k=PADS.cl; PADS.cl=null; padCtlSet(k,cc); padSay(padCtlName(k)+' learned: controller '+cc+'.'); padPaint(); return; }
+  const k=padCtl(cc); if(!k) return;
+  if(k==='play'){ if(val>0&&!playing) $('play').click(); }
+  else if(k==='stop'){ if(val>0&&playing) $('play').click(); }
+  else if(k==='rec'){ if(val>0){ if(PADS.built&&padOn()) $('pmrec').click(); else $('recbtn').click(); } }
+  else if(k==='prev'||k==='next'){ if(val>0){ if(PADS.bank===2) padStepMove(k==='next'?1:-1); else padKitStep(k==='next'?1:-1); } }
+  else padKnob(+k.slice(1),val);
+  padTick(); if(padOn()) padPaint();
+}
+function padMsg(e){
+  const d=e.data; if(!d||d.length<2) return; const st=d[0]&0xF0;
+  if(st===0xB0){ if(d.length>=3) padCC(d[1],d[2]); return; }
+  if(st!==0x90&&st!==0x80) return;
+  const note=d[1], off=st===0x80||d[2]===0, idx=note-PADS.base;
+  if(off){ if(idx>=0&&idx<64&&(PADS.soft?PADS.bank:(idx>>4))===1) padFx(idx&15,false); return; }
+  if(PADS.learn){ PADS.learn=false; PADS.base=Math.min(64,note); padSave(); padGrid(); padPaint(); padSay('Learned. That pad is pad 1 (note '+note+'); notes '+(note+1)+' to '+(note+15)+' are pads 2 to 16. Banks B, C and D are the next 16 notes each.'); return; }
+  if(idx<0||idx>63){ padSay('Note '+note+' is outside the pads (notes '+PADS.base+' to '+(PADS.base+63)+'). Tap Learn pads and hit the bottom-left pad.'); return; }
+  const bk=PADS.soft?PADS.bank:(idx>>4);
+  if(!PADS.soft) padShowBank(bk);
+  padBank(bk,idx&15,d[2],'note '+note);
+}
+// An input that is the FM-1 itself (or the same device as the output) would send the FM-1's own notes straight back to it.
+function padBad(p){ const n=p.name||''; return /fm-?1|sloop|felucca/i.test(n)||!!(n&&midi.out&&(midi.out.name||'')===n); }
+function padListen(id){
+  if(PADS.port){ try{ PADS.port.removeEventListener('midimessage',padMsg); }catch(_){} PADS.port=null; }
+  PADS.pid=id||'';
+  const p=id&&midi.access&&midi.access.inputs&&midi.access.inputs.get(id);
+  if(p){
+    if(padBad(p)){ PADS.pid=''; PADS.last='That input is the FM-1 itself. Choose the pad controller instead, or its notes would be sent straight back to the FM-1.'; }
+    else{ PADS.port=p; p.addEventListener('midimessage',padMsg); }
+  }
+  padPaint();
+}
+function padAuto(){
+  if(!midi.access||!midi.access.inputs) return;
+  const ins=[...midi.access.inputs.values()].filter(p=>!padBad(p));
+  const pick=ins.find(p=>p.id===PADS.pid)||ins[0];
+  if(pick){ const s=$('pmin'); if(s) s.value=pick.id; padListen(pick.id); } else padListen('');
+}
+function padRefreshIns(ins){
+  const s=$('pmin'); if(!s||!PADS.built) return;
+  const list=(ins||[]).filter(p=>!padBad(p));
+  s.innerHTML=list.length?list.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.name||p.id)+'</option>').join(''):'<option value="">No pad found</option>';
+  if(PADS.port&&!list.some(p=>p.id===PADS.port.id)) padListen('');
+  if(padOn()&&!PADS.port) padAuto(); else if(PADS.port) s.value=PADS.port.id;
+}
+function padGrid(){
+  const g=$('pmgrid'); if(!g) return;
+  const bk=PADS.bank; let h='';
+  const pad=(i,col,label,n,note,extra)=>'<div class="pm-pad" role="button" tabindex="0" data-i="'+i+'" style="--c:'+col+'">'+(n?'<em>PAD '+n+'</em>':'')+'<span>'+label+'</span><small>note '+note+'</small>'+(extra||'')+'</div>';
+  if(bk===1){
+    for(let r=3;r>=0;r--) for(let c=0;c<4;c++){ const i=r*4+c; h+=pad(i,'#6a7fd1',esc(FX_LIST[i][1]),17+i,PADS.base+16+i); }
+  }else if(bk===2){
+    for(let r=3;r>=0;r--) for(let c=0;c<4;c++){ const i=r*4+c; h+=pad(i,'#c9743a','',0,PADS.base+32+i); }
+  }else if(bk===3){
+    for(let r=3;r>=0;r--) for(let c=0;c<4;c++){ const i=r*4+c, sec=PAD_LAUNCH[i][1]==='sec'; h+=pad(i,sec?'#2f9f6a':'#b5559a',esc(padLaunchName(i)),49+i,PADS.base+48+i); }
+  }else{
+    const sets=drumSets(); let opts='<option value="off">Off</option>';
+    sets.forEach((d,k)=>d.lanes.forEach((l,j)=>{ opts+='<option value="'+k+'.'+j+'">'+esc((sets.length>1?(k?'Drums 2 ':'Drums 1 '):'')+l.label)+'</option>'; }));
+    for(let r=3;r>=0;r--) for(let c=0;c<4;c++){
+      const i=r*4+c, t=padTarget(i), cur=PADS.map[i]||padDefault(i);
+      h+=pad(i,t?PAD_COL[t.j%4]:'#888',t?esc(padName(t)):'Off',1+i,PADS.base+i,PADS.edit?'<select data-pi="'+i+'" aria-label="Pad '+(i+1)+' plays">'+opts.replace('value="'+cur+'"','value="'+cur+'" selected')+'</select>':'');
+    }
+  }
+  g.innerHTML=h; padTick();
+}
+// Bank C shows which steps are on and where the playhead is; bank D shows the current and queued section.
+function padKnobsPaint(){
+  document.querySelectorAll('#pmknobs .pm-kn').forEach(el=>{
+    const n=+el.dataset.n, info=padKnobInfo(n);
+    el.style.setProperty('--r',(-135+Math.max(0,Math.min(1,info[1]))*270)+'deg');
+    const sp=el.querySelector('span'); if(sp.textContent!==info[0]) sp.textContent=info[0];
+  });
+}
+function padTick(){
+  if(!padOn()) return; padKnobsPaint();
+  if(PADS.bank<2) return;
+  const els=document.querySelectorAll('#pmgrid .pm-pad');
+  if(PADS.bank===2){
+    const r=padStepRow(); if(!r) return; const ec=lvEditCells(r), stp=playing&&ROLL.step>=0?ROLL.step%r.n:-1;
+    els.forEach(el=>{ const i=+el.dataset.i, s=PADS.cbar*16+i, ex=s<r.n; el.classList.toggle('dis',!ex); el.classList.toggle('on',!!(ex&&ec[s])); el.classList.toggle('now',stp===s); el.firstChild.textContent=ex?String(s+1):'\u2013'; });
+    const t=$('pmtrk'); if(t){ const x='Step input: '+r.name+', bar '+(PADS.cbar+1)+' of '+padStepBars(r)+'. Tap a pad to switch that step on or off.'; if(t.textContent!==x) t.textContent=x; }
+  }else{
+    els.forEach(el=>{ const x=PAD_LAUNCH[+el.dataset.i]; el.classList.toggle('on',x[1]==='sec'&&state.section===x[0]); el.classList.toggle('q',x[1]==='sec'&&LV.next===x[0]); });
+  }
+}
+function padKitOpts(){
+  const s=$('pmkit'); if(!s) return;
+  s.innerHTML='<option value="auto">Auto: '+KITS[autoKit()].name+'</option>'+Object.keys(KITS).map(k=>'<option value="'+k+'">'+esc(KITS[k].name)+'</option>').join('');
+  s.value=PV.kit;
+}
+function padPaint(){
+  if(!PADS.built) return;
+  const fm=canSend();
+  const dest=fm?'Sending to the FM-1 (Drums on channel '+cfg.dch+(drumSets().length>1?', Drums 2 on '+cfg.dch2:'')+').':'Playing the '+KITS[kitId()].name+' kit in the browser. To play the FM-1, connect MIDI and set "Sound comes from" to the FM-1.';
+  const inp=PADS.port?'Pad: '+(PADS.port.name||PADS.port.id)+'.':(midi.access?'No pad found. Plug it into this computer by USB, or use the on-screen pads or keys.':'Tap Connect MIDI under Pad settings to use a pad. The on-screen pads and the keys Z X C V, A S D F, Q W E R, 1 2 3 4 work without it.');
+  $('pmst').textContent=dest+' '+inp;
+  $('pmplay').classList.toggle('on',playing); $('pmplay').setAttribute('aria-pressed',String(playing));
+  $('pmrec').classList.toggle('on',PADS.rec); $('pmrec').setAttribute('aria-pressed',String(PADS.rec));
+  document.querySelectorAll('#pmchips [data-bk]').forEach(b=>{ const on=+b.dataset.bk===PADS.bank; b.classList.toggle('on',on); b.setAttribute('aria-pressed',String(on)); });
+  $('pmlearn').setAttribute('aria-pressed',String(PADS.learn)); $('pmlearn').textContent=PADS.learn?'Hit pad 1 now':'Learn pads';
+  $('pmedit').setAttribute('aria-pressed',String(PADS.edit)); $('pmedit').textContent=PADS.edit?'Done editing pads':'Edit pads';
+  $('pmclearn').setAttribute('aria-pressed',String(!!PADS.cl)); $('pmclearn').textContent=PADS.cl?'Press or turn it now':'Learn';
+  $('pmalso').checked=PADS.also; $('pmsoft').checked=PADS.soft; $('pmsteps').hidden=PADS.bank!==2; $('pmtrk').hidden=PADS.bank!==2;
+  if(document.activeElement!==$('pmkit')) padKitOpts();
+  $('pmhint').textContent=PADS.bank===2?'Step input: < > change track and the last knob changes bar. Hits are edits you can Undo.':PADS.bank===3?'Launcher: the bottom two rows queue a section for the end of the loop (tap again to cancel), the top two rows fire dice rolls.':PADS.bank===1?'Effects: hold a pad for the effect. Sloop, or the browser preview.':(PADS.rec?(playing?'Recording: each hit is written into the loop at the nearest step. Locked drums are left alone.':'Press Play, then hit the pads. They are written into the loop at the nearest step.'):'Hit the pads to play the drums. The red dot records your hits into the loop.');
+  if(!$('pmlast').textContent&&PADS.last) $('pmlast').textContent=PADS.last;
+}
+function padBuild(){
+  if(PADS.built) return; PADS.built=true;
+  const kn=Array.from({length:8},(_,n)=>'<div class="pm-kn" data-n="'+n+'" style="--gr:'+(4-(n>>1))+';--gc:'+((n&1)+1)+'" role="slider" aria-label="Knob '+(n+1)+'" aria-valuemin="0" aria-valuemax="127"><i></i><b>'+(n+1)+'</b><span>–</span></div>').join('');
+  const chips=PAD_BANKS.map((x,i)=>'<button class="lvb" data-bk="'+i+'" aria-pressed="false">'+x.replace(':',' ·')+'</button>').join('');
+  const ctl=['play','stop','rec','prev','next'].map(k=>'<option value="'+k+'">'+padCtlName(k)+'</option>').join('')+Array.from({length:8},(_,n)=>'<option value="k'+n+'">Knob '+(n+1)+'</option>').join('');
+  $('padm').innerHTML='<div class="pm-in">'+
+   '<div class="pm-top"><span><b>Eight Bells</b> <span class="pm-sub">Pad mode</span></span><button class="lvb pm-x" id="pmexit">Exit</button></div>'+
+   '<p class="pm-st" id="pmst" aria-live="polite"></p>'+
+   '<div class="pm-chips" id="pmchips">'+chips+'</div>'+
+   '<div class="pm-dev"><div class="pm-knobs" id="pmknobs">'+kn+'</div><div class="pm-grid" id="pmgrid"></div>'+
+   '<div class="pm-btns"><button class="lvb pm-b" id="pmprev" title="Previous (kit, or track in bank C)" aria-label="Previous">&lt;</button><button class="lvb pm-b" id="pmnext" title="Next (kit, or track in bank C)" aria-label="Next">&gt;</button>'+
+   '<button class="lvb pm-b pm-play" id="pmplay" title="Play" aria-label="Play" aria-pressed="false">&#9654;&#65038;</button><button class="lvb pm-b" id="pmstop" title="Stop" aria-label="Stop">&#9632;</button><button class="lvb pm-b pm-rec" id="pmrec" title="Record your pad hits into the loop" aria-label="Record pad hits" aria-pressed="false">&#9679;</button></div></div>'+
+   '<p class="pm-hint" id="pmtrk" hidden></p><div class="pm-row" id="pmsteps" hidden><button class="lvb" data-pst="tp">◀ Track</button><button class="lvb" data-pst="tn">Track ▶</button><button class="lvb" data-pst="bp">◀ Bar</button><button class="lvb" data-pst="bn">Bar ▶</button></div>'+
+   '<p class="pm-last" id="pmlast" aria-live="polite"></p><p class="pm-hint" id="pmhint"></p>'+
+   '<details class="pm-set"><summary>Pad settings</summary>'+
+    '<div class="pm-row"><select id="pmin" aria-label="Pad controller input"><option value="">No pad found</option></select><button class="lvb pm-sm" id="pmconn">Connect MIDI</button></div>'+
+    '<div class="pm-row"><button class="lvb pm-sm" id="pmlearn" aria-pressed="false">Learn pads</button><button class="lvb pm-sm" id="pmedit" aria-pressed="false">Edit pads</button></div>'+
+    '<div class="pm-row"><label class="pm-k">Teach a button or knob <select id="pmcsel">'+ctl+'</select></label><button class="lvb pm-sm" id="pmclearn" aria-pressed="false">Learn</button></div>'+
+    '<div class="pm-row"><label class="pm-k">Kit <select id="pmkit"></select></label><label class="pm-k"><input type="checkbox" id="pmalso"> Also play the browser sound</label></div>'+
+    '<div class="pm-row"><label class="pm-k"><input type="checkbox" id="pmsoft"> My pad has fewer banks: use the on-screen bank for its pads</label></div>'+
+    '<div class="pm-row"><button class="lvb pm-sm" id="pmreset">Back to M-VAVE SMC-PAD settings</button></div>'+
+    '<p class="pm-hint">Learn pads: tap it, then hit the bottom-left pad, so that pad is pad 1. Any 16-pad controller that sends notes works this way. Teach a button or knob: choose it, tap Learn, then press or turn it on your controller.</p>'+
+   '</details></div>';
+  $('pmexit').addEventListener('click',()=>padSet(false));
+  $('pmconn').addEventListener('click',async()=>{ await connectMidi(); if(midi.access) padRefreshIns([...midi.access.inputs.values()]); padPaint(); });
+  $('pmin').addEventListener('change',e=>padListen(e.target.value));
+  $('pmlearn').addEventListener('click',()=>{ PADS.learn=!PADS.learn; PADS.cl=null; $('pmlast').textContent=PADS.learn?'Hit the bottom-left pad on your controller now.':''; padPaint(); });
+  $('pmclearn').addEventListener('click',()=>{ PADS.cl=PADS.cl?null:$('pmcsel').value; PADS.learn=false; $('pmlast').textContent=PADS.cl?'Press or turn '+padCtlName(PADS.cl)+' on your controller now.':''; padPaint(); });
+  $('pmcsel').addEventListener('change',()=>{ PADS.cl=null; padPaint(); });
+  $('pmreset').addEventListener('click',()=>{ PADS.base=36; PADS.map=Array(16).fill(''); PADS.soft=false; PADS.cc=Object.assign({},PAD_CC0); PADS.cc.k=PAD_CC0.k.slice(); padSave(); padGrid(); padPaint(); padSay('Back to the M-VAVE SMC-PAD settings.'); });
+  $('pmplay').addEventListener('click',()=>{ if(!playing) $('play').click(); padPaint(); });
+  $('pmstop').addEventListener('click',()=>{ if(playing) $('play').click(); padPaint(); });
+  $('pmprev').addEventListener('click',()=>{ if(PADS.bank===2) padStepMove(-1); else padKitStep(-1); });
+  $('pmnext').addEventListener('click',()=>{ if(PADS.bank===2) padStepMove(1); else padKitStep(1); });
+  $('pmrec').addEventListener('click',()=>{
+    PADS.rec=!PADS.rec;
+    if(PADS.rec){ pushHist('padrec'); PADS.dirty=false; } else if(PADS.dirty){ PADS.dirty=false; renderTracks(); }
+    padPaint();
+  });
+  $('pmedit').addEventListener('click',()=>{ PADS.edit=!PADS.edit; if(PADS.edit) PADS.bank=0; padGrid(); padPaint(); });
+  $('pmchips').addEventListener('click',e=>{ const b=e.target.closest('[data-bk]'); if(!b) return; PADS.bank=+b.dataset.bk; if(PADS.bank) PADS.edit=false; padGrid(); padPaint(); });
+  $('pmsoft').addEventListener('change',e=>{ PADS.soft=e.target.checked; padSave(); });
+  $('pmsteps').addEventListener('click',e=>{ const b=e.target.closest('[data-pst]'); if(!b) return; const a=b.dataset.pst; if(a==='tp') padStepMove(-1); else if(a==='tn') padStepMove(1); else if(a==='bp') padBarMove(-1); else padBarMove(1); });
+  $('pmkit').addEventListener('change',e=>{ PV.kit=e.target.value; savePV(); if(typeof renderPreview==='function') renderPreview(); padPaint(); });
+  $('pmalso').addEventListener('change',e=>{ PADS.also=e.target.checked; padSave(); });
+  const g=$('pmgrid');
+  g.addEventListener('pointerdown',e=>{
+    if(e.target.closest('select')) return;
+    const el=e.target.closest('.pm-pad'); if(!el) return;
+    e.preventDefault();
+    if(PADS.bank===1){ PADS.held.set(e.pointerId,+el.dataset.i); padFx(+el.dataset.i,true); }
+    else padBank(PADS.bank,+el.dataset.i,100,'screen');
+  });
+  ['pointerup','pointercancel'].forEach(ev=>g.addEventListener(ev,e=>{ if(PADS.held.has(e.pointerId)){ padFx(PADS.held.get(e.pointerId),false); PADS.held.delete(e.pointerId); } }));
+  g.addEventListener('change',e=>{ const s=e.target.closest('select[data-pi]'); if(!s) return; PADS.map[+s.dataset.pi]=s.value===padDefault(+s.dataset.pi)?'':s.value; padSave(); padGrid(); });
+  // The on-screen knobs follow the real ones, and can be dragged up and down too.
+  const kb=$('pmknobs'); let drag=null;
+  kb.addEventListener('pointerdown',e=>{ const el=e.target.closest('.pm-kn'); if(!el) return; e.preventDefault(); const n=+el.dataset.n; drag={n,y:e.clientY,f:padKnobInfo(n)[1],id:e.pointerId}; try{ el.setPointerCapture(e.pointerId); }catch(_){} });
+  kb.addEventListener('pointermove',e=>{ if(!drag||e.pointerId!==drag.id) return; const f=Math.max(0,Math.min(1,drag.f+(drag.y-e.clientY)/160)); padKnob(drag.n,Math.round(f*127)); padKnobsPaint(); });
+  ['pointerup','pointercancel'].forEach(ev=>kb.addEventListener(ev,()=>{ drag=null; }));
+}
+const PAD_KEYS='zxcvasdfqwer1234';
+function padSet(on){
+  const P=$('padm'); if(!P) return;
+  if(on&&lvOn()) lvSet(false);
+  if(on===padOn()) return;
+  P.hidden=!on; document.documentElement.classList.toggle('lv-lock',on);
+  $('padbtn').setAttribute('aria-pressed',String(on));
+  if(on){
+    padBuild(); window.scrollTo(0,0);
+    if(!canSend()){ try{ ensureAudio(); ac.resume(); }catch(_){} }
+    padGrid(); padKitOpts();
+    if(midi.access){ padRefreshIns([...midi.access.inputs.values()]); padAuto(); }
+    padPaint(); PADS.timer=setInterval(padPaint,300); PADS.fast=setInterval(padTick,90);
+  }else{
+    clearInterval(PADS.timer); clearInterval(PADS.fast); PADS.learn=false; PADS.rec=false; PADS.edit=false; PADS.bank=0; PADS.held.forEach(i=>padFx(i,false)); PADS.held.clear();
+    if(PADS.dirty){ PADS.dirty=false; renderTracks(); }
+    padListen('');
+  }
+}
+$('padbtn').addEventListener('click',()=>padSet(!padOn()));
+document.addEventListener('keydown',e=>{
+  if(!padOn()) return;
+  if(e.key==='Escape'){ padSet(false); return; }
+  const tg=e.target&&e.target.tagName; if(e.repeat||e.ctrlKey||e.metaKey||e.altKey||tg==='INPUT'||tg==='SELECT'||tg==='TEXTAREA') return;
+  const i=PAD_KEYS.indexOf((e.key||'').toLowerCase());
+  if(i>=0&&(e.key||'').length===1){ e.preventDefault(); if(PADS.bank===1) padFx(i,true); else padBank(PADS.bank,i,100,'key '+e.key.toUpperCase()); }
+});
+document.addEventListener('keyup',e=>{ if(!padOn()||PADS.bank!==1) return; const i=PAD_KEYS.indexOf((e.key||'').toLowerCase()); if(i>=0&&(e.key||'').length===1) padFx(i,false); });
+// The pad also works in Live view: it listens while Live view is open, so hits play the drums, bank B holds effects, and Play/Stop/Record and the knobs work.
+function padLive(on){ if(padOn()) return; if(on){ if(midi.access) padAuto(); } else padListen(''); }
+
 
 /* ---------- Live view dice: each one says what it did, up in the top right corner ---------- */
 function lvFlash(txt){ LV.flash=txt; LV.flashT=Date.now()+2800; lvPaint(); clearTimeout(LV.ft); LV.ft=setTimeout(lvPaint,2900); }
