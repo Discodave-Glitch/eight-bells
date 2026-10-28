@@ -167,7 +167,7 @@ body.nolbl .bt{display:none}
 <div id="app" hidden>
   <div class="top">
     <h1>Eight Bells DJ<small>prototype, separate from the main app</small></h1>
-    <div class="row"><button id="gfx" title="Change the deck graphic">Deck: Bell</button><button id="auto" data-ctl="auto" data-kind="btn" aria-pressed="false">Auto DJ: off</button><select id="autolen" aria-label="Auto DJ length of each track"><option value="16">Each track 16 bars</option><option value="32">Each track 32 bars</option><option value="64" selected>Each track 64 bars</option></select><select id="autoset" aria-label="Auto DJ set length: endless or stop after a number of tracks"><option value="0" selected>Endless</option><option value="4">Stop after 4</option><option value="6">Stop after 6</option><option value="10">Stop after 10</option></select><button id="bothplay">Play both</button><button id="bothstop">Stop both</button><details class="ctlp" id="ctlp"><summary>Setup</summary><div class="ctlbody">
+    <div class="row"><button id="gfx" title="Change the deck graphic">Deck: Bell</button><button id="auto" data-ctl="auto" data-kind="btn" aria-pressed="false">Auto DJ: off</button><select id="autolen" aria-label="Auto DJ length of each track"><option value="16">Each track 16 bars</option><option value="32">Each track 32 bars</option><option value="64" selected>Each track 64 bars</option></select><select id="autoset" aria-label="Auto DJ set length: endless or stop after a number of tracks"><option value="0" selected>Endless set</option><option value="4">4-track set</option><option value="6">6-track set</option><option value="10">10-track set</option></select><button id="bothplay">Play both</button><button id="bothstop">Stop both</button><details class="ctlp" id="ctlp"><summary>Setup</summary><div class="ctlbody">
     <div class="row"><span id="midimsg" class="chip"></span></div>
     <div class="row"><button id="wiz">Guided setup</button><button id="learn">Learn one control</button><button id="teachA">Teach knob bank A</button><button id="teachB">Teach knob bank B</button><button id="clearmap">Clear mappings</button></div>
     <label class="row chip" style="cursor:pointer"><input type="checkbox" id="padlbl" checked> Show pad labels (A3, B5 and so on) next to the knobs and faders</label>
@@ -443,15 +443,15 @@ function autoTick(){
   if(AU.phase==='play'){
     if(!playing(c)){ autoOn(false); autoSay('Auto DJ stopped because the deck was stopped.'); return; }
     const left=AU.len-AU.fade-barsOf(c);
-    autoSay('Auto DJ: Deck '+c.id+' ('+ev(c,'genreObj().name')+') is playing. Next mix in '+Math.max(0,left)+' bars.');
+    autoSay('Auto DJ: Deck '+c.id+' ('+ev(c,'genreObj().name')+') is playing. '+(left>1?'Next mix in about '+left+' bars.':'Next mix starts at the end of this phrase.'));
     { const sec=ev(c,'state.section'); if(sec==='chorus'||sec==='drop') AU.chorus=true; }
     if(left>0){ autoStepSecs(c); autoFlair(c); swellTick(c); } else if(AU.swell){ const w=D(AU.swell.id); if(w) w.eq[AU.swell.band]=0; AU.swell=null; }
     if(left<=6&&!AU.chorus&&!AU.chQ){ AU.chQ=true; AU.lastBar=barsOf(c); queueSec(c,rndSec(['chorus','drop'],'')); } // let the main chorus play once before we leave
     const a0=timing(c), barMs0=16*60/a0.bpm/4*1000, rem0=(((barTime(a0)-a0.now)%barMs0)+barMs0)%barMs0;
     const onPhrase=(barsOf(c)%8===7&&rem0>350); // start the handover so the new tune lands on a fresh 8-bar phrase
-    if(left<=0&&(onPhrase||left<-8)&&AU.max&&AU.tr>=AU.max){
+    if(left<=1&&(onPhrase||left<-8)&&AU.max&&AU.tr>=AU.max){
       AU.phase='end'; AU.t0=Date.now(); AU.fourth=false; queueSec(c,'outro');
-    } else if(left<=0&&(onPhrase||left<-8)){
+    } else if(left<=1&&(onPhrase||left<-8)){
       AU.phase='wait';
       const bpm=getBpm(c); freshDeck(n,pickGenre(bpm,[c.genre,n.genre])); setBpm(n,bpm); n.base=bpm; matchKey(c,n);
       queueSec(n,rndSec(['intro','bld','intro'],''));
@@ -463,7 +463,7 @@ function autoTick(){
   else if(AU.phase==='mix'){
     const barMs=240000/getBpm(c), p=Math.min(1,(Date.now()-AU.t0)/(AU.fade*barMs));
     autoMix(c,n,p);
-    autoSay('Auto DJ: '+AU.style+' from Deck '+c.id+' into Deck '+n.id+' ('+ev(n,'genreObj().name')+') '+Math.round(p*100)+'%');
+    autoSay('Auto DJ: mixing Deck '+c.id+' into Deck '+n.id+' ('+ev(n,'genreObj().name')+') with a '+AU.style+'. '+Math.round(p*100)+'% of the way through.');
     if(p>=0.5&&!AU.half){ AU.half=true; fxHit(c,['Reverse','Echo','Tape stop'][Math.floor(Math.random()*3)],240000/getBpm(c)/2); queueSec(n,rndSec(AU.e<.6?['half','bld','bridge']:['drop','chorus','half','bld'],'')); }
     if(p>=0.8&&!AU.third){ AU.third=true; const pk=rndSec(AU.e<.6?['bridge','half','chorus']:(AU.e>=.9?['drop','drop','chorus']:['drop','chorus','bridge']),''); queueSec(n,pk); if(pk==='drop'){ const bt=60000/getBpm(n); fxHit(n,'Loop 1/4',bt*2); setTimeout(()=>{ if(AU.on) fxHit(n,'Loop 1/8',bt*2); },bt*2); } } // loops tighten into the drop // half-beat delay-style roll into the drop
     if(p>=0.85&&!AU.fourth){ AU.fourth=true; fxHit(c,'Echo',60000/getBpm(c)*4); } // echo out the old track
@@ -473,7 +473,7 @@ function autoTick(){
     const barMs=240000/getBpm(c), p=Math.min(1,(Date.now()-AU.t0)/(AU.fade*barMs));
     c.filt=-Math.round(88*sm(seg(p,0.1,0.95))); c.eq={l:Math.round(-70*seg(p,0.4,1)),m:0,h:0}; c.vol=Math.round(85*(1-sm(seg(p,0.55,1))));
     if(p>=0.6&&!AU.fourth){ AU.fourth=true; fxHit(c,'Echo',barMs/2); }
-    applyMix(); autoSay('Auto DJ: finishing the set on Deck '+c.id+' '+Math.round(p*100)+'%');
+    applyMix(); autoSay('Auto DJ: finishing the set on Deck '+c.id+'. '+Math.round(p*100)+'% of the way through.');
     if(p>=1){ setPlay(c,false); c.eq={l:0,m:0,h:0}; c.filt=0; c.vol=85; applyMix(); const k=AU.tr; autoOn(false); autoSay('Auto DJ: set finished after '+k+' tracks.'); }
   }
 }
