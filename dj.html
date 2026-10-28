@@ -8,7 +8,7 @@
 :root{--bg:#0b0e15;--panel:#141a25;--panel2:#1d2535;--line:#2c374c;--ink:#eef2fa;--muted:#94a1ba;--a:#4c8dff;--b:#f59e3d;--ok:#46c48a;--bad:#ef6a6a}
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.35 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-text-size-adjust:100%}
-body{padding:max(10px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(80px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left))}
+body{padding:max(10px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(80px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
 h1{font-size:19px;margin:0}h1 small{font-size:12px;color:var(--muted);font-weight:500;margin-left:6px}
 button,select{font:inherit;color:var(--ink);background:var(--panel2);border:1px solid var(--line);border-radius:10px;min-height:40px;padding:0 12px;cursor:pointer;touch-action:manipulation}
 button:active{filter:brightness(1.3)}
@@ -108,8 +108,8 @@ input[type=range]{width:100%;accent-color:var(--ink);min-height:28px;margin:0}
 /* landscape phones, tablets and short laptop windows: everything fits one screen */
 @media (orientation:landscape) and (min-width:560px){
   html,body{height:100%}
-  body{padding:6px 8px max(6px,env(safe-area-inset-bottom)) 8px}
-  #app{display:flex;flex-direction:column;height:calc(100dvh - 12px)}
+  body{padding:max(8px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
+  #app{display:flex;flex-direction:column;height:calc(100dvh - max(8px,env(safe-area-inset-top)) - max(10px,env(safe-area-inset-bottom)))}
   .top{flex:none;flex-wrap:nowrap;margin-bottom:4px;gap:6px}
   .top h1{font-size:clamp(15px,2.2vh,24px);white-space:nowrap}.top h1 small{display:none}
   .top .row{flex-wrap:nowrap;gap:5px}.top button,.top select{min-height:clamp(30px,4vh,46px);font-size:clamp(12px,1.6vh,17px);padding:0 10px}
