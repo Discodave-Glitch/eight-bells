@@ -4159,6 +4159,7 @@ function monMsg(ev){
   mon.n++;
   if(s===0xF8){ mon.clock++; }
   else if(s===0xFE){ return; }
+  else if(hi===0xA0||hi===0xD0||hi===0xE0){ mon.other++; mon.press=(mon.press||0)+1; return; }
   else if(hi===0x90&&d[2]>0){ mon.notesOn++; mon.chans.add((s&15)+1); mon.lines.push('Note on  ch'+((s&15)+1)+'  '+noteName(d[1],state.middleC)+' ('+d[1]+')  velocity '+d[2]); }
   else if(hi===0x80||hi===0x90){ mon.notesOff++; mon.lines.push('Note off ch'+((s&15)+1)+'  '+noteName(d[1],state.middleC)+' ('+d[1]+')'); }
   else if(hi===0xB0){ mon.cc++; mon.lines.push('Controller ch'+((s&15)+1)+'  CC '+d[1]+' = '+d[2]); }
@@ -6240,7 +6241,7 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&lvOn()) lvSet(fals
 /* ---------- Pad mode: play the FM-1 drums (or the browser kits) from a pad controller, the screen or the keyboard.
    The pad plugs into this computer, and this page passes each hit on to the FM-1 as that firmware's own drum note.
    It never changes the notes the pattern sends. ---------- */
-const PADS={base:36,map:[],also:false,rec:false,edit:false,learn:false,cl:null,cc:null,bank:0,soft:false,ckey:'',cbar:0,held:new Map(),port:null,pid:'',built:false,dirty:false,last:'',timer:null};
+const PADS={base:36,map:[],also:false,rec:false,edit:false,learn:false,kq:{},kt:0,st:0,at:0,cl:null,cc:null,bank:0,soft:false,ckey:'',cbar:0,held:new Map(),port:null,pid:'',built:false,dirty:false,last:'',timer:null};
 try{ const j=JSON.parse(localStorage.getItem('eb_pads')||'null'); if(j&&typeof j==='object'){
   if(Number.isInteger(j.base)&&j.base>=0&&j.base<=111) PADS.base=j.base;
   if(Array.isArray(j.map)) PADS.map=j.map.slice(0,16).map(x=>(typeof x==='string'&&/^(off|[01]\.[0-3])$/.test(x))?x:'');
@@ -6283,12 +6284,14 @@ function padRecord(t,vel){
   const pos=(ROLL.step+(frac>=0.5?1:0))%d.n;
   l.cells[pos]=1; l.vel[pos]=vel; PADS.dirty=true;
 }
+// With no FM-1 plugged in the app may pick the pad itself as its MIDI output. Hits are never sent back to the pad; the browser kit plays.
+function padOutIsPad(){ const n=(midi.out&&midi.out.name)||''; return !!(n&&PADS.port&&(PADS.port.name||'')===n&&!/fm-?1|sloop|felucca/i.test(n)); }
 function padHit(i,vel,via){
   vel=Math.max(1,Math.min(127,vel|0)); padFlash(i,vel);
   const t=padTarget(i);
   if(!t){ PADS.last='Pad '+(i+1)+' is switched off.'; padPaint(); return; }
   const l=drumSets()[t.k].lanes[t.j]; let sent=false;
-  if(canSend()){
+  if(canSend()&&!padOutIsPad()){
     const dc=(t.k?cfg.dch2:cfg.dch)-1, m=cfg.drum[t.j];
     if(dc>=0&&m!=null){ mSend([0x90|dc,m,vel]); mSend([0x80|dc,m,0],performance.now()+120); sent=true; }
   }
@@ -6348,12 +6351,19 @@ function padShowBank(n){ if(PADS.bank===n) return; PADS.bank=n; padGrid(); padPa
 const PAD_KN=['Volume','Swing','Tempo','Kit','–','–','–','–'];
 function padKitList(){ return ['auto'].concat(Object.keys(KITS)); }
 // What a knob does, and where it sits (0 to 1), so the on-screen knob can follow the real one.
+const PAD_PGROUPS={bass:['Bass'],lead:['Leads'],stab:['Stabs and chords','Keys and organs','Pads']};
+function padPatchList(role){ return ['auto'].concat(PATCH_LIST.filter(p=>PAD_PGROUPS[role].includes(p[2])).map(p=>p[0])); }
+function padPatchName(id){ const p=PATCH_LIST.find(x=>x[0]===id); return p?p[1]:id; }
+function padSecIds(){ return SECTION_IDS.filter(x=>x!=='allt'); }
+const PAD_KROLE={5:'bass',6:'lead',7:'stab'};
 function padKnobInfo(n){
   if(n===0) return ['Volume',(+$('pvol').value-10)/140];
   if(n===1) return ['Swing',(+$('swing').value-50)/25];
   if(n===2) return ['Tempo',(state.bpm-40)/200];
   if(n===3){ const ks=padKitList(), i=Math.max(0,ks.indexOf(PV.kit)); return ['Kit',i/(ks.length-1)]; }
+  if(n===4){ const ids=padSecIds(), i=ids.indexOf(LV.next||state.section); return ['Section',i<0?0:i/(ids.length-1)]; }
   if(n===7&&PADS.bank===2){ const r=padStepRow(), nb=r?padStepBars(r):1; return ['Bar',nb>1?PADS.cbar/(nb-1):0]; }
+  const role=PAD_KROLE[n]; if(role){ const l=padPatchList(role), i=Math.max(0,l.indexOf(PV.patch[role]||'auto')); return [role[0].toUpperCase()+role.slice(1)+' sound',i/(l.length-1)]; }
   return ['–',0];
 }
 function padKnob(n,val){
@@ -6362,7 +6372,19 @@ function padKnob(n,val){
   else if(n===1){ const v=50+Math.round(f*25); $('swing').value=v; $('swing').dispatchEvent(new Event('input',{bubbles:true})); m='Swing '+v+'%'; }
   else if(n===2){ const v=40+Math.round(f*200); $('bpm').value=v; $('bpm').dispatchEvent(new Event('input',{bubbles:true})); m='Tempo '+v+' BPM'; }
   else if(n===3){ const ks=padKitList(), k=ks[Math.min(ks.length-1,Math.floor(f*ks.length))]; if(PV.kit!==k){ PV.kit=k; savePV(); if(typeof renderPreview==='function') renderPreview(); } m='Kit: '+(k==='auto'?'Auto':KITS[k].name); }
+  else if(n===4){
+    const ids=padSecIds(), id=ids[Math.min(ids.length-1,Math.floor(f*ids.length))];
+    if(SONG.on){ m='a song is playing, so the song chooses the sections'; }
+    else if(playing){ LV.next=(id===state.section)?null:id; m=LV.next?SONG_NAME[id]+' (queued for the end of the loop)':'no change queued'; }
+    else{ clearTimeout(PADS.st); PADS.st=setTimeout(()=>{ try{ if(!playing&&!SONG.on&&state.section!==id){ goSection(id); LV.next=null; padSay('Section: '+SONG_NAME[id]+'.'); } }catch(_){} },350); m='Section '+SONG_NAME[id]; }
+  }
   else if(n===7&&PADS.bank===2){ const r=padStepRow(); if(r){ const nb=padStepBars(r); PADS.cbar=Math.min(nb-1,Math.floor(f*nb*0.999)); padGrid(); m='Bar '+(PADS.cbar+1)+' of '+nb; } }
+  else if(PAD_KROLE[n]){
+    const role=PAD_KROLE[n], l=padPatchList(role), id=l[Math.min(l.length-1,Math.floor(f*l.length))];
+    if((PV.patch[role]||'auto')!==id){ PV.patch[role]=id; savePV(); if(typeof renderPreview==='function') renderPreview(); clearTimeout(PADS.at);
+      if(!playing) PADS.at=setTimeout(()=>{ try{ ensureAudio(); ac.resume(); vSynth(ac.currentTime+0.02,role==='bass'?40:role==='lead'?64:55,role,0.8,0.5); }catch(_){} },250); }
+    m=role[0].toUpperCase()+role.slice(1)+' sound: '+(id==='auto'?'Auto':padPatchName(id));
+  }
   else m='not assigned';
   padSay('Knob '+(n+1)+' → '+m+'.');
 }
@@ -6371,6 +6393,8 @@ function padKitStep(d){
   PV.kit=ks[i]; savePV(); if(typeof renderPreview==='function') renderPreview(); padSay('Kit: '+(ks[i]==='auto'?'Auto':KITS[ks[i]].name)+'.');
 }
 // The SMC-PAD's buttons and knobs (community-documented map, channel 1): CC 25 and 26 are < and >, 27 Play, 28 Stop, 29 Record, 30 to 37 the eight knobs.
+// A knob sends dozens of values a second. Only the latest value is applied, about 12 times a second, so the page is never flooded.
+function padKnobFlush(){ PADS.kt=0; const q=PADS.kq; PADS.kq={}; Object.keys(q).forEach(n=>{ try{ padKnob(+n,q[n]); }catch(_){} }); if(padOn()){ padKnobsPaint(); } }
 function padCtl(cc){ const c=PADS.cc; for(const k of ['prev','next','play','stop','rec']) if(c[k]===cc) return k; const i=c.k.indexOf(cc); return i>=0?'k'+i:null; }
 const PAD_CTL_NAME={prev:'< (previous)',next:'> (next)',play:'Play',stop:'Stop',rec:'Record'};
 function padCtlName(k){ return PAD_CTL_NAME[k]||('Knob '+(+k.slice(1)+1)); }
@@ -6385,7 +6409,7 @@ function padCC(cc,val){
   else if(k==='stop'){ if(val>0&&playing) $('play').click(); }
   else if(k==='rec'){ if(val>0){ if(PADS.built&&padOn()) $('pmrec').click(); else $('recbtn').click(); } }
   else if(k==='prev'||k==='next'){ if(val>0){ if(PADS.bank===2) padStepMove(k==='next'?1:-1); else padKitStep(k==='next'?1:-1); } }
-  else padKnob(+k.slice(1),val);
+  else{ PADS.kq[+k.slice(1)]=val; if(!PADS.kt) PADS.kt=setTimeout(padKnobFlush,80); return; }
   padTick(); if(padOn()) padPaint();
 }
 function padMsg(e){
@@ -6401,11 +6425,12 @@ function padMsg(e){
   padBank(bk,idx&15,d[2],'note '+note);
 }
 // An input that is the FM-1 itself (or the same device as the output) would send the FM-1's own notes straight back to it.
-function padBad(p){ const n=p.name||''; return /fm-?1|sloop|felucca/i.test(n)||!!(n&&midi.out&&(midi.out.name||'')===n); }
+function padBad(p){ return /fm-?1|sloop|felucca/i.test(p.name||''); }
 function padListen(id){
+  const p=id&&midi.access&&midi.access.inputs&&midi.access.inputs.get(id);
+  if(p&&PADS.port===p&&!padBad(p)){ padPaint(); return; }
   if(PADS.port){ try{ PADS.port.removeEventListener('midimessage',padMsg); }catch(_){} PADS.port=null; }
   PADS.pid=id||'';
-  const p=id&&midi.access&&midi.access.inputs&&midi.access.inputs.get(id);
   if(p){
     if(padBad(p)){ PADS.pid=''; PADS.last='That input is the FM-1 itself. Choose the pad controller instead, or its notes would be sent straight back to the FM-1.'; }
     else{ PADS.port=p; p.addEventListener('midimessage',padMsg); }
@@ -6472,7 +6497,7 @@ function padKitOpts(){
 }
 function padPaint(){
   if(!PADS.built) return;
-  const fm=canSend();
+  const fm=canSend()&&!padOutIsPad();
   const dest=fm?'Sending to the FM-1 (Drums on channel '+cfg.dch+(drumSets().length>1?', Drums 2 on '+cfg.dch2:'')+').':'Playing the '+KITS[kitId()].name+' kit in the browser. To play the FM-1, connect MIDI and set "Sound comes from" to the FM-1.';
   const inp=PADS.port?'Pad: '+(PADS.port.name||PADS.port.id)+'.':(midi.access?'No pad found. Plug it into this computer by USB, or use the on-screen pads or keys.':'Tap Connect MIDI under Pad settings to use a pad. The on-screen pads and the keys Z X C V, A S D F, Q W E R, 1 2 3 4 work without it.');
   $('pmst').textContent=dest+' '+inp;
@@ -6484,7 +6509,7 @@ function padPaint(){
   $('pmclearn').setAttribute('aria-pressed',String(!!PADS.cl)); $('pmclearn').textContent=PADS.cl?'Press or turn it now':'Learn';
   $('pmalso').checked=PADS.also; $('pmsoft').checked=PADS.soft; $('pmsteps').hidden=PADS.bank!==2; $('pmtrk').hidden=PADS.bank!==2;
   if(document.activeElement!==$('pmkit')) padKitOpts();
-  $('pmhint').textContent=PADS.bank===2?'Step input: < > change track and the last knob changes bar. Hits are edits you can Undo.':PADS.bank===3?'Launcher: the bottom two rows queue a section for the end of the loop (tap again to cancel), the top two rows fire dice rolls.':PADS.bank===1?'Effects: hold a pad for the effect. Sloop, or the browser preview.':(PADS.rec?(playing?'Recording: each hit is written into the loop at the nearest step. Locked drums are left alone.':'Press Play, then hit the pads. They are written into the loop at the nearest step.'):'Hit the pads to play the drums. The red dot records your hits into the loop.');
+  $('pmhint').textContent=PADS.bank===2?'Step input: < > change track and knob 8 changes bar. Hits are edits you can Undo.':PADS.bank===3?'Launcher: the bottom two rows queue a section for the end of the loop (tap again to cancel), the top two rows fire dice rolls.':PADS.bank===1?'Effects: hold a pad for the effect. Sloop, or the browser preview.':(PADS.rec?(playing?'Recording: each hit is written into the loop at the nearest step. Locked drums are left alone.':'Press Play, then hit the pads. They are written into the loop at the nearest step.'):'Hit the pads to play the drums. The red dot records your hits into the loop.');
   if(!$('pmlast').textContent&&PADS.last) $('pmlast').textContent=PADS.last;
 }
 function padBuild(){
@@ -6545,7 +6570,7 @@ function padBuild(){
   // The on-screen knobs follow the real ones, and can be dragged up and down too.
   const kb=$('pmknobs'); let drag=null;
   kb.addEventListener('pointerdown',e=>{ const el=e.target.closest('.pm-kn'); if(!el) return; e.preventDefault(); const n=+el.dataset.n; drag={n,y:e.clientY,f:padKnobInfo(n)[1],id:e.pointerId}; try{ el.setPointerCapture(e.pointerId); }catch(_){} });
-  kb.addEventListener('pointermove',e=>{ if(!drag||e.pointerId!==drag.id) return; const f=Math.max(0,Math.min(1,drag.f+(drag.y-e.clientY)/160)); padKnob(drag.n,Math.round(f*127)); padKnobsPaint(); });
+  kb.addEventListener('pointermove',e=>{ if(!drag||e.pointerId!==drag.id) return; const f=Math.max(0,Math.min(1,drag.f+(drag.y-e.clientY)/160)); PADS.kq[drag.n]=Math.round(f*127); if(!PADS.kt) PADS.kt=setTimeout(padKnobFlush,80); });
   ['pointerup','pointercancel'].forEach(ev=>kb.addEventListener(ev,()=>{ drag=null; }));
 }
 const PAD_KEYS='zxcvasdfqwer1234';
