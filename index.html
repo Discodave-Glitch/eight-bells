@@ -710,7 +710,8 @@ html.st-lock,html.st-lock body{overflow:hidden}
 .pm-set{position:fixed;top:0;bottom:0;left:50%;transform:translateX(-50%);width:min(100%,560px);z-index:6;overflow-y:auto;background:var(--bg);padding:max(12px,env(safe-area-inset-top)) 16px 48px;box-sizing:border-box;border-left:1px solid var(--line);border-right:1px solid var(--line)}
 .pm-set[hidden]{display:none}
 .pm-sethead{display:flex;justify-content:space-between;align-items:center;font-size:16px;margin-bottom:4px}
-.pm-topb{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.pm-topb{display:flex;gap:5px;flex-wrap:nowrap;justify-content:flex-end}
+.pm-topb .pm-x{white-space:nowrap;flex:none}
 .pm-topb .lvb.on{background:var(--ink);color:var(--bg)}
 .pm-set .pm-row{margin-top:10px;row-gap:10px}
 .pm-set .pm-h{margin:20px 0 0;padding-top:14px;border-top:1px solid var(--line);font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
@@ -725,7 +726,7 @@ html.st-lock,html.st-lock body{overflow:hidden}
 @media(max-width:600px){
  .pm-top>span:first-child{display:none}
  .pm-top{justify-content:flex-end}
- .pm-topb .pm-x{padding:0 10px;font-size:13px}
+ .pm-top{width:100%}.pm-topb{width:100%}.pm-topb .pm-x{min-width:0;width:auto;flex:1 1 auto;padding:0 4px;font-size:12px}
  .pm-dev{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto auto;gap:8px;padding:8px}
  .pm-grid{order:1;gap:6px}
  .pm-knobs{order:2;grid-template-columns:repeat(8,1fr);grid-template-rows:none;gap:2px;align-content:start}
@@ -5231,7 +5232,7 @@ function meterPaint(){
   });
 }
 function sfx(f,key,pan,lvl){ const keep=master; try{ if(lvl===0) return; if(key&&ac&&masterReal) master=busFor(key,pan,lvl); f(); }catch(e){ SFX_ERR++; SFX_LAST=String(e&&e.message||e); if(SFX_ERR<=3){ try{ const m=$('recmsg'); if(m&&!REC.on) m.textContent='A sound could not play on this browser ('+(e&&e.message?e.message:'error')+'; instruments: '+['bass','stab','arp','lead'].map(patchId).join(', ')+'). Playback carries on without it.'; }catch(_){} } }finally{ master=keep; } }
-let SFX_ERR=0, SFX_LAST='', TICKN=0; const BUILD='b1545';
+let SFX_ERR=0, SFX_LAST='', TICKN=0; const BUILD='b1550';
 function schedule(step,time){
   const preview=cfg.target!=='midi'||!midi.out, send=canSend();
   if(preview){
@@ -6722,7 +6723,7 @@ function padTrackInfo(r,full){
     const L=VOX.lanes[Math.min(VOX.sel,VOX.lanes.length-1)], v=L&&VOICES[L.voice]; return 'Sample \u00b7 '+(v?v.name:(VOX.eng||'sound'));
   }catch(_){ return ''; }
 }
-function padSplitLab(){ const b=$('pmsplit'); if(b){ b.textContent=SPLITD?'Drums: split':'Split drums'; b.classList.toggle('on',SPLITD); } }
+function padSplitLab(){ const b=$('pmsplit'); if(b){ b.textContent='Split drums'; b.classList.toggle('on',SPLITD); b.setAttribute('aria-pressed',String(SPLITD)); } }
 function padStrip(){
   const el=$('pmtl'); if(!el) return; const rows=lvTracks(), sel=padStepRow(), selk=sel?lvKey(sel):''; let h='';
   rows.forEach(r=>{
@@ -6778,7 +6779,7 @@ function padBuild(){
   const chips='<button class="lvb" data-bk="0" aria-pressed="false">Bank A · Drums</button><button class="lvb" data-bk="1" aria-pressed="false">Bank B</button><button class="lvb" id="pmkbtn" aria-pressed="false" title="Which set of knobs the screen shows (it follows the real knobs when you turn them)">Knobs A</button>';
   const ctl=['play','stop','rec','prev','next'].map(k=>'<option value="'+k+'">'+padCtlName(k)+'</option>').join('')+Array.from({length:8},(_,n)=>'<option value="k'+n+'">Knob '+(n+1)+'</option>').join('')+Array.from({length:8},(_,n)=>'<option value="b'+n+'">Bank B knob '+(n+1)+'</option>').join('');
   $('padm').innerHTML='<div class="pm-in">'+
-   '<div class="pm-top"><span><b>Eight Bells</b> <span class="pm-sub">Pad mode</span></span><span class="pm-topb"><button class="lvb pm-x" id="pmsplit" title="Solo the kick, snare, hat and perc on their own">Split drums</button><button class="lvb pm-x" id="pmstage">Stage</button><button class="lvb pm-x" id="pmsetbtn" aria-expanded="false">Settings</button><button class="lvb pm-x" id="pmexit">Exit</button></span></div>'+
+   '<div class="pm-top"><span><b>Eight Bells</b> <span class="pm-sub">Pad mode</span></span><span class="pm-topb"><button class="lvb pm-x" id="pmsplit" title="Solo the kick, snare, hat and perc on their own">Split drums</button><button class="lvb pm-x" id="pmlive">Live</button><button class="lvb pm-x" id="pmstage">Stage</button><button class="lvb pm-x" id="pmsetbtn" aria-expanded="false">Settings</button><button class="lvb pm-x" id="pmexit">Exit</button></span></div>'+
    '<p class="pm-st" id="pmst" aria-live="polite"></p>'+
    '<div class="pm-chips" id="pmchips">'+chips+'</div>'+
    '<div class="pm-dev"><div class="pm-knobs" id="pmknobs">'+kn+'</div><div class="pm-grid" id="pmgrid"></div>'+
@@ -6805,6 +6806,7 @@ function padBuild(){
    '</div></div>';
   $('pmexit').addEventListener('click',()=>padSet(false));
   $('pmsplit').addEventListener('click',()=>{ const sb=document.querySelector('#solos [data-splitd]'); if(sb) sb.click(); padSplitLab(); padStrip(); });
+  $('pmlive').addEventListener('click',()=>{ padSet(false); lvSet(true); });
   $('pmstage').addEventListener('click',()=>{ padSet(false); const sb=$('stagebtn'); if(sb) sb.click(); });
   const pset=on=>{ $('pmset').hidden=!on; $('pmsetbtn').setAttribute('aria-expanded',String(on)); if(on){ padLightOuts(); $('pmset').scrollTop=0; } };
   $('pmsetbtn').addEventListener('click',()=>pset($('pmset').hidden));
