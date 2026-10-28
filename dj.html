@@ -48,6 +48,16 @@ input[type=range]{width:100%;accent-color:var(--ink);min-height:30px}
 .pad small{color:var(--muted);font-size:10px}.pad.A{--c:var(--a)}.pad.B{--c:var(--b)}.pad.hit{background:var(--c);color:#0b0e16}.pad.hit small{color:#0b0e16}
 .knobs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px;align-content:start}
 .hint{color:var(--muted);font-size:13px;margin:6px 0 0}
+/* reels */
+.reels{display:flex;align-items:center;justify-content:center;gap:0;position:relative;height:132px;border-radius:12px;background:var(--panel2);overflow:hidden}
+.reels svg{height:118px;width:auto;flex:none;display:block}
+.reels .tape{position:absolute;left:20%;right:20%;top:50%;height:2px;background:linear-gradient(90deg,transparent,#5b4a3a 12%,#5b4a3a 88%,transparent);opacity:.9}
+.reels .rl{transform-box:fill-box;transform-origin:50% 50%;animation:spin var(--spin,2s) linear infinite;animation-play-state:paused}
+.deck.playing .rl{animation-play-state:running}
+.reels .head{position:absolute;left:50%;bottom:10px;width:34px;height:14px;margin-left:-17px;border-radius:3px;background:#3a4357;border:1px solid var(--line)}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.reels .rl{animation-duration:12s}}
+.eq{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .chip{font-size:12px;color:var(--muted)}
 #msg{font-size:13px;color:var(--muted)}
 </style>
@@ -86,7 +96,7 @@ input[type=range]{width:100%;accent-color:var(--ink);min-height:30px}
         <button id="bkA" class="on">Bank A: effects</button><button id="bkB">Bank B: patterns</button>
       </div>
       <div class="pgrid" id="pgrid"></div>
-      <p class="hint">Bottom two rows are Deck A, top two rows are Deck B. Hold an effects pad to keep the effect on.</p>
+      <p class="hint">Double-tap an EQ or filter slider to put it back to the middle. Bottom two rows are Deck A, top two rows are Deck B. Hold an effects pad to keep the effect on.</p>
     </div>
     <div>
       <div class="row" style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;align-items:center">
@@ -135,11 +145,13 @@ function buildUI(){
   $('decks').innerHTML=decks.map(d=>
    '<section class="deck '+d.id+'" id="deck'+d.id+'" aria-label="Deck '+d.id+'">'+
    '<div class="dh"><b>Deck '+d.id+'</b><select data-g="'+d.id+'" aria-label="Genre, deck '+d.id+'">'+opts+'</select></div>'+
+   '<div class="reels" aria-hidden="true"><svg viewBox="0 0 120 120"><g class="rl" id="rlL'+d.id+'"><circle cx="60" cy="60" r="56" fill="#111621" stroke="var(--c)" stroke-width="4"/><circle cx="60" cy="60" r="46" fill="none" stroke="#2e384d" stroke-width="2"/><path d="M60 60 L60 16 A44 44 0 0 1 98 38 Z" fill="#232b3d"/><path d="M60 60 L98 82 A44 44 0 0 1 60 104 Z" fill="#232b3d"/><path d="M60 60 L22 82 A44 44 0 0 1 22 38 Z" fill="#232b3d"/><circle cx="60" cy="60" r="12" fill="var(--c)"/><circle cx="60" cy="60" r="4" fill="#0f1218"/></g></svg><div class="tape"></div><svg viewBox="0 0 120 120"><g class="rl" id="rlR'+d.id+'"><circle cx="60" cy="60" r="56" fill="#111621" stroke="var(--c)" stroke-width="4"/><circle cx="60" cy="60" r="46" fill="none" stroke="#2e384d" stroke-width="2"/><path d="M60 60 L60 16 A44 44 0 0 1 98 38 Z" fill="#232b3d"/><path d="M60 60 L98 82 A44 44 0 0 1 60 104 Z" fill="#232b3d"/><path d="M60 60 L22 82 A44 44 0 0 1 22 38 Z" fill="#232b3d"/><circle cx="60" cy="60" r="12" fill="var(--c)"/><circle cx="60" cy="60" r="4" fill="#0f1218"/></g></svg><div class="head"></div></div>'+
    '<div class="row2"><button data-a="gen" data-d="'+d.id+'">New pattern</button><button data-a="rand" data-d="'+d.id+'">Random genre</button><button data-a="play" data-d="'+d.id+'" id="pl'+d.id+'">Play</button></div>'+
    '<div class="stat" id="st'+d.id+'"></div><div class="bar"><i id="pos'+d.id+'"></i></div>'+
    '<div class="fld"><div class="lbl"><span>Tempo</span><span id="bp'+d.id+'"></span></div><input type="range" min="40" max="240" step="1" data-t="'+d.id+'" aria-label="Tempo, deck '+d.id+'"></div>'+
-   '<div class="row2"><button data-bend="-1" data-d="'+d.id+'">Bend slower</button><button data-bend="1" data-d="'+d.id+'">Bend faster</button></div>'+
+   '<div class="row2"><button data-a="sync" data-d="'+d.id+'" title="Match this deck to the other deck">Sync to '+(d.id==='A'?'B':'A')+'</button><button data-bend="-1" data-d="'+d.id+'">Bend slower</button><button data-bend="1" data-d="'+d.id+'">Bend faster</button></div>'+
    '<div class="fld"><div class="lbl"><span>Volume</span><span id="vl'+d.id+'"></span></div><input type="range" min="0" max="100" value="85" data-v="'+d.id+'" aria-label="Volume, deck '+d.id+'"></div>'+
+   '<div class="lbl"><span>Equaliser (left cuts, right boosts, far left kills the band)</span></div><div class="eq">'+[['l','Low'],['m','Mid'],['h','High']].map(b=>'<div class="fld"><div class="lbl"><span>'+b[1]+'</span><span id="eq'+b[0]+d.id+'"></span></div><input type="range" min="-100" max="100" value="0" data-eq="'+b[0]+'" data-d="'+d.id+'" aria-label="'+b[1]+', deck '+d.id+'"></div>').join('')+'</div>'+
    '<div class="fld"><div class="lbl"><span>Filter (left low-pass, right high-pass)</span><span id="fl'+d.id+'"></span></div><input type="range" min="-100" max="100" value="0" data-f="'+d.id+'" aria-label="Filter, deck '+d.id+'"></div>'+
    '<div class="lbl"><span>Pattern (queues for the end of the loop)</span></div><div class="secs" id="secs'+d.id+'">'+SECS.map(s=>'<button data-sec="'+s[0]+'" data-d="'+d.id+'">'+s[1]+'</button>').join('')+'</div>'+
    '<div class="lbl"><span>Effects (hold)</span></div><div class="fxs" id="fxs'+d.id+'">'+FXN.map((n,i)=>'<button data-fx="'+i+'" data-d="'+d.id+'">'+n.replace(' sweep','')+'</button>').join('')+'</div>'+
@@ -165,8 +177,8 @@ function paintPads(){
 
 /* ---------- audio: each deck gets a filter and a volume on its output ---------- */
 function wireDeck(d){
-  ev(d,"(function(){ ensureAudio(); ac.resume(); var g=ac.createGain(), lp=ac.createBiquadFilter(), hp=ac.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=20000; hp.type='highpass'; hp.frequency.value=20; OUTTAP.disconnect(); OUTTAP.connect(hp); hp.connect(lp); lp.connect(g); g.connect(ac.destination); window.__dj={g:g,lp:lp,hp:hp}; })()");
-  d.vol=85; d.filt=0; d.bendSave=null;
+  ev(d,"(function(){ ensureAudio(); ac.resume(); var g=ac.createGain(), lp=ac.createBiquadFilter(), hp=ac.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=20000; hp.type='highpass'; hp.frequency.value=20; var el=ac.createBiquadFilter(), em=ac.createBiquadFilter(), eh=ac.createBiquadFilter(); el.type='lowshelf'; el.frequency.value=250; em.type='peaking'; em.frequency.value=1000; em.Q.value=0.7; eh.type='highshelf'; eh.frequency.value=4000; OUTTAP.disconnect(); OUTTAP.connect(el); el.connect(em); em.connect(eh); eh.connect(hp); hp.connect(lp); lp.connect(g); g.connect(ac.destination); window.__dj={g:g,lp:lp,hp:hp,el:el,em:em,eh:eh}; })()");
+  d.vol=85; d.filt=0; d.bendSave=null; d.eq={l:0,m:0,h:0};
 }
 function cross(id){ const x=S.xf/100; return id==='A'?Math.cos(x*Math.PI/2):Math.sin(x*Math.PI/2); }
 function applyMix(){
@@ -175,6 +187,7 @@ function applyMix(){
     const f=d.filt/100, lp=f<0?20000*Math.pow(0.012,-f):20000, hp=f>0?20*Math.pow(300,f):20;
     j.lp.frequency.setTargetAtTime(lp,t,0.03); j.hp.frequency.setTargetAtTime(hp,t,0.03);
     j.g.gain.setTargetAtTime((d.vol/100)*cross(d.id)*(S.mv/100),t,0.02);
+    ['l','m','h'].forEach(k=>{ const v=d.eq[k], db=v<=-100?-60:(v<0?v*0.4:v*0.12), node=j['e'+k]; node.gain.setTargetAtTime(db,t,0.03); $('eq'+k+d.id).textContent=v<=-100?'kill':(db===0?'0 dB':(db>0?'+':'')+db.toFixed(0)+' dB'); });
     $('vl'+d.id).textContent=d.vol+'%'; $('fl'+d.id).textContent=f===0?'off':(f<0?'low-pass ':'high-pass ')+Math.round(Math.abs(f)*100)+'%';
   });
   $('xf').value=S.xf; $('mv').value=S.mv;
@@ -193,6 +206,7 @@ function randGenre(d){ ev(d,"$('gsurp').click()"); d.genre=ev(d,'state.genre'); 
 function newPattern(d){ ev(d,"$('gen').click()"); newBase(d); }
 function section(d,id){ ev(d,"(function(id){ if(SONG.on) return; if(playing){ LV.next=(id===state.section)?null:id; } else { goSection(id); LV.next=null; } })('"+id+"')"); }
 function fx(d,i,on){ const n=fxIndex(FXN[i]); if(n<0) return; ev(d,"padFx("+n+","+(on?'true':'false')+")"); const b=document.querySelector('#fxs'+d.id+' [data-fx="'+i+'"]'); if(b) b.classList.toggle('hold',on); }
+function syncTo(d){ const o=decks.find(x=>x!==d); const v=getBpm(o); setBpm(d,v); d.base=v; }
 function sync(){ const a=decks[0], b=decks[1]; const v=getBpm(a); setBpm(b,v); b.base=v; }
 function bend(d,dir,on){ if(on){ if(d.bendSave==null){ d.bendSave=getBpm(d); setBpm(d,d.bendSave*(1+dir*0.04)); } } else if(d.bendSave!=null){ setBpm(d,d.bendSave); d.bendSave=null; } }
 
@@ -207,6 +221,8 @@ function paint(){
     const sl=$('deck'+d.id).querySelector('[data-t]'); if(document.activeElement!==sl) sl.value=st.b;
     $('pos'+d.id).style.width=(st.pos<0?0:Math.round(st.pos*100))+'%';
     $('pl'+d.id).textContent=st.p?'Stop':'Play'; $('pl'+d.id).classList.toggle('on',st.p);
+    $('deck'+d.id).classList.toggle('playing',st.p);
+    if(d.spinBpm!==st.b){ d.spinBpm=st.b; const sec=(240/st.b).toFixed(2)+'s'; $('deck'+d.id).style.setProperty('--spin',sec); }
     $('secs'+d.id).querySelectorAll('button').forEach(b=>{ b.classList.toggle('cur',b.dataset.sec===st.s); b.classList.toggle('q',b.dataset.sec===st.n); });
     if(!d.base) d.base=st.b;
   });
@@ -268,7 +284,7 @@ async function midiInit(){
 function wireUI(){
   document.addEventListener('click',e=>{
     const t=e.target.closest('button'); if(!t) return;
-    if(t.dataset.a){ const d=D(t.dataset.d); if(t.dataset.a==='gen') newPattern(d); else if(t.dataset.a==='rand') randGenre(d); else if(t.dataset.a==='play') togglePlay(d); }
+    if(t.dataset.a){ const d=D(t.dataset.d); if(t.dataset.a==='gen') newPattern(d); else if(t.dataset.a==='rand') randGenre(d); else if(t.dataset.a==='sync') syncTo(d); else if(t.dataset.a==='play') togglePlay(d); }
     else if(t.dataset.sec){ section(D(t.dataset.d),t.dataset.sec); }
     else if(t.dataset.xf){ S.xf=+t.dataset.xf; applyMix(); }
   });
@@ -279,6 +295,7 @@ function wireUI(){
     if(t.dataset.t){ const d=D(t.dataset.t); setBpm(d,+t.value); d.base=+t.value; }
     else if(t.dataset.v){ D(t.dataset.v).vol=+t.value; applyMix(); }
     else if(t.dataset.f){ D(t.dataset.f).filt=+t.value; applyMix(); }
+    else if(t.dataset.eq){ D(t.dataset.d).eq[t.dataset.eq]=+t.value; applyMix(); }
     else if(t.dataset.k!=null){ knob(+t.dataset.k,(+t.value)/127); }
     else if(t.id==='xf'){ S.xf=+t.value; applyMix(); }
     else if(t.id==='mv'){ S.mv=+t.value; applyMix(); }
@@ -292,6 +309,7 @@ function wireUI(){
   $('bkA').addEventListener('click',()=>{ S.bank=0; paintPads(); }); $('bkB').addEventListener('click',()=>{ S.bank=1; paintPads(); });
   $('bothplay').addEventListener('click',bothPlay); $('bothstop').addEventListener('click',bothStop); $('sync').addEventListener('click',sync);
   $('midiin').addEventListener('change',e=>useInput(e.target.value));
+  document.addEventListener('dblclick',e=>{ const t=e.target; if(t.dataset&&t.dataset.eq){ t.value=0; t.dispatchEvent(new Event('input',{bubbles:true})); } else if(t.dataset&&t.dataset.f){ t.value=0; t.dispatchEvent(new Event('input',{bubbles:true})); } });
 }
 
 $('go').addEventListener('click',()=>{
