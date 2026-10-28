@@ -521,8 +521,9 @@ html.lv-lock,html.lv-lock body{overflow:hidden !important}
 @media (min-width:1100px){ .toolrow{grid-template-columns:repeat(6,auto)} }
 .lv-d.hit{animation:lvhit .7s ease-out}
 @keyframes lvhit{0%{background:var(--accent);color:var(--accent-ink)}100%{background:var(--surface)}}
-.lv-dice{grid-template-columns:repeat(10,1fr);gap:3px}
-.lv-d small{font-size:7.5px;letter-spacing:-.2px}
+.lv-dice{grid-template-columns:repeat(5,1fr);gap:4px}
+.lv-d span{font-size:13px}.lv-d small{font-size:12.5px;letter-spacing:0;color:var(--ink)}
+.lv-d{min-height:38px}
 .lv-top .lv-info{max-width:62%;text-align:right}.lv-flash{color:var(--accent);font-size:13px}
 .recs{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:14px}
 .recs[hidden]{display:none}
@@ -662,6 +663,11 @@ html.st-lock,html.st-lock body{overflow:hidden}
 .pm-tr.sel .pm-dots i{height:18px;border-radius:3px}
 .pm-tr.sel small{flex:0 0 100%;color:var(--muted);font-size:12px}
 .pm-tr.mu{opacity:.4}
+.pm-bt{display:flex;gap:4px;flex:none}
+.pm-bt button{min-width:34px;height:28px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:12px;font-weight:600;padding:0 6px;touch-action:none}
+.pm-bt button.on{background:var(--ink);color:var(--bg)}.pm-bt button.so{background:#e8a43a;color:#0b0e16;border-color:#e8a43a}
+.pm-tr.sel .pm-bt{order:2}.pm-tr.sel b{flex:1 1 0;min-width:0}.pm-tr.sel .pm-bt button{height:34px;min-width:44px;font-size:14px}
+.pm-tr.sel .pm-dots{order:3}.pm-tr.sel small{order:4}
 .pm-st,.pm-last,.pm-hint{margin:0;font-size:13px;color:var(--muted);line-height:1.35}
 .pm-last{min-height:2.7em;color:var(--ink)}
 .pm-chips{display:grid;grid-template-columns:1fr 1fr auto;gap:6px}
@@ -2891,10 +2897,12 @@ function makeVel(t,kind,fx){
 }
 function nextVel(v){ return v<=72?90:(v<=105?120:55); }
 
-function audible(st,i){ return !st.solo||!st.solo.length||st.solo.includes(i); }
+var VSOLO=false; // the Sample track is soloed (it has no slot in state.solo)
+function vsoloOn(st){ return VSOLO&&st===state&&!state.solo.length; }
+function audible(st,i){ if(vsoloOn(st)) return false; return !st.solo||!st.solo.length||st.solo.includes(i); }
 // A drum kit can be soloed whole (its track number) or lane by lane ('d<kit>.<lane>', for example 'd0.1' is the snare).
-function audibleSet(st,i,k){ return !st.solo||!st.solo.length||st.solo.includes(i)||st.solo.some(x=>typeof x==='string'&&x.indexOf('d'+k+'.')===0); }
-function audibleLane(st,i,k,j){ return !st.solo||!st.solo.length||st.solo.includes(i)||st.solo.includes('d'+k+'.'+j); }
+function audibleSet(st,i,k){ if(vsoloOn(st)) return false; return !st.solo||!st.solo.length||st.solo.includes(i)||st.solo.some(x=>typeof x==='string'&&x.indexOf('d'+k+'.')===0); }
+function audibleLane(st,i,k,j){ if(vsoloOn(st)) return false; return !st.solo||!st.solo.length||st.solo.includes(i)||st.solo.includes('d'+k+'.'+j); }
 function stepMsOf(bpm){ return 60000/bpm/4; }
 // Off-beat sixteenths land late. 50 is straight, 66 is a triplet feel, 75 is the most.
 function swingMs(st,step){ return step%2===1 ? Math.max(0,(st.swing||50)-50)/100*2*stepMsOf(st.bpm) : 0; }
@@ -3495,7 +3503,7 @@ function applySolo(){ soloLabel();
 }
 $('solos').addEventListener('click',e=>{
   const al=e.target.closest('[data-soloall]');
-  if(al){ state.solo=[]; applySolo(); if(canSend()) allOff(); return; }
+  if(al){ state.solo=[],VSOLO=false; applySolo(); if(canSend()) allOff(); return; }
   const sp=e.target.closest('[data-splitd]');
   if(sp){ SPLITD=!SPLITD; try{ localStorage.setItem('eb_splitd',SPLITD?'1':'0'); }catch(_){}
     const sy=state.synth.length;
@@ -3503,10 +3511,10 @@ $('solos').addEventListener('click',e=>{
     else{ const out=[]; state.solo.forEach(x=>{ if(typeof x==='string'){ const k=+x.slice(1).split('.')[0]; if(!out.includes(sy+k)) out.push(sy+k); } else if(!out.includes(x)) out.push(x); }); state.solo=out; }
     renderSolos(); applySolo(); if(typeof lvRender==='function'&&lvOn()) lvRender(); if(canSend()) allOff(); return; }
   const sl=e.target.closest('[data-solol]');
-  if(sl){ const key='d'+sl.dataset.solol; state.solo=state.solo.includes(key)?state.solo.filter(x=>x!==key):state.solo.concat(key); if(soloUnits().length<=state.solo.length) state.solo=[]; applySolo(); if(canSend()) allOff(); return; }
+  if(sl){ const key='d'+sl.dataset.solol; state.solo=state.solo.includes(key)?state.solo.filter(x=>x!==key):state.solo.concat(key); if(soloUnits().length<=state.solo.length) state.solo=[],VSOLO=false; applySolo(); if(canSend()) allOff(); return; }
   const b=e.target.closest('[data-solo]'); if(!b||b.disabled) return;
   const n=+b.dataset.solo; state.solo=state.solo.includes(n)?state.solo.filter(x=>x!==n):state.solo.concat(n);
-  if(soloUnits().length<=state.solo.length) state.solo=[];
+  if(soloUnits().length<=state.solo.length) state.solo=[],VSOLO=false;
   applySolo(); if(canSend()) allOff();
 });
 const SECTION_IDS=['allt','intro','bld','drop','chorus','brk','bridge','half','outro'];
@@ -3658,7 +3666,7 @@ function loadCode(str){
   const p=String(str).trim().split(':'); if(p[1]) p[1]=p[1].toLowerCase(); if(p[3]) p[3]=p[3].toLowerCase(); if(p[7]) p[7]=p[7].toLowerCase();
   if(p[0]!=='EB1'||p.length<5||!GENRES.some(x=>x.id===p[1])) return false;
   const seed=p[4].replace(/[^A-Za-z0-9]/g,'').slice(0,24); LASTNOSEED=!seed;
-  pushHist(); state.section=null; state.solo=[];
+  pushHist(); state.section=null; state.solo=[],VSOLO=false;
   if(FW_DATA.some(f=>f.id===p[3])&&p[3]!==cfg.device) applyDevice(p[3]);
   state.bars=clamp(+p[2]||1,1,4);
   $('seed').value=seed; state.seed='';
@@ -3775,7 +3783,7 @@ function loadExact(str){
       });
       sets.push({n,lanes,locked:false});
     }
-    pushHist(); state.section=null; state.solo=[];
+    pushHist(); state.section=null; state.solo=[],VSOLO=false;
     state.genre=g.id; state.bars=bars; state.bpm=bpm; state.swing=swing; state.key=key; state.scale=scales[sc];
     state.prog=(pi<PROGS.length)?PROGS[pi]:PROGS[0];
     state.synth=synth; state.drums=sets[0]; state.drums2=sets[1]||null;
@@ -3913,7 +3921,7 @@ function ensureFull(){
 // All tracks: bring back any silent track, unmute everything, reset loudness and switch every track on.
 function doAll(){
   const g=genreObj();
-  state.solo=[];
+  state.solo=[],VSOLO=false;
   state.synth.forEach((t,i)=>{ if(t.locked) return; t.muted=false; if(empty(t)) state.synth[i]=genSynth(synthRule(g,i),t); });
   drumSets().forEach(d=>{ if(d.locked) return; d.lanes.forEach((l,j)=>{ l.muted=false; if(empty(l)) d.lanes[j]=genLane(j,g.drums[j],l,d.n); }); });
   rerollVel();
@@ -4248,7 +4256,7 @@ function capFinish(){
     else{ const o=drumSteps[ti-L.nS][capNoteLane(e.note)], v=Math.max(o[s]||0,e.vel); o[s]=v; }
   });
   if(!cnt){ capMsg('No notes could be placed on a track.'+(skipped.size?' Notes arrived on channel '+[...skipped].join(', ')+', which no track uses. Pick a track in "Put the notes on" and try again.':' Try again.'),'bad'); return; }
-  pushHist(); state.section=null; state.solo=[]; state.bars=bars;
+  pushHist(); state.section=null; state.solo=[],VSOLO=false; state.bars=bars;
   const synth=[];
   for(let i=0;i<L.nS;i++){
     const old=state.synth[i], has=Object.keys(synthSteps[i]).length>0;
@@ -4455,7 +4463,7 @@ function applyDevice(id){
   saveCfg();
 }
 function setDevice(id){
-  applyDevice(id); state.solo=[]; state.section=null; hist=[]; generate(); renderAll();
+  applyDevice(id); state.solo=[],VSOLO=false; state.section=null; hist=[]; generate(); renderAll();
 }
 function chOpts(sel,off){ let h=off?`<option value="0"${sel===0?' selected':''}>Off</option>`:''; for(let c=1;c<=16;c++) h+=`<option value="${c}"${c===sel?' selected':''}>${c}</option>`; return h; }
 const FM1_DRUM={36:'Kick',35:'Kick 2',38:'Snare',39:'Clap',42:'Hat',46:'Open hat',44:'Pedal hat',37:'Rim',40:'Snare 2',43:'Low tom',48:'Hi tom',49:'Crash',51:'Ride',70:'Shaker',63:'Conga',56:'Cowbell'};
@@ -5189,7 +5197,7 @@ function meterPaint(){
   });
 }
 function sfx(f,key,pan,lvl){ const keep=master; try{ if(lvl===0) return; if(key&&ac&&masterReal) master=busFor(key,pan,lvl); f(); }catch(e){ SFX_ERR++; SFX_LAST=String(e&&e.message||e); if(SFX_ERR<=3){ try{ const m=$('recmsg'); if(m&&!REC.on) m.textContent='A sound could not play on this browser ('+(e&&e.message?e.message:'error')+'; instruments: '+['bass','stab','arp','lead'].map(patchId).join(', ')+'). Playback carries on without it.'; }catch(_){} } }finally{ master=keep; } }
-let SFX_ERR=0, SFX_LAST='', TICKN=0; const BUILD='b1400';
+let SFX_ERR=0, SFX_LAST='', TICKN=0; const BUILD='b1425';
 function schedule(step,time){
   const preview=cfg.target!=='midi'||!midi.out, send=canSend();
   if(preview){
@@ -5793,7 +5801,7 @@ function voxDevSpeak(text,pitchSt,v,rate){
 }
 function voxPlay(step,time){
   if(!VOX.on||VOX.mute) return;
-  if(state.solo&&state.solo.length) return;
+  if(state.solo&&state.solo.length&&!VSOLO) return;
   const n=loopLen(), pos=step%n, h=VOX.human/100, jit=()=>(Math.random()*2-1), stepSec=stepMsOf(state.bpm)/1000; let spoke=false;
   VOX.lanes.forEach(L=>{
     const cells=voxCells(L); if(!cells[pos]) return;
@@ -6114,7 +6122,7 @@ function lvTracks(){
   state.synth.forEach((t,i)=>rows.push({kind:'s',i,name:names[i]||('Track '+(i+1)),col:'var(--t'+(i+1)+')',n:t.n,cells:t.cells,muted:t.muted,locked:t.locked,lvl:t.lvl,sel:state.solo.includes(i),ti:i,sk:i}));
   drumSets().forEach((d,k)=>d.lanes.forEach((l,j)=>rows.push({kind:'d',k,j,name:l.label,col:'var(--t'+(state.synth.length+k+1)+')',n:d.n,cells:l.cells,muted:l.muted||d.muted,locked:d.locked,lvl:l.lvl==null?d.lvl:l.lvl,sel:SPLITD?state.solo.includes('d'+k+'.'+j):state.solo.includes(state.synth.length+k),ti:state.synth.length+k,sk:SPLITD?'d'+k+'.'+j:state.synth.length+k})));
   { const vn=loopLen(), vc=VOX.lanes.length>1?VOX.lanes.reduce((a,l)=>{ const c=voxCells(l); return a.map((x,i)=>x||c[i]); },new Array(vn).fill(0)):voxCells(voxLane());
-    rows.push({kind:'v',name:'Sample',col:'var(--t9)',n:vn,cells:vc,muted:VOX.mute||!VOX.on,locked:!VOX.on,lvl:null,sel:false,ti:-1,sk:-1}); }
+    rows.push({kind:'v',name:'Sample',col:'var(--t9)',n:vn,cells:vc,muted:VOX.mute||!VOX.on,locked:!VOX.on,lvl:null,sel:VSOLO,ti:-1,sk:-1}); }
   return rows;
 }
 function lvKey(r){ return r.kind==='v'?'v':r.kind==='s'?'s'+r.i:'d'+r.k+'l'+r.j; }
@@ -6170,7 +6178,7 @@ function lvClick(e){
     lvPaint(); lvSecs(); return;
   }
   if(d.m!==undefined){ const r=lvTracks()[+d.m]; lvPress(r,'mute'); return; }
-  if(d.so!==undefined){ const r=lvTracks()[+d.so]; const sb=document.querySelector(typeof r.sk==='string'?`#solos [data-solol="${r.sk.slice(1)}"]`:`#solos [data-solo="${r.sk}"]`); if(sb) sb.click(); lvRender(); return; }
+  if(d.so!==undefined){ const r=lvTracks()[+d.so]; if(r.kind==='v'){ VSOLO=!VSOLO; if(canSend()) allOff(); lvRender(); return; } const sb=document.querySelector(typeof r.sk==='string'?`#solos [data-solol="${r.sk.slice(1)}"]`:`#solos [data-solo="${r.sk}"]`); if(sb) sb.click(); lvRender(); return; }
   if(d.lk!==undefined){ const r=lvTracks()[+d.lk]; lvPress(r,'lock'); return; }
   if(d.vm){ $('voxbox').querySelector('[data-vact="mute"]')&&$('voxbox').querySelector('[data-vact="mute"]').click(); lvRender(); return; }
   if(d.ed!==undefined){ const rs=lvTracks(), r=rs[+d.ed]; LV.edit=(LV.edit&&LV.edit.key===lvKey(r))?null:{key:lvKey(r)}; LV.bar=Math.min(LV.bar,Math.max(0,Math.ceil(r.n/16)-1)); lvRender(); return; }
@@ -6208,7 +6216,7 @@ function lvRender(){
   if(!lvOn()||!LV.built) return;
   lvSecs(); lvPaint(); { const sp=$('lvsplit'); if(sp){ sp.textContent=SPLITD?'Drums: split':'Split drums'; sp.classList.toggle('on',SPLITD); } }
   const rows=lvTracks(), n=rows.length;
-  let h=rows.map((r,i)=>`<div class="lv-trk${r.muted?' mu':''}${LV.edit&&LV.edit.key===lvKey(r)?' sel':''}" data-r="${i}" style="--c:${r.col}"><button class="lv-nm" data-ed="${i}"><i></i>${esc(r.name)}</button><div class="lv-stw" data-ed-s="${i}"><div class="lv-st" style="grid-template-columns:repeat(${r.n},1fr)">${lvStrip(r.cells,r.n)}<em class="lv-ph"></em></div><div class="lv-lv"><u style="width:${Math.min(100,(r.lvl==null?100:r.lvl)/1.25)}%"></u></div></div><button class="lv-m${r.muted?' on':''}" data-m="${i}">M</button>${r.kind==='v'?'<span class="lv-m gh"></span>':`<button class="lv-m${r.sel?' so':''}" data-so="${i}">S</button>`}<button class="lv-m${r.kind==='v'?(r.locked?'':' on'):(r.locked?' on':'')}" data-lk="${i}">${r.kind==='v'?(r.locked?'Off':'On'):'Lk'}</button></div>`).join('');
+  let h=rows.map((r,i)=>`<div class="lv-trk${r.muted?' mu':''}${LV.edit&&LV.edit.key===lvKey(r)?' sel':''}" data-r="${i}" style="--c:${r.col}"><button class="lv-nm" data-ed="${i}"><i></i>${esc(r.name)}</button><div class="lv-stw" data-ed-s="${i}"><div class="lv-st" style="grid-template-columns:repeat(${r.n},1fr)">${lvStrip(r.cells,r.n)}<em class="lv-ph"></em></div><div class="lv-lv"><u style="width:${Math.min(100,(r.lvl==null?100:r.lvl)/1.25)}%"></u></div></div><button class="lv-m${r.muted?' on':''}" data-m="${i}">M</button><button class="lv-m${r.sel?' so':''}" data-so="${i}">S</button><button class="lv-m${r.kind==='v'?(r.locked?'':' on'):(r.locked?' on':'')}" data-lk="${i}">${r.kind==='v'?(r.locked?'Off':'On'):'Lk'}</button></div>`).join('');
   $('lvtrks').innerHTML=h;
   $('lvtrks').classList.toggle('many',n>10);
   lvEdit();
@@ -6652,6 +6660,17 @@ function padTrackLine(){
   if(t.textContent!==x) t.textContent=x;
 }
 // Every track as a row of step dots with the playhead; the chosen track is bigger and always sits in the middle of the strip.
+// Mute, solo and lock for a track, the same buttons as Live view.
+function padRowAct(a,key){
+  const r=lvTracks().find(x=>lvKey(x)===key); if(!r) return;
+  if(a==='m') lvPress(r,'mute');
+  else if(a==='l') lvPress(r,'lock');
+  else if(r.kind==='v'){ VSOLO=!VSOLO; if(canSend()) allOff(); }
+  else{ const sb=document.querySelector(typeof r.sk==='string'?'#solos [data-solol="'+r.sk.slice(1)+'"]':'#solos [data-solo="'+r.sk+'"]'); if(sb) sb.click(); }
+  const n=lvTracks().find(x=>lvKey(x)===key)||r;
+  padSay(r.name+(a==='m'?(n.muted?' muted.':' unmuted.'):a==='l'?(r.kind==='v'?(n.locked?' off.':' on.'):(n.locked?' locked.':' unlocked.')):(n.sel?' solo on.':' solo off.')));
+  padTick();
+}
 function padStrip(){
   const el=$('pmtl'); if(!el) return; const rows=lvTracks(), sel=padStepRow(), selk=sel?lvKey(sel):''; let h='';
   rows.forEach(r=>{
@@ -6659,7 +6678,8 @@ function padStrip(){
     for(let n=0;n<r.n;n++){ if(on&&n%16===0) d+=(n?'</div>':'')+'<div class="pm-bar">'; d+='<i class="'+(ec[n]?'o':'')+(n===stp?' w':'')+'"></i>'; }
     if(on) d+='</div>';
     let inf=''; if(on&&r.kind!=='v'){ const lv=padRowVal('lvl'), pn=padRowVal('pan'); inf='Level '+(lv==null?'–':lv+'%')+' · Pan '+(pn==null?'–':(pn===0?'centre':(pn<0?'L ':'R ')+Math.abs(pn))); }
-    h+='<div class="pm-tr'+(on?' sel':'')+(r.muted?' mu':'')+'" data-k="'+k+'" style="--c:'+r.col+'"><b>'+esc(r.name)+'</b><div class="pm-dots">'+d+'</div>'+(inf?'<small>'+inf+'</small>':'')+'</div>';
+    const bt='<span class="pm-bt"><button data-pa="m" class="'+(r.muted?'on':'')+'">M</button><button data-pa="s" class="'+(r.sel?'so':'')+'">S</button><button data-pa="l" class="'+(r.kind==='v'?(r.locked?'':'on'):(r.locked?'on':''))+'">'+(r.kind==='v'?(r.locked?'Off':'On'):'Lk')+'</button></span>';
+    h+='<div class="pm-tr'+(on?' sel':'')+(r.muted?' mu':'')+'" data-k="'+k+'" style="--c:'+r.col+'"><b>'+esc(r.name)+'</b>'+bt+'<div class="pm-dots">'+d+'</div>'+(inf?'<small>'+inf+'</small>':'')+'</div>';
   });
   if(h!==PADS.tls){ PADS.tls=h; el.innerHTML=h; }
   const se=el.querySelector('.sel'); if(se) el.scrollTop=Math.max(0,se.offsetTop-(el.clientHeight-se.offsetHeight)/2);
@@ -6752,7 +6772,7 @@ function padBuild(){
   $('pmkball').addEventListener('click',()=>{ PADS.cseq=true; PADS.cc.kb=Array(8).fill(-1); PADS.cl='b0'; PADS.learn=false; padSay('Set the pad to its second knob bank, then turn its knob 1.'); padPaint(); });
   // The track strip: tap a row to choose it, flick or drag up and down (or use the mouse wheel) to move through the tracks.
   const tl=$('pmtl'); let tg=null;
-  tl.addEventListener('pointerdown',e=>{ const r=e.target.closest('.pm-tr'); tg={id:e.pointerId,y:e.clientY,moved:false,done:0,k:r?r.dataset.k:''}; try{ tl.setPointerCapture(e.pointerId); }catch(_){} });
+  tl.addEventListener('pointerdown',e=>{ const pa=e.target.closest('[data-pa]'); if(pa){ e.preventDefault(); const row=pa.closest('.pm-tr'); if(row) padRowAct(pa.dataset.pa,row.dataset.k); return; } const r=e.target.closest('.pm-tr'); tg={id:e.pointerId,y:e.clientY,moved:false,done:0,k:r?r.dataset.k:''}; try{ tl.setPointerCapture(e.pointerId); }catch(_){} });
   tl.addEventListener('pointermove',e=>{
     if(!tg||e.pointerId!==tg.id) return; const dy=e.clientY-tg.y; if(Math.abs(dy)>8) tg.moved=true; if(!tg.moved) return;
     const st=Math.trunc(-dy/34); while(tg.done<st){ padTrackMove(1); tg.done++; } while(tg.done>st){ padTrackMove(-1); tg.done--; }
@@ -18564,7 +18584,7 @@ function slot(i){
     const si=i-4;
     if(i<7||(i===7&&state.synth[3])){const t=state.synth[i===7?3:si];if(!t)return null;
       return{cells:t.cells,notes:t.notes,n:t.n,mute:!!(t.muted||!audible(state,i===7?3:si))}}
-    if(typeof VOX!=='undefined'&&VOX.lanes&&VOX.lanes[0]){return{cells:voxCells(VOX.lanes[0]),n:loopLen(),mute:!VOX.on||!!VOX.mute||!!(state.solo&&state.solo.length)}}
+    if(typeof VOX!=='undefined'&&VOX.lanes&&VOX.lanes[0]){return{cells:voxCells(VOX.lanes[0]),n:loopLen(),mute:!VOX.on||!!VOX.mute||!!(state.solo&&state.solo.length&&!VSOLO)}}
   }catch(e){}
   return null}
 function on(g,k){return !!(g&&g.cells&&g.cells[k%g.n]&&(!g.notes||g.notes[k%g.n]!=null))}
