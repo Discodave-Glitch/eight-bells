@@ -21,7 +21,7 @@ input[type=range]{width:100%;accent-color:var(--ink);min-height:28px;margin:0}
 #start p{max-width:480px;color:var(--muted);margin:0}
 #go{min-height:52px;padding:0 34px;font-size:18px;font-weight:700;background:var(--ink);color:var(--bg)}
 #go:disabled{opacity:.45}
-.top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.top{position:relative;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 /* the console: deck A, mixer, deck B */
 .console{display:grid;grid-template-columns:1fr;gap:10px}
@@ -92,12 +92,63 @@ input[type=range]{width:100%;accent-color:var(--ink);min-height:28px;margin:0}
 #wizbar{position:fixed;left:0;right:0;bottom:0;z-index:15;background:#231d05;border-top:2px solid #ffd54a;padding:10px 14px max(10px,env(safe-area-inset-bottom));display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 #wizbar[hidden]{display:none}
 #wiztxt{flex:1 1 220px;font-weight:600}
-.ctlp{margin-top:12px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
-.ctlp summary{cursor:pointer;font-weight:600}
+.ctlp{margin:0;padding:0;border:0;background:none;position:static}
+.ctlp summary{cursor:pointer;list-style:none;display:inline-flex;align-items:center;min-height:40px;padding:0 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);font-weight:600}
+.ctlp summary::-webkit-details-marker{display:none}
+.ctlp[open] summary{background:var(--ink);color:var(--bg)}
+.ctlbody{position:absolute;left:0;right:0;top:100%;z-index:12;margin-top:6px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 12px;max-height:75vh;overflow:auto;box-shadow:0 10px 30px #000a}
 .ctlp .row{margin:8px 0}
 .hint{color:var(--muted);font-size:13px;margin:6px 0 0}
 .chip{font-size:12px;color:var(--muted)}
 #msg{font-size:13px;color:var(--muted);min-height:1.3em}
+
+.gtabs{display:none}
+/* landscape phones, tablets and short laptop windows: everything fits one screen */
+@media (orientation:landscape) and (max-height:830px) and (min-width:560px){
+  html,body{height:100%}
+  body{padding:6px 8px max(6px,env(safe-area-inset-bottom)) 8px}
+  #app{display:flex;flex-direction:column;min-height:calc(100dvh - 12px)}
+  .top{flex:none;flex-wrap:nowrap;margin-bottom:4px;gap:6px}
+  .top h1{font-size:15px;white-space:nowrap}.top h1 small{display:none}
+  .top .row{flex-wrap:nowrap;gap:5px}.top button,.top select{min-height:30px;font-size:12px;padding:0 8px}
+  #autost{flex:none;margin:0 0 4px!important;min-height:14px!important;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .console{flex:1 1 auto;min-height:260px;grid-template-columns:minmax(0,1fr) clamp(190px,26vw,300px) minmax(0,1fr);gap:6px;--k:clamp(22px,6.6vh,54px)}
+  .deck{padding:6px;gap:5px;min-height:0;overflow:hidden;border-width:2px;border-radius:14px}
+  .dh{flex:none;gap:5px}.dh b{font-size:14px}.dh select{min-height:30px;font-size:13px}
+  .tools{flex:none;gap:4px}.tools button{min-height:26px;font-size:11px;white-space:nowrap;padding:0 2px}
+  .screen{flex:none;padding:3px 8px;gap:0 10px}.bpmn{font:700 22px/1 ui-monospace,Menlo,Consolas,monospace}.stat{font-size:11px}.bar{height:5px}
+  .plrow{flex:1 1 0;min-height:0;gap:6px;container-type:size}
+  .plat{height:auto;width:min(calc(100cqw - 42px),100cqh);max-width:none;flex:0 0 auto;margin:0 auto;aspect-ratio:1/1;align-self:center}
+  .pitch{width:34px}.pitch .lbl{font-size:9px}.pitch .vf{height:100%;min-height:0;flex:1 1 0}
+  .trans{flex:none;gap:5px}.trans button{min-height:32px;font-size:13px}
+  .grp{flex:none}.grp .lbl{font-size:9px}
+  .deck .grid4{flex:none;grid-auto-rows:auto;gap:4px}.grid4 button{min-height:var(--gb,28px);font-size:11px}
+  .mixer{padding:6px;gap:5px;min-height:0;overflow:hidden;justify-content:space-between;border-radius:14px}
+  .strips{flex:1 1 0;min-height:0;gap:5px}
+  .strip{padding:4px 2px;gap:1px 0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto auto minmax(0,1fr);align-items:center;justify-items:center;min-height:0;border-top-width:3px}
+  .strip>b{grid-column:1/3}
+  .kd{width:var(--k);height:var(--k)}
+  .kn .kl{font-size:9px}.kn .kv{font-size:9px;min-height:10px}.bt{font-size:8px}
+  .chv{grid-column:1/3;min-height:0;height:100%}.chv .vf{height:100%;min-height:22px;flex:1 1 0}.chv .kl,.chv .kv{font-size:9px}
+  .xfw{padding:4px 6px;gap:2px}.xfw .lbl{font-size:9px}.xfr b{font-size:14px}.xfb button{min-height:26px;font-size:12px}
+  .pbtn button{min-height:28px}.pbw .chip{display:none}
+  .mvr{gap:6px}.mvr .kn{flex-direction:row;gap:6px}.mvr .kd{width:calc(var(--k)*.85);height:calc(var(--k)*.85)}
+  .ctlp summary{min-height:30px;font-size:12px;padding:0 8px}
+}
+@media (orientation:landscape) and (max-height:560px) and (min-width:560px){
+  .gtabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;flex:none}.gtabs button{min-height:24px;font-size:11px;padding:0}
+  .gtabs button.on{background:var(--c);color:#07090e;border-color:var(--c)}
+  .deck[data-tab="sec"] .grp.fx,.deck[data-tab="fx"] .grp.sec{display:none}
+  .grp .lbl{display:none}
+  .grid4 button{--gb:26px}
+  .kn .kv,.xfb,.pbw .lbl,.xfw .lbl{display:none}
+  .tools button{min-height:24px}
+  .deck{display:grid;grid-template-columns:minmax(0,1fr) 84px;grid-template-rows:auto auto auto minmax(0,1fr) auto auto;grid-template-areas:"dh dh" "tools tools" "screen screen" "pl tr" "tabs tabs" "grp grp"}
+  .dh{grid-area:dh}.dh b{display:none}.tools{grid-area:tools}.screen{grid-area:screen}.plrow{grid-area:pl}.gtabs{grid-area:tabs}.grp{grid-area:grp}
+  .trans{grid-area:tr;grid-template-columns:1fr;grid-template-rows:repeat(3,minmax(0,1fr))}.trans button{min-height:0;height:100%}
+  .tools{grid-template-columns:1fr 1fr}.tools [data-bend]{display:none}.tools button{font-size:11px}
+  .pbw{display:none}
+}
 </style>
 </head>
 <body>
@@ -111,12 +162,7 @@ input[type=range]{width:100%;accent-color:var(--ink);min-height:28px;margin:0}
 <div id="app" hidden>
   <div class="top">
     <h1>Eight Bells DJ<small>prototype, separate from the main app</small></h1>
-    <div class="row"><button id="auto" data-ctl="auto" data-kind="btn" aria-pressed="false">Auto DJ: off</button><select id="autolen" aria-label="Auto DJ length of each track"><option value="16">Each track 16 bars</option><option value="32" selected>Each track 32 bars</option><option value="64">Each track 64 bars</option></select><button id="bothplay">Play both</button><button id="bothstop">Stop both</button></div>
-  </div>
-  <div class="chip" id="autost" style="min-height:1.4em;margin:-4px 0 8px"></div>
-  <div class="console" id="console"></div>
-  <details class="ctlp" id="ctlp">
-    <summary>MIDI controller setup</summary>
+    <div class="row"><button id="auto" data-ctl="auto" data-kind="btn" aria-pressed="false">Auto DJ: off</button><select id="autolen" aria-label="Auto DJ length of each track"><option value="16">Each track 16 bars</option><option value="32" selected>Each track 32 bars</option><option value="64">Each track 64 bars</option></select><button id="bothplay">Play both</button><button id="bothstop">Stop both</button><details class="ctlp" id="ctlp"><summary>MIDI setup</summary><div class="ctlbody">
     <div class="row"><span id="midimsg" class="chip"></span></div>
     <div class="row"><button id="wiz">Guided setup</button><button id="learn">Learn one control</button><button id="teachA">Teach knob bank A</button><button id="teachB">Teach knob bank B</button><button id="clearmap">Clear mappings</button></div>
     <div class="chip" id="padnote"></div>
@@ -124,7 +170,10 @@ input[type=range]{width:100%;accent-color:var(--ink);min-height:28px;margin:0}
     <p class="hint">Guided setup walks through the controls one by one. When a control lights up yellow, press or move the matching control on your deck. Tap Skip for any it does not have. Your choices are remembered on this device. Jog wheel: turn it to nudge the tempo. CUE: hold it to preview, or tap it while playing to restart from the top. Double-tap an EQ or filter knob to centre it.</p>
     <p class="hint">SMC-PAD pads: Bank A pads are effects, Bank B pads are patterns (the pad's own Bank button picks). Pads 1 to 8 (bottom two rows) are Deck A and pads 9 to 16 (top two rows) are Deck B, read left to right: Intro, Build-up, Drop, Chorus, then Break, Bridge, Half, Outro (effects: Loop 1/4, Loop 1/8, Stutter, Reverse, then Tape stop, Low-pass, High-pass, Echo). Knob bank A (CC 30 to 37): knob 1 crossfader, knob 2 master volume, then the EQ with Deck A on the odd knobs and Deck B on the even knobs: Bass 3 and 4, Mid 5 and 6, Treble 7 and 8. Knob bank B (CC 38 to 45, or the numbers you taught Eight Bells Pad mode on this device): knobs 1 and 2 the same crossfader and master volume, then volumes 3 and 4, filters 5 and 6, tempos 7 and 8. Buttons: &lt; and &gt; (CC 25, 26) sync Deck A to Deck B and Deck B to Deck A, Play (27) and Stop (28) run both decks, Record (29) syncs Deck B to Deck A. If bank B does nothing on your pad, use Learn one control to teach it.</p>
     <p id="msg"></p>
-  </details>
+  </div></details></div>
+  </div>
+  <div class="chip" id="autost" style="min-height:1.4em;margin:-4px 0 8px"></div>
+  <div class="console" id="console"></div>
 </div>
 <div id="wizbar" hidden><span id="wiztxt"></span><button id="wizskip">Skip</button><button id="wizstop">Done</button></div>
 
@@ -174,15 +223,16 @@ const PLATTER='<svg viewBox="0 0 200 200" aria-hidden="true"><g class="spin"><ci
 function FLIP(a){ const r=a.map((x,k)=>[x,k]); return r.slice(4).concat(r.slice(0,4)); } // top row shows items 5 to 8, bottom row 1 to 4, like the pad
 function deckHTML(d,opts){
   const i=d.id;
-  return '<section class="deck '+i+'" id="deck'+i+'" aria-label="Deck '+i+'">'+
+  return '<section class="deck '+i+'" data-tab="sec" id="deck'+i+'" aria-label="Deck '+i+'">'+
    '<div class="dh"><b>Deck '+i+'</b><select data-g="'+i+'" aria-label="Genre, deck '+i+'">'+opts+'</select></div>'+
    '<div class="tools"><button data-a="gen" data-d="'+i+'">New pattern</button><button data-a="rand" data-d="'+i+'">Random genre</button><button data-bend="-1" data-ctl="bendm:'+i+'" data-kind="hold" data-hold="1" data-d="'+i+'">Bend -</button><button data-bend="1" data-ctl="bendp:'+i+'" data-kind="hold" data-hold="1" data-d="'+i+'">Bend +</button></div>'+
    '<div class="screen"><div class="bpmn"><span id="bp'+i+'">--</span><small>BPM</small></div><div class="stat" id="st'+i+'"></div><div class="bar"><i id="pos'+i+'"></i></div></div>'+
    '<div class="plrow"><div class="plat" data-ctl="jog:'+i+'" data-kind="rel" data-d="'+i+'" role="img" aria-label="Jog platter, deck '+i+'. Drag to nudge the tempo.">'+PLATTER+'</div>'+
    '<div class="pitch"><span class="lbl">Pitch <i class="bt">B'+(i==='A'?7:8)+'</i></span><input class="vf" type="range" orient="vertical" min="40" max="240" step="1" data-t="'+i+'" data-ctl="tempo:'+i+'" data-kind="abs" aria-label="Tempo, deck '+i+'"></div></div>'+
    '<div class="trans"><button data-ctl="sync:'+i+'" data-kind="btn" data-a="sync" data-d="'+i+'">SYNC</button><button data-ctl="cue:'+i+'" data-kind="hold" data-hold="1" data-d="'+i+'">CUE</button><button class="play" id="pl'+i+'" data-ctl="play:'+i+'" data-kind="btn" data-a="play" data-d="'+i+'">PLAY</button></div>'+
-   '<div class="lbl"><span>Patterns (queue for the end of the loop)</span></div><div class="grid4" id="secs'+i+'">'+FLIP(SECS).map(([x,k])=>'<button class="sb" data-ctl="sec:'+i+':'+k+'" data-kind="btn" data-a="sec" data-d="'+i+'" data-k="'+k+'">'+x[1]+'</button>').join('')+'</div>'+
-   '<div class="lbl"><span>Effects (hold)</span></div><div class="grid4" id="fxs'+i+'">'+FLIP(FXN).map(([n,k])=>'<button class="fb" data-ctl="fx:'+i+':'+k+'" data-kind="hold" data-hold="1" data-d="'+i+'" data-k="'+k+'">'+n.replace(' sweep','')+'</button>').join('')+'</div>'+
+   '<div class="gtabs"><button data-tab="sec" data-d="'+i+'" class="on">Patterns</button><button data-tab="fx" data-d="'+i+'">Effects</button></div>'+
+   '<div class="grp sec"><div class="lbl"><span>Patterns (queue for the end of the loop)</span></div><div class="grid4" id="secs'+i+'">'+FLIP(SECS).map(([x,k])=>'<button class="sb" data-ctl="sec:'+i+':'+k+'" data-kind="btn" data-a="sec" data-d="'+i+'" data-k="'+k+'">'+x[1]+'</button>').join('')+'</div></div>'+
+   '<div class="grp fx"><div class="lbl"><span>Effects (hold)</span></div><div class="grid4" id="fxs'+i+'">'+FLIP(FXN).map(([n,k])=>'<button class="fb" data-ctl="fx:'+i+':'+k+'" data-kind="hold" data-hold="1" data-d="'+i+'" data-k="'+k+'">'+n.replace(' sweep','')+'</button>').join('')+'</div></div>'+
    '</section>';
 }
 function stripHTML(d){
@@ -200,7 +250,7 @@ function buildUI(){
   $('console').innerHTML=deckHTML(decks[0],opts)+
    '<div class="mixer" aria-label="Mixer"><div class="strips">'+stripHTML(decks[0])+stripHTML(decks[1])+'</div>'+
    '<div class="xfw" data-ctl="xf" data-kind="abs"><div class="lbl"><span>Crossfader <i class="bt">A1 B1</i></span></div><div class="xfr"><b class="A">A</b><input type="range" id="xf" min="0" max="100" value="50" aria-label="Crossfader"><b class="B">B</b></div><div class="xfb"><button data-xf="0">All A</button><button data-xf="50">Centre</button><button data-xf="100">All B</button></div></div>'+
-   '<div class="xfw"><div class="lbl"><span>Pad buttons</span></div><div class="pbtn"><button data-ctl="prev" data-kind="btn" data-a="prev" aria-label="Sync Deck A to Deck B">&lt; A</button><button data-ctl="next" data-kind="btn" data-a="next" aria-label="Sync Deck B to Deck A">B &gt;</button><button data-ctl="playall" data-kind="btn" data-a="playall">Play</button><button data-ctl="stopall" data-kind="btn" data-a="stopall">Stop</button><button data-ctl="focus" data-kind="btn" data-a="focus" id="focusb">Sync</button></div><div class="chip">&lt; syncs Deck A to Deck B, &gt; syncs Deck B to Deck A. Record also syncs Deck B to Deck A.</div></div>'+
+   '<div class="xfw pbw"><div class="lbl"><span>Pad buttons</span></div><div class="pbtn"><button data-ctl="prev" data-kind="btn" data-a="prev" aria-label="Sync Deck A to Deck B">&lt; A</button><button data-ctl="next" data-kind="btn" data-a="next" aria-label="Sync Deck B to Deck A">B &gt;</button><button data-ctl="playall" data-kind="btn" data-a="playall">Play</button><button data-ctl="stopall" data-kind="btn" data-a="stopall">Stop</button><button data-ctl="focus" data-kind="btn" data-a="focus" id="focusb">Sync</button></div><div class="chip">&lt; syncs Deck A to Deck B, &gt; syncs Deck B to Deck A. Record also syncs Deck B to Deck A.</div></div>'+
    '<div class="mvr">'+knobHTML('Master <i class="bt">A2 B2</i>','mv','id="mv"',0,100,85,'mvv','Master volume')+'</div></div>'+
    deckHTML(decks[1],opts);
   decks.forEach(d=>{ $('deck'+d.id).querySelector('select').value=d.genre; d.page=0; d.held={}; });
@@ -493,6 +543,7 @@ function wireUI(){
   document.addEventListener('touchstart',swallow,{capture:true,passive:false});
   document.addEventListener('click',e=>{
     const t=e.target.closest('button'); if(!t) return;
+    if(t.dataset.tab){ const dk=$('deck'+t.dataset.d); dk.dataset.tab=t.dataset.tab; dk.querySelectorAll('.gtabs button').forEach(b=>b.classList.toggle('on',b===t)); return; }
     if(t.dataset.a&&!D(t.dataset.d)){ ctlPress(t.dataset.ctl); return; }
     if(t.dataset.a){ const d=D(t.dataset.d); const a=t.dataset.a; if(a==='gen') newPattern(d); else if(a==='rand') randGenre(d); else if(a==='sync') ctlPress('sync:'+d.id); else if(a==='play') ctlPress('play:'+d.id); else if(a==='mode') ctlPress('mode:'+d.id); else if(a==='sec') ctlPress('sec:'+d.id+':'+t.dataset.k); }
     else if(t.dataset.xf){ S.xf=+t.dataset.xf; applyMix(); }
