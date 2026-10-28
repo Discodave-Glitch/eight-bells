@@ -5451,7 +5451,8 @@ function tick(){
   if(canSend()&&cfg.clock){
     while(clockTime<ac.currentTime+ahead){ mSend([0xF8],tsOf(clockTime)); clockTime+=60/state.bpm/24; }
   }
-  if(!tickWorker){ clearTimeout(timer); timer=setTimeout(tick,25); }
+  // A backup timer always runs beside the worker, so if a browser starts the worker but it never ticks, the music still carries on. tick() is safe to run twice.
+  clearTimeout(timer); timer=setTimeout(()=>{ if(playing) tick(); },tickWorker?60:25);
 }
 
 /* ---------- minimised tracks: notes scroll right to left past a playhead ---------- */
