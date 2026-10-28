@@ -97,6 +97,9 @@ body.nolbl .bt{display:none}
 #wizbar[hidden]{display:none}
 #wiztxt{flex:1 1 220px;font-weight:600}
 .ctlp{margin:0;padding:0;border:0;background:none;position:static}
+#autost{display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 16px}#autonx{color:var(--ink);opacity:.85;text-align:right;margin-left:auto}
+#rpt{width:100%;box-sizing:border-box;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:8px;font:12px/1.35 ui-monospace,Menlo,Consolas,monospace}
+#mkgood,#mkbad{padding:0 10px;min-width:44px}
 .ctlp summary{cursor:pointer;list-style:none;display:inline-flex;align-items:center;min-height:40px;padding:0 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);font-weight:600}
 .ctlp summary::-webkit-details-marker{display:none}
 .ctlp[open] summary{background:var(--ink);color:var(--bg)}
@@ -115,8 +118,8 @@ body.nolbl .bt{display:none}
   .top{flex:none;flex-wrap:nowrap;margin-bottom:4px;gap:6px}
   .top h1{font-size:clamp(15px,2.2vh,24px);white-space:nowrap}.top h1 small{display:none}
   .top .row{flex-wrap:nowrap;gap:5px}.top button,.top select{min-height:clamp(30px,4vh,46px);font-size:clamp(12px,1.6vh,17px);padding:0 10px}
-  @media (max-width:720px){ .top button,.top select{padding:0 7px} .top .row{gap:4px} }
-  #autost{flex:none;margin:0 0 4px!important;min-height:14px!important;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  @media (max-width:720px){ .top button,.top select{padding:0 6px} .top .row{gap:3px} #mkgood,#mkbad{min-width:32px;padding:0 4px} }
+  #autost{flex:none;margin:0 0 4px!important;min-height:14px!important;font-size:11px;white-space:nowrap;overflow:hidden;flex-wrap:nowrap}#autost span{min-width:0;overflow:hidden;text-overflow:ellipsis}#autost #auton{flex:1 1 52%}#autost #autonx{flex:1 1 48%}
   .console{flex:1 1 auto;min-height:0;grid-template-columns:minmax(0,1fr) clamp(190px,26vw,420px) minmax(0,1fr);gap:clamp(6px,1vh,14px);--k:clamp(22px,6.6vh,72px);--gb:clamp(28px,4.4vh,60px)}
   .deck{padding:clamp(6px,1vh,14px);gap:clamp(5px,.8vh,12px);min-height:0;overflow:hidden;border-width:2px;border-radius:14px}
   .dh{flex:none;gap:5px}.dh b{font-size:clamp(14px,2vh,22px)}.dh select{min-height:clamp(30px,4vh,48px);font-size:clamp(13px,1.7vh,18px)}
@@ -167,18 +170,20 @@ body.nolbl .bt{display:none}
 <div id="app" hidden>
   <div class="top">
     <h1>Eight Bells DJ<small>prototype, separate from the main app</small></h1>
-    <div class="row"><button id="gfx" title="Change the deck graphic">Deck: Bell</button><button id="auto" data-ctl="auto" data-kind="btn" aria-pressed="false">Auto DJ: off</button><select id="autolen" aria-label="Auto DJ length of each track"><option value="16">Each track 16 bars</option><option value="32">Each track 32 bars</option><option value="64" selected>Each track 64 bars</option></select><select id="autoset" aria-label="Auto DJ set length: endless or stop after a number of tracks"><option value="0" selected>Endless set</option><option value="4">4-track set</option><option value="6">6-track set</option><option value="10">10-track set</option><option value="m30">30 minute set</option><option value="m60">1 hour set</option><option value="m120">2 hour set</option><option value="m240">4 hour set</option></select><button id="bothplay">Play both</button><button id="bothstop">Stop both</button><details class="ctlp" id="ctlp"><summary>Setup</summary><div class="ctlbody">
+    <div class="row"><button id="gfx" title="Change the deck graphic">Deck: Bell</button><button id="auto" data-ctl="auto" data-kind="btn" aria-pressed="false">Auto DJ: off</button><button id="mkgood" data-ctl="markgood" data-kind="btn" aria-label="Mark this moment as good" title="That was good">👍</button><button id="mkbad" data-ctl="markbad" data-kind="btn" aria-label="Mark this moment as bad" title="That was bad">👎</button><select id="autolen" aria-label="Auto DJ length of each track"><option value="16">Track 16 bars</option><option value="32">Track 32 bars</option><option value="64" selected>Track 64 bars</option></select><select id="autoset" aria-label="Auto DJ set length: endless or stop after a number of tracks"><option value="0" selected>Endless set</option><option value="4">4-track set</option><option value="6">6-track set</option><option value="10">10-track set</option><option value="m30">30 minute set</option><option value="m60">1 hour set</option><option value="m120">2 hour set</option><option value="m240">4 hour set</option></select><button id="bothplay">Play both</button><button id="bothstop">Stop both</button><details class="ctlp" id="ctlp"><summary>Setup</summary><div class="ctlbody">
     <div class="row"><span id="midimsg" class="chip"></span></div>
     <div class="row"><button id="wiz">Guided setup</button><button id="learn">Learn one control</button><button id="teachA">Teach knob bank A</button><button id="teachB">Teach knob bank B</button><button id="clearmap">Clear mappings</button></div>
     <label class="row chip" style="cursor:pointer"><input type="checkbox" id="padlbl" checked> Show pad labels (A3, B5 and so on) next to the knobs and faders</label>
     <div class="chip" id="padnote"></div>
+    <div class="row"><b class="chip">Set report</b><button id="rptcopy">Copy</button><button id="rptshare">Share</button><button id="rptdl">Download</button></div>
+    <textarea id="rpt" readonly rows="6" aria-label="Auto DJ set report" placeholder="Start Auto DJ and the report builds as it plays."></textarea>
     <div class="chip" id="mon">Last message from your controller: none yet</div>
     <p class="hint">Guided setup walks through the controls one by one. When a control lights up yellow, press or move the matching control on your deck. Tap Skip for any it does not have. Your choices are remembered on this device. Jog wheel: turn it to nudge the tempo. CUE: hold it to preview, or tap it while playing to restart from the top. Double-tap an EQ or filter knob to centre it.</p>
     <p class="hint">SMC-PAD pads: Bank A pads are effects, Bank B pads are patterns (the pad's own Bank button picks). Pads 1 to 8 (bottom two rows) are Deck A and pads 9 to 16 (top two rows) are Deck B, read left to right: Intro, Build-up, Drop, Chorus, then Break, Bridge, Half, Outro (effects: Loop 1/4, Loop 1/8, Stutter, Reverse, then Tape stop, Low-pass, High-pass, Echo). Knob bank A (CC 30 to 37): knob 1 crossfader, knob 2 master volume, then the EQ with Deck A on the odd knobs and Deck B on the even knobs: Bass 3 and 4, Mid 5 and 6, Treble 7 and 8. Knob bank B (CC 38 to 45, or the numbers you taught Eight Bells Pad mode on this device): knobs 1 and 2 the same crossfader and master volume, then volumes 3 and 4, filters 5 and 6, tempos 7 and 8. Buttons: &lt; and &gt; (CC 25, 26) sync Deck A to Deck B and Deck B to Deck A, Play (27) and Stop (28) run both decks, Record (29) syncs Deck B to Deck A. If bank B does nothing on your pad, use Learn one control to teach it.</p>
     <p id="msg"></p>
   </div></details></div>
   </div>
-  <div class="chip" id="autost" style="min-height:1.4em;margin:-4px 0 8px"></div>
+  <div class="chip" id="autost" style="min-height:1.4em;margin:-4px 0 8px"><span id="auton"></span><span id="autonx"></span></div>
   <div class="console" id="console"></div>
 </div>
 <div id="wizbar" hidden><span id="wiztxt"></span><button id="wizskip">Skip</button><button id="wizstop">Done</button></div>
@@ -355,7 +360,11 @@ const clamp01=x=>Math.max(0,Math.min(1,x)), sm=x=>{ x=clamp01(x); return x*x*(3-
 const STYLES=['blend','bass swap','filter wash','crossfader wobble','breakdown'];
 const gstepOf=d=>ev(d,'gstep')||0;
 function barsOf(d){ return Math.floor((gstepOf(d)-AU.g0)/16); }
-function autoSay(t){ const e=$('autost'); if(e) e.textContent=t; }
+const LOG=[], TRK=[];
+function stamp(ms){ const s=Math.max(0,Math.round(ms/1000)), h=Math.floor(s/3600), m=Math.floor(s%3600/60), x=s%60; return (h?h+':':'')+(h?String(m).padStart(2,'0'):m)+':'+String(x).padStart(2,'0'); }
+function saveLog(){ try{ localStorage.setItem('ebdj.report',JSON.stringify({LOG:LOG.slice(-1500),TRK:TRK,set:AU.setInfo||'',t0:AU.tStart||0})); }catch(e){} }
+function alog(kind,text){ if(!AU.tStart||(!AU.on&&kind!=='stop')) return; LOG.push({t:Date.now()-AU.tStart,kind:kind,text:text,tr:AU.tr}); if(LOG.length>3000) LOG.shift(); AU.lastEv=text; if(kind!=='fx'&&kind!=='section'&&kind!=='eq'&&kind!=='sound') saveLog(); }
+function autoSay(t,nx){ const a=$('auton'), b=$('autonx'); if(!a||!b){ const e=$('autost'); if(e) e.textContent=t; return; } a.textContent=t; b.textContent=nx!==undefined?nx:''; }
 function pickGenre(bpm,not){
   if(!AU.gen) AU.gen=decks[0].win.eval('GENRES.map(function(g){return [g.id,g.bpm[0],g.bpm[1]]})');
   let c=AU.gen.filter(g=>not.indexOf(g[0])<0&&g[1]<=bpm+5&&g[2]>=bpm-5); // beginners' tip: stay within about 5 BPM
@@ -373,17 +382,51 @@ function rollFade(){ // each handover gets its own overlap length and a spell wh
 }
 const fadeBars=()=>Math.max(2,Math.min(AU.fadeT||AU.fade,AU.fade));
 const warp=(p,h)=>p<.3?p/.3*.45:(p<.3+h?.45+.05*(p-.3)/Math.max(h,.001):.5+.5*(p-.3-h)/(.7-h)); // quick bring-in, a side-by-side plateau, then the swap
+let GNAMES=null;
+function gname(id){ if(!GNAMES){ GNAMES={}; decks[0].win.eval('GENRES.map(function(g){return [g.id,g.name]})').forEach(x=>GNAMES[x[0]]=x[1]); } return GNAMES[id]||id; }
+function keyName(d){ try{ return ev(d,'NOTE_NAMES[state.key]+" "+String(state.scale)'); }catch(e){ return ''; } }
+function makePlan(c,n){ // decide what comes next ahead of time, so the status row can say so
+  const bpm=getBpm(c), ne=energyAt(AU.tr+1), P={ne:ne,bpm0:bpm,tgt:bpm,gid:null,nslow:false,kind:'normal',style:AU.force||STYLES[Math.floor(Math.random()*STYLES.length)],fade:fadeBars(),hold:AU.hold||0};
+  if(AU.slow){ P.tgt=bpm*2; P.kind='back'; }
+  else if(ne<.6&&AU.tr>=2&&Math.random()<.7){ const b2=bpm%2?bpm+1:bpm, g=pickFrom(EUPH,b2/2,[c.genre,n.genre],.18); if(g){ P.gid=g; P.tgt=b2/2; P.bpm0=b2; P.nslow=true; P.kind='euphoric'; } }
+  if(!P.gid&&ne>=.9){ const g=pickFrom(CLUB,P.tgt,[c.genre,n.genre],.06)||pickFrom(CLUB,P.tgt,[c.genre,n.genre],.12); if(g){ P.gid=g; P.kind='peak'; } }
+  if(!P.gid) P.gid=pickGenre(P.tgt,[c.genre,n.genre]);
+  P.gname=gname(P.gid); return P;
+}
+function planNext(c){ const n=D(c.id==='A'?'B':'A'); rollFade(); AU.plan=makePlan(c,n); AU.style=AU.plan.style; }
+function nowText(c){ const sec=ev(c,'state.section'), nm=(SECS.find(x=>x[0]===sec)||[0,''])[1]; return 'Deck '+c.id+' \u00b7 '+ev(c,'genreObj().name')+' \u00b7 '+getBpm(c)+' BPM \u00b7 '+keyName(c)+(nm?' \u00b7 '+nm:'')+' \u00b7 track '+AU.tr+(AU.max?' of '+AU.max:'')+' \u00b7 energy '+Math.round(AU.e*100)+'% ('+(AU.shape||'')+')'; }
+function nextText(c,left){ if(lastTrack(c)) return 'Next: final outro, echo and filter fade, then stop'; const P=AU.plan; if(!P) return ''; const k={euphoric:'slow euphoric half-time',peak:'big club peak',back:'back up to full tempo',normal:''}[P.kind]; return 'Next: '+P.style+' into '+P.gname+(k?' ('+k+')':'')+' at '+P.tgt+' BPM, '+P.fade+'-bar overlap '+(left>1?'in about '+left+' bars':'at the end of this phrase'); }
+function buildReport(){
+  if(!LOG.length&&!TRK.length) return '';
+  const L=[], dur=LOG.length?LOG[LOG.length-1].t:0;
+  L.push('# Eight Bells DJ set report','Date: '+new Date(AU.tStart||Date.now()).toLocaleString(),'Length: '+stamp(dur)+' | tracks: '+TRK.length,'Settings: '+(AU.setInfo||''),'Screen: '+innerWidth+'x'+innerHeight,'');
+  L.push('## Tracks'); TRK.forEach(t=>L.push(t.i+'. '+stamp(t.t)+'  Deck '+t.deck+' - '+t.genre+(t.engine?' ('+t.engine+')':'')+', '+t.bpm+' BPM, '+t.key+', energy '+t.energy+'%'+((t.kind&&t.kind!=='normal'&&t.kind!=='start')?' ['+t.kind+']':'')+(t.style?', came in by '+t.style+' ('+t.fade+'-bar overlap, '+t.hold+'% side by side)':'')));
+  const mk=LOG.filter(x=>x.kind==='mark'); L.push('','## Your marks ('+mk.length+')'); if(!mk.length) L.push('(none yet: tap thumbs up or down while it plays)'); mk.forEach(x=>L.push(stamp(x.t)+'  '+x.text));
+  L.push('','## Timeline'); LOG.forEach(x=>L.push(stamp(x.t)+'  '+x.text)); return L.join('\n');
+}
+function refreshReport(){ const e=$('rpt'); if(e) e.value=buildReport(); }
+function markSet(good){
+  if(!AU.on){ autoSay('Start Auto DJ first, then tap thumbs up or down while it plays.'); return; }
+  const c=D(AU.cur), n=D(AU.cur==='A'?'B':'A');
+  alog('mark',(good?'\uD83D\uDC4D GOOD':'\uD83D\uDC4E BAD')+' - '+nowText(c)+(AU.phase==='mix'?' | mid-handover into Deck '+n.id+' ('+AU.style+')':'')+(AU.lastEv?' | last move: '+AU.lastEv:''));
+  const b=$(good?'mkgood':'mkbad'); if(b){ b.classList.add('on'); setTimeout(()=>b.classList.remove('on'),600); } refreshReport();
+}
+function reportName(){ const d=new Date(AU.tStart||Date.now()), p=x=>String(x).padStart(2,'0'); return 'eight-bells-dj-set-'+d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+'-'+p(d.getHours())+p(d.getMinutes())+'.md'; }
+function reportCopy(){ refreshReport(); const t=$('rpt').value; if(!t) return; try{ navigator.clipboard.writeText(t).then(()=>autoSay('Report copied.'),()=>{ $('rpt').select(); document.execCommand('copy'); autoSay('Report copied.'); }); }catch(e){ $('rpt').select(); try{ document.execCommand('copy'); }catch(_){} } }
+function reportShare(){ refreshReport(); const t=$('rpt').value; if(!t) return; if(navigator.share) navigator.share({title:'Eight Bells DJ set report',text:t}).catch(()=>{}); else reportCopy(); }
+function reportDownload(){ refreshReport(); const t=$('rpt').value; if(!t) return; const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([t],{type:'text/markdown'})); a.download=reportName(); document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },500); }
+function trkPush(d,P,style){ TRK.push({i:AU.tr,deck:d.id,genre:ev(d,'genreObj().name'),engine:ev(d,'state.engine||""'),bpm:getBpm(d),key:keyName(d),kind:P?P.kind:'start',energy:Math.round(AU.e*100),t:Date.now()-AU.tStart,style:style||'',fade:P?P.fade:0,hold:P?Math.round((P.hold||0)*100):0}); }
 function lastTrack(c){ if(AU.max&&AU.tr>=AU.max) return true; return !!(AU.endAt&&AU.endAt-Date.now()<48*240000/getBpm(c)); } // out of tracks, or less than a track's worth of time left
 function autoOn(on){
   AU.on=on; clearInterval(AU.timer); const b=$('auto'); b.textContent='Auto DJ: '+(on?'on':'off'); b.classList.toggle('on',on); b.setAttribute('aria-pressed',on?'true':'false');
-  if(!on){ AU.phase='idle'; AU.endAt=0; wakeOn(false); autoSay(''); return; }
-  AU.len=+$('autolen').value||64; AU.fade=Math.min(32,Math.floor(AU.len/2)); rollFade(); { const v=($('autoset')&&$('autoset').value)||'0'; AU.max=/^m/.test(v)?0:(+v||0); AU.endAt=/^m/.test(v)?Date.now()+(+v.slice(1))*60000:0; wakeOn(true); } AU.tStart=Date.now(); AU.slow=false; AU.nslow=false; AU.built=false; AU.tr=1; AU.shape=['ramp','wave','story'][Math.floor(Math.random()*3)]; AU.e=energyAt(1); AU.chorus=false; AU.chQ=false; AU.fourth=false;
+  if(!on){ if(AU.phase!=='finished'&&AU.tStart) alog('stop','Auto DJ switched off'); AU.phase='idle'; AU.endAt=0; wakeOn(false); autoSay(''); refreshReport(); return; }
+  AU.len=+$('autolen').value||64; AU.fade=Math.min(32,Math.floor(AU.len/2)); rollFade(); { const v=($('autoset')&&$('autoset').value)||'0'; AU.max=/^m/.test(v)?0:(+v||0); AU.endAt=/^m/.test(v)?Date.now()+(+v.slice(1))*60000:0; wakeOn(true); } AU.tStart=Date.now(); LOG.length=0; TRK.length=0; AU.slow=false; AU.nslow=false; AU.built=false; AU.tr=1; AU.shape=['ramp','wave','story'][Math.floor(Math.random()*3)]; AU.e=energyAt(1); AU.chorus=false; AU.chQ=false; AU.fourth=false;
   const pa=playing(decks[0]), pb=playing(decks[1]);
   AU.cur=pb&&!pa?'B':'A'; const c=D(AU.cur), n=D(AU.cur==='A'?'B':'A');
   if(playing(n)) setPlay(n,false);
   S.xf=AU.cur==='A'?0:100; applyMix();
   if(!playing(c)) setPlay(c,true);
-  AU.g0=playing(c)?gstepOf(c):0; AU.lastBar=0; AU.flairAt=6; queueSec(c,rndSec(['intro','bld','drop'],'')); AU.phase='play'; AU.timer=setInterval(autoTick,120); autoSay('Auto DJ starting with Deck '+AU.cur+' ('+AU.shape+' set)...');
+  AU.g0=playing(c)?gstepOf(c):0; AU.lastBar=0; AU.flairAt=6; queueSec(c,rndSec(['intro','bld','drop'],'')); AU.phase='play'; AU.timer=setInterval(autoTick,120); autoSay('Auto DJ starting with Deck '+AU.cur+' ('+AU.shape+' set)...'); planNext(c); AU.setInfo='Track length '+AU.len+' bars, '+($('autoset').selectedOptions[0].text)+', energy shape '+AU.shape+', fade up to '+AU.fade+' bars'; alog('start','Auto DJ started: '+AU.setInfo); trkPush(c,null,'');
 }
 const MIDSEC=['bld','drop','chorus','brk','bridge','half'];
 const SHAPES={ramp:[.4,.5,.6,.75,.9,1],wave:[.4,.9,.5,1,.55,.85],story:[.35,.5,.7,1,.6,.4]}; // energy arcs for a set
@@ -402,7 +445,7 @@ function bigBuild(c){ // club-land: strip back, riser, loops tighten, then the d
 }
 const midPool=()=>AU.e<.6?['brk','bridge','half','bld','chorus']:(AU.e>=.9?['drop','chorus','drop','bld','half']:MIDSEC);
 function rndSec(pool,not){ const c=pool.filter(x=>x!==not); return c[Math.floor(Math.random()*c.length)]; }
-function queueSec(d,id){ AU.last=id; ev(d,"(function(id){ if(SONG.on) return; if(playing){ LV.next=(id===state.section)?null:id; } else { goSection(id); LV.next=null; } })('"+id+"')"); }
+function queueSec(d,id){ AU.last=id; { const nm=(SECS.find(x=>x[0]===id)||[0,id])[1]; if(AU.on) alog('section','Deck '+d.id+': '+nm+' next'); } ev(d,"(function(id){ if(SONG.on) return; if(playing){ LV.next=(id===state.section)?null:id; } else { goSection(id); LV.next=null; } })('"+id+"')"); }
 const MINORISH={minor:1,dorian:1,phrygian:1,minpent:1,harmonic:1};
 function matchKey(c,n){ // harmonic mixing: same key, a fifth up or down, or the relative major or minor
   try{ const ck=+ev(c,'state.key'), cm=MINORISH[ev(c,'state.scale')]?1:0, nm=MINORISH[ev(n,'state.scale')]?1:0;
@@ -414,11 +457,15 @@ function freshDeck(d,id){ // new genre with a random engine, random sounds from 
   newBase(d); const sel=$('deck'+d.id)&&$('deck'+d.id).querySelector('select'); if(sel) sel.value=id;
 }
 function swapSound(d){ // change one instrument role (bass, stab, arp or lead) on the fly
+  const r=swapSound0(d); alog('sound','Deck '+d.id+': new sound '+r); return r;
+}
+function swapSound0(d){
   return ev(d,"(function(){ var map={bass:['Bass'],stab:['Stabs and chords','Keys and organs','Pads','Brass and reeds'],arp:['Plucks and bells','Keys and organs','Leads','World'],lead:['Leads','Brass and reeds','Strings and bowed','World']}; var ks=Object.keys(map), r=ks[Math.floor(Math.random()*ks.length)]; var l=PATCH_LIST.filter(function(p){return map[r].indexOf(p[2])>=0}).map(function(p){return p[0]}).filter(function(x){return PATCHES[x]}); var c=bagPick('patch-'+r,l); PV.patch[r]=c; if(typeof savePV==='function') savePV(); if(typeof renderPreview==='function') renderPreview(); return r+':'+c; })()");
 }
-function fxHit(d,name,ms){ const i=FXN.indexOf(name); if(i<0) return; fx(d,i,true); setTimeout(()=>fx(d,i,false),ms); }
+function fxHit(d,name,ms){ const i=FXN.indexOf(name); if(i<0) return; alog('fx','Deck '+d.id+': '+name+' for '+Math.max(1,Math.round(ms/(60000/getBpm(d))))+' beats'); fx(d,i,true); setTimeout(()=>fx(d,i,false),ms); }
 function startSwell(c){ // a bass, mid or treble swell: push a band up (or dip it for a tease) and bring it back
   const band=['l','m','h'][Math.floor(Math.random()*3)], up=Math.random()<0.7, amp=up?(55+Math.random()*45):-(60+Math.random()*40);
+  alog('eq','Deck '+c.id+': '+({l:'bass',m:'mid',h:'treble'})[band]+' '+(amp>0?'swell up':'dip')+' ('+Math.round(amp)+')');
   AU.swell={id:c.id,band:band,amp:amp,t0:Date.now(),dur:60000/getBpm(c)*[4,8,12][Math.floor(Math.random()*3)]};
 }
 function swellTick(c){
@@ -466,7 +513,7 @@ function autoTick(){
   if(AU.phase==='play'){
     if(!playing(c)){ autoOn(false); autoSay('Auto DJ stopped because the deck was stopped.'); return; }
     const lenNow=AU.slow?AU.len/2:AU.len, fadeNow=AU.slow?Math.max(4,Math.floor(fadeBars()/2)):fadeBars(), left=lenNow-fadeNow-barsOf(c);
-    autoSay('Auto DJ: Deck '+c.id+' ('+ev(c,'genreObj().name')+') is playing. '+(left>1?'Next mix in about '+left+' bars.':'Next mix starts at the end of this phrase.'));
+    autoSay(nowText(c),nextText(c,left));
     if(AU.e>=.9&&!AU.built&&!AU.slow&&barsOf(c)>=12&&left>8){ AU.built=true; bigBuild(c); }
     { const sec=ev(c,'state.section'); if(sec==='chorus'||sec==='drop') AU.chorus=true; }
     if(left>0){ autoStepSecs(c); autoFlair(c); swellTick(c); } else if(AU.swell){ const w=D(AU.swell.id); if(w) w.eq[AU.swell.band]=0; AU.swell=null; }
@@ -474,38 +521,34 @@ function autoTick(){
     const a0=timing(c), barMs0=16*60/a0.bpm/4*1000, rem0=(((barTime(a0)-a0.now)%barMs0)+barMs0)%barMs0;
     const onPhrase=(barsOf(c)%8===7&&rem0>350); // start the handover so the new tune lands on a fresh 8-bar phrase
     if(left<=1&&(onPhrase||left<-8)&&lastTrack(c)){
-      AU.phase='end'; AU.t0=Date.now(); AU.fourth=false; AU.fadeMix=AU.slow?Math.max(4,Math.floor(fadeBars()/2)):fadeBars(); queueSec(c,'outro');
+      AU.phase='end'; AU.t0=Date.now(); AU.fourth=false; alog('finale','Last track: outro, echo and a long filter fade'); AU.fadeMix=AU.slow?Math.max(4,Math.floor(fadeBars()/2)):fadeBars(); queueSec(c,'outro');
     } else if(left<=1&&(onPhrase||left<-8)){
       AU.phase='wait';
-      let bpm=getBpm(c); AU.ne=energyAt(AU.tr+1); AU.fadeMix=AU.slow?Math.max(4,Math.floor(fadeBars()/2)):fadeBars();
-      let tgt=bpm, gid=null; AU.nslow=false;
-      if(AU.slow){ tgt=bpm*2; } // come back up from half-time
-      else if(AU.ne<.6&&AU.tr>=2&&Math.random()<.7){ // a slow, euphoric passage: half the tempo, dreamy genre
-        if(bpm%2){ bpm++; setBpm(c,bpm); } const g=pickFrom(EUPH,bpm/2,[c.genre,n.genre],.18); if(g){ gid=g; tgt=bpm/2; AU.nslow=true; } }
-      if(!gid&&AU.ne>=.9) gid=pickFrom(CLUB,tgt,[c.genre,n.genre],.06)||pickFrom(CLUB,tgt,[c.genre,n.genre],.12); // a big club genre for a peak
-      if(!gid) gid=pickGenre(tgt,[c.genre,n.genre]);
-      freshDeck(n,gid); setBpm(n,tgt); n.base=tgt; matchKey(c,n); if(AU.nslow) euphSounds(n);
+      const bpmNow=getBpm(c); let P=AU.plan; if(!P||Math.abs(P.bpm0-bpmNow)>1) P=makePlan(c,n); if(AU.slow) P.tgt=bpmNow*2;
+      AU.ne=P.ne; AU.fadeMix=AU.slow?Math.max(4,Math.floor(fadeBars()/2)):fadeBars(); AU.nslow=P.nslow; AU.style=P.style;
+      if(P.nslow&&bpmNow%2) setBpm(c,bpmNow+1);
+      freshDeck(n,P.gid); setBpm(n,P.tgt); n.base=P.tgt; matchKey(c,n); if(P.nslow) euphSounds(n);
       queueSec(n,rndSec(['intro','bld','intro'],''));
       queueSec(c,rndSec(['outro','outro','brk','bridge'],''));
-      AU.style=AU.force||STYLES[Math.floor(Math.random()*STYLES.length)];
-      lockStart(n,c,()=>{ AU.phase='mix'; AU.t0=Date.now(); AU.half=false; AU.third=false; AU.fourth=false; });
+      AU.pend=P; alog('handover','Deck '+c.id+' into Deck '+n.id+': '+P.style+', '+P.gname+' ('+ev(n,'state.engine||""')+') at '+P.tgt+' BPM in '+keyName(n)+', '+fadeBars()+'-bar overlap, '+Math.round((AU.hold||0)*100)+'% side by side'+(P.kind!=='normal'?' ['+P.kind+']':''));
+      lockStart(n,c,()=>{ alog('mix','Deck '+n.id+' starts on the phrase'); AU.phase='mix'; AU.t0=Date.now(); AU.half=false; AU.third=false; AU.fourth=false; });
     }
   }
   else if(AU.phase==='mix'){
     const barMs=240000/getBpm(c), p=Math.min(1,(Date.now()-AU.t0)/(AU.fadeMix*barMs));
     autoMix(c,n,warp(p,AU.hold||0));
-    autoSay('Auto DJ: mixing Deck '+c.id+' into Deck '+n.id+' ('+ev(n,'genreObj().name')+') with a '+AU.style+'. '+Math.round(p*100)+'% of the way through.');
+    autoSay('Mixing Deck '+c.id+' into Deck '+n.id+' ('+ev(n,'genreObj().name')+') with a '+AU.style+' \u00b7 '+Math.round(p*100)+'%','Now: '+(p<.3?'bringing the new tune in':(p<.3+(AU.hold||0)?'both tunes playing side by side':(p<.85?'swapping the bass and mids across':'echoing the old tune out'))));
     if(p>=0.5&&!AU.half){ AU.half=true; fxHit(c,'Echo',240000/getBpm(c)/2); queueSec(n,rndSec(AU.ne<.6?['half','bld','bridge']:['drop','chorus','half','bld'],'')); }
     if(p>=0.8&&!AU.third){ AU.third=true; const pk=rndSec(AU.ne<.6?['bridge','half','chorus']:(AU.ne>=.9?['drop','drop','chorus']:['drop','chorus','bridge']),''); queueSec(n,pk); if(pk==='drop'){ const bt=60000/getBpm(n); setTimeout(()=>{ if(AU.on) fxHit(n,'Loop 1/8',bt); },bt*2); } } // loops tighten into the drop // half-beat delay-style roll into the drop
     if(p>=0.85&&!AU.fourth){ AU.fourth=true; fxHit(c,'Echo',60000/getBpm(c)*4); } // echo out the old track
-    if(p>=1){ setPlay(c,false); c.eq={l:0,m:0,h:0}; c.filt=0; n.eq={l:0,m:0,h:0}; n.filt=0; applyMix(); AU.cur=n.id; AU.g0=0; AU.lastBar=Math.floor(barsOf(n)); AU.flairAt=Math.floor(barsOf(n))+6; AU.chorus=false; AU.chQ=false; AU.built=false; AU.slow=AU.nslow; rollFade(); AU.tr++; AU.e=energyAt(AU.tr); AU.phase='play'; }
+    if(p>=1){ setPlay(c,false); c.eq={l:0,m:0,h:0}; c.filt=0; n.eq={l:0,m:0,h:0}; n.filt=0; applyMix(); AU.cur=n.id; AU.g0=0; AU.lastBar=Math.floor(barsOf(n)); AU.flairAt=Math.floor(barsOf(n))+6; AU.chorus=false; AU.chQ=false; AU.built=false; AU.slow=AU.nslow; AU.tr++; AU.e=energyAt(AU.tr); AU.phase='play'; trkPush(n,AU.pend,AU.style); alog('mix','Deck '+n.id+' is now the main deck (track '+AU.tr+')'); planNext(n); }
   }
   else if(AU.phase==='end'){ // planned ending: outro, echo and a long filter close, then stop
     const barMs=240000/getBpm(c), p=Math.min(1,(Date.now()-AU.t0)/(AU.fadeMix*barMs));
     c.filt=-Math.round(88*sm(seg(p,0.1,0.95))); c.eq={l:Math.round(-70*seg(p,0.4,1)),m:0,h:0}; c.vol=Math.round(85*(1-sm(seg(p,0.55,1))));
     if(p>=0.6&&!AU.fourth){ AU.fourth=true; fxHit(c,'Echo',barMs/2); }
-    applyMix(); autoSay('Auto DJ: finishing the set on Deck '+c.id+'. '+Math.round(p*100)+'% of the way through.');
-    if(p>=1){ setPlay(c,false); c.vol=0; applyMix(); setTimeout(()=>{ c.eq={l:0,m:0,h:0}; c.filt=0; c.vol=85; applyMix(); },2500); const k=AU.tr, mins=Math.round((Date.now()-AU.tStart)/60000); autoOn(false); autoSay('Auto DJ: set finished after '+k+' tracks ('+mins+' min).'); }
+    applyMix(); autoSay('Finishing the set on Deck '+c.id+' \u00b7 '+Math.round(p*100)+'%','Now: outro, echo and filter closing');
+    if(p>=1){ setPlay(c,false); c.vol=0; applyMix(); setTimeout(()=>{ c.eq={l:0,m:0,h:0}; c.filt=0; c.vol=85; applyMix(); },2500); const k=AU.tr, mins=Math.round((Date.now()-AU.tStart)/60000); alog('finish','Set finished after '+k+' tracks ('+stamp(Date.now()-AU.tStart)+')'); AU.phase='finished'; autoOn(false); autoSay('Auto DJ: set finished after '+k+' tracks ('+mins+' min).','The report is in Setup.'); }
   }
 }
 function bend(d,dir,on){ if(on){ if(d.bendSave==null){ d.bendSave=getBpm(d); setBpm(d,d.bendSave*(1+dir*0.04)); } } else if(d.bendSave!=null){ setBpm(d,d.bendSave); d.bendSave=null; } }
@@ -520,7 +563,7 @@ function padAct(d,j,on,mode){ // j is 0 to 7, mode 0 effects or 1 patterns
 }
 
 /* ---------- named controls: used by taps, the platter and MIDI learn ---------- */
-const NAMES={auto:'Auto DJ button',prev:'Pad button < (sync A)',next:'Pad button > (sync B)',playall:'Pad button Play',stopall:'Pad button Stop',focus:'Pad button Record (sync)',sec:'Pattern',fx:'Effect',play:'PLAY',cue:'CUE',sync:'SYNC',bass:'Bass knob',mid:'Mid knob',treb:'Treble knob',filt:'Filter knob',vol:'Channel volume fader',tempo:'Pitch (tempo) fader',jog:'Jog wheel (turn it)',mode:'Pad mode button',bendm:'Bend slower',bendp:'Bend faster',xf:'Crossfader',mv:'Master volume'};
+const NAMES={markgood:'Mark: that was good',markbad:'Mark: that was bad',auto:'Auto DJ button',prev:'Pad button < (sync A)',next:'Pad button > (sync B)',playall:'Pad button Play',stopall:'Pad button Stop',focus:'Pad button Record (sync)',sec:'Pattern',fx:'Effect',play:'PLAY',cue:'CUE',sync:'SYNC',bass:'Bass knob',mid:'Mid knob',treb:'Treble knob',filt:'Filter knob',vol:'Channel volume fader',tempo:'Pitch (tempo) fader',jog:'Jog wheel (turn it)',mode:'Pad mode button',bendm:'Bend slower',bendp:'Bend faster',xf:'Crossfader',mv:'Master volume'};
 function ctlName(id){ const p=id.split(':'); if(p[0]==='pad') return 'Deck '+p[1]+' pad '+(+p[2]+1); if(p[0]==='sec') return 'Deck '+p[1]+' pattern: '+SECS[+p[2]][1]; if(p[0]==='fx') return 'Deck '+p[1]+' effect: '+FXN[+p[2]]; return (p[1]?'Deck '+p[1]+' ':'')+(NAMES[p[0]]||id); }
 function stepGenre(dir){
   const d=D(S.focus), sel=$('deck'+d.id).querySelector('select'), n=sel.options.length; let i=sel.selectedIndex+dir; i=Math.max(0,Math.min(n-1,i)); if(i===sel.selectedIndex) return;
@@ -528,6 +571,7 @@ function stepGenre(dir){
 }
 function setFocus(id){ S.focus=id; decks.forEach(x=>$('deck'+x.id).classList.toggle('focus',x.id===id)); const b=$('focusb'); }
 function ctlPress(id){
+  if(id==='markgood') return markSet(true); if(id==='markbad') return markSet(false);
   if(id==='auto') return autoOn(!AU.on); if(id==='prev') return syncTo(decks[0]); if(id==='next') return syncTo(decks[1]); if(id==='playall') return bothPlay(); if(id==='stopall') return bothStop(); if(id==='focus') return sync();
   const p=id.split(':'), d=D(p[1]);
   if(p[0]==='play'){ if(d.syncing){ clearTimeout(d.syncT); d.syncing=false; const e=document.querySelector('[data-ctl="sync:'+d.id+'"]'); if(e) e.classList.remove('on'); } else togglePlay(d); } else if(p[0]==='sync') syncTo(d); else if(p[0]==='mode'){ d.page=(d.page+1)%4; paintPads(); } else if(p[0]==='sec') section(d,SECS[+p[2]][0]);
@@ -699,6 +743,8 @@ function wireUI(){
   document.addEventListener('pointerup',pup); document.addEventListener('pointercancel',pup);
   document.addEventListener('dblclick',e=>{ const k=e.target.closest&&e.target.closest('.kd'); if(!k) return; const inp=k.querySelector('input'); if(inp.dataset.eq||inp.dataset.f){ inp.value=0; inp.dispatchEvent(new Event('input',{bubbles:true})); } });
   $('gfx').addEventListener('click',()=>setGfx(GFXI+1)); { let on=true; try{ on=localStorage.getItem('ebdj.lbl')!=='0'; }catch(e){} setLbl(on); $('padlbl').addEventListener('change',e=>setLbl(e.target.checked)); } $('gfx').textContent='Deck: '+GFX[GFXI][0];
+  $('mkgood').addEventListener('click',()=>markSet(true)); $('mkbad').addEventListener('click',()=>markSet(false)); $('rptcopy').addEventListener('click',reportCopy); $('rptshare').addEventListener('click',reportShare); $('rptdl').addEventListener('click',reportDownload); $('ctlp').addEventListener('toggle',refreshReport);
+  try{ const r=JSON.parse(localStorage.getItem('ebdj.report')||'null'); if(r&&r.LOG&&!LOG.length){ r.LOG.forEach(x=>LOG.push(x)); (r.TRK||[]).forEach(x=>TRK.push(x)); AU.setInfo=r.set||''; AU.tStart=r.t0||0; refreshReport(); } }catch(e){}
   $('auto').addEventListener('click',()=>autoOn(!AU.on)); $('autolen').addEventListener('change',()=>{ if(AU.on){ AU.len=+$('autolen').value; AU.fade=Math.min(32,Math.floor(AU.len/2)); } });
   $('bothplay').addEventListener('click',bothPlay); $('bothstop').addEventListener('click',bothStop);
   $('wiz').addEventListener('click',()=>learnStart(wizList()));
@@ -719,7 +765,7 @@ $('go').addEventListener('click',()=>{
 });
 boot();
 // for tests
-window.__djTest={warp:warp,rollFade:rollFade,fadeBars:fadeBars,EUPH:EUPH,CLUB:CLUB,bigBuild:bigBuild,lastTrack:lastTrack,matchKey:matchKey,barsOf:barsOf,gstepOf:gstepOf,pickGenre:pickGenre,energyAt:energyAt,SHAPES:SHAPES,GFX:GFX,setGfx:setGfx,startSwell:startSwell,swellTick:swellTick,freshDeck:freshDeck,swapSound:swapSound,autoFlair:autoFlair,autoStepSecs:autoStepSecs,autoMix:autoMix,STYLES:STYLES,AU:AU,autoOn:autoOn,timing:timing,barTime:barTime,PC:PC,stepGenre:stepGenre,decks:decks,S:S,knob:knob,knobB:knobB,onMidi:onMidi,onNote:onNote,applyMix:applyMix,cross:cross,MAP:()=>MAP};
+window.__djTest={planNext:planNext,LOG:LOG,TRK:TRK,buildReport:buildReport,markSet:markSet,makePlan:makePlan,nowText:nowText,nextText:nextText,warp:warp,rollFade:rollFade,fadeBars:fadeBars,EUPH:EUPH,CLUB:CLUB,bigBuild:bigBuild,lastTrack:lastTrack,matchKey:matchKey,barsOf:barsOf,gstepOf:gstepOf,pickGenre:pickGenre,energyAt:energyAt,SHAPES:SHAPES,GFX:GFX,setGfx:setGfx,startSwell:startSwell,swellTick:swellTick,freshDeck:freshDeck,swapSound:swapSound,autoFlair:autoFlair,autoStepSecs:autoStepSecs,autoMix:autoMix,STYLES:STYLES,AU:AU,autoOn:autoOn,timing:timing,barTime:barTime,PC:PC,stepGenre:stepGenre,decks:decks,S:S,knob:knob,knobB:knobB,onMidi:onMidi,onNote:onNote,applyMix:applyMix,cross:cross,MAP:()=>MAP};
 })();
 </script>
 </body>
