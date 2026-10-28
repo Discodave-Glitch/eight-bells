@@ -775,6 +775,7 @@ html.st-lock,html.st-lock body{overflow:hidden}
         <div id="fwl"></div>
       </details>
       <div class="field"><span class="lbl">Sound comes from</span><div class="seg" id="mtarget"></div></div>
+      <details class="ccbox" id="diagbox"><summary>Sound check (for troubleshooting)</summary><p class="hint" id="diagtxt" aria-live="off"></p></details>
       <div class="mrow" id="mch"></div>
       <div class="mrow" id="mdrum"></div>
       <label class="check"><input type="checkbox" id="mclock"><span>Send MIDI clock and Start/Stop. Sloop: set SYNC to USB, and its own tracks will then run too. Some firmwares, such as X0X, follow the clock by themselves.</span></label>
@@ -5187,8 +5188,8 @@ function meterPaint(){
     const v=Math.max(pk,(+el.dataset.v||0)*0.82); el.dataset.v=v<0.01?0:v; el.firstChild.style.transform='scaleX('+Math.min(1,v*1.4)+')';
   });
 }
-function sfx(f,key,pan,lvl){ const keep=master; try{ if(lvl===0) return; if(key&&ac&&masterReal) master=busFor(key,pan,lvl); f(); }catch(e){ SFX_ERR++; if(SFX_ERR<=3){ try{ const m=$('recmsg'); if(m&&!REC.on) m.textContent='A sound could not play on this browser ('+(e&&e.message?e.message:'error')+'; instruments: '+['bass','stab','arp','lead'].map(patchId).join(', ')+'). Playback carries on without it.'; }catch(_){} } }finally{ master=keep; } }
-let SFX_ERR=0;
+function sfx(f,key,pan,lvl){ const keep=master; try{ if(lvl===0) return; if(key&&ac&&masterReal) master=busFor(key,pan,lvl); f(); }catch(e){ SFX_ERR++; SFX_LAST=String(e&&e.message||e); if(SFX_ERR<=3){ try{ const m=$('recmsg'); if(m&&!REC.on) m.textContent='A sound could not play on this browser ('+(e&&e.message?e.message:'error')+'; instruments: '+['bass','stab','arp','lead'].map(patchId).join(', ')+'). Playback carries on without it.'; }catch(_){} } }finally{ master=keep; } }
+let SFX_ERR=0, SFX_LAST='', TICKN=0; const BUILD='b1400';
 function schedule(step,time){
   const preview=cfg.target!=='midi'||!midi.out, send=canSend();
   if(preview){
@@ -5229,6 +5230,8 @@ function startTicker(){
     w.postMessage('start'); tickWorker=w; return true;
   }catch(_){ tickWorker=null; return false; }
 }
+setInterval(()=>{ const b=$('diagbox'); if(!b||!b.open) return; const t=$('diagtxt'); if(!t) return;
+  t.textContent='Build '+BUILD+' | audio '+(ac?ac.state:'not started')+' | audio clock '+(ac?ac.currentTime.toFixed(1):'-')+' | playing '+playing+' | step '+gstep+' | ticks '+TICKN+' | worker '+(tickWorker?'yes':'no')+' | timer '+(timer?'yes':'no')+' | errors '+SFX_ERR+(SFX_LAST?' | last error: '+SFX_LAST:''); },400);
 function stopTicker(){ if(tickWorker){ try{ tickWorker.postMessage('stop'); tickWorker.terminate(); }catch(_){} tickWorker=null; } }
 /* ---------- My seeds: save patterns (share codes or exact codes) and recall them later, or let Auto song use them ---------- */
 const LIB_KEY='ebm-seedlib';
@@ -5441,10 +5444,11 @@ $('songplay').addEventListener('click',()=>{
 })();
 songPaint();
 function tick(){
+  TICKN++;
   const ahead=document.hidden?1.5:0.12;
   while(nextTime<ac.currentTime+ahead){
     autoStep(); songStep(); lvStep(); if(!playing) return;
-    try{ schedule(gstep,nextTime); }catch(_){ SFX_ERR++; }
+    try{ schedule(gstep,nextTime); }catch(e){ SFX_ERR++; SFX_LAST='schedule: '+String(e&&e.message||e); }
     nextTime+=60/state.bpm/4;
     gstep++;
   }
