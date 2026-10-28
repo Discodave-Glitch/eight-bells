@@ -269,7 +269,9 @@ function lockStart(d,o,done){ // start deck d exactly on deck o's next bar
   d.syncing=true; d.syncT=setTimeout(()=>{ d.syncing=false; ev(d,"startPlay()"); if(done) done(); },Math.max(0,T-lead-a.now));
 }
 /* ---------- Auto DJ: plays a deck for a while, brings the other in on the beat with a new tune, crossfades, swaps, repeats ---------- */
-const AU={on:false,cur:'A',phase:'idle',len:32,fade:8,g0:0,t0:0,half:false,timer:null,gen:null};
+const AU={on:false,cur:'A',phase:'idle',len:32,fade:16,g0:0,t0:0,half:false,timer:null,gen:null,style:'',force:''};
+const clamp01=x=>Math.max(0,Math.min(1,x)), sm=x=>{ x=clamp01(x); return x*x*(3-2*x); }, seg=(p,a,b)=>clamp01((p-a)/(b-a));
+const STYLES=['blend','bass swap','filter wash','crossfader wobble'];
 const gstepOf=d=>ev(d,'gstep')||0;
 function barsOf(d){ return Math.floor((gstepOf(d)-AU.g0)/16); }
 function autoSay(t){ const e=$('autost'); if(e) e.textContent=t; }
@@ -282,13 +284,33 @@ function pickGenre(bpm,not){
 function autoOn(on){
   AU.on=on; clearInterval(AU.timer); const b=$('auto'); b.textContent='Auto DJ: '+(on?'on':'off'); b.classList.toggle('on',on); b.setAttribute('aria-pressed',on?'true':'false');
   if(!on){ AU.phase='idle'; autoSay(''); return; }
-  AU.len=+$('autolen').value||32; AU.fade=Math.min(8,Math.floor(AU.len/4));
+  AU.len=+$('autolen').value||32; AU.fade=Math.min(16,Math.floor(AU.len/2));
   const pa=playing(decks[0]), pb=playing(decks[1]);
   AU.cur=pb&&!pa?'B':'A'; const c=D(AU.cur), n=D(AU.cur==='A'?'B':'A');
   if(playing(n)) setPlay(n,false);
   S.xf=AU.cur==='A'?0:100; applyMix();
   if(!playing(c)) setPlay(c,true);
-  AU.g0=playing(c)?gstepOf(c):0; AU.phase='play'; AU.timer=setInterval(autoTick,250); autoSay('Auto DJ starting with Deck '+AU.cur+'...');
+  AU.g0=playing(c)?gstepOf(c):0; AU.phase='play'; AU.timer=setInterval(autoTick,120); autoSay('Auto DJ starting with Deck '+AU.cur+'...');
+}
+function autoMix(c,n,p){ // moves the crossfader and the bass, mid and treble of both decks through one of several handover styles
+  const from=c.id==='A'?0:100, to=n.id==='A'?0:100, at=q=>Math.round(from+(to-from)*clamp01(q)), E=v=>Math.round(v);
+  let q, ce={l:0,m:0,h:0}, ne={l:0,m:0,h:0}, cf=0, nf=0;
+  const swapB=(a,b)=>{ const k=sm(seg(p,a,b)); ce.l=-100*k; ne.l=-100*(1-k); };
+  if(AU.style==='bass swap'){
+    q=p<0.2?sm(p/0.2)*0.5:(p<0.55?0.5:0.5+0.5*sm(seg(p,0.55,1)));
+    swapB(0.5,0.58); ne.h=-55*(1-seg(p,0,0.3)); ce.h=-45*seg(p,0.6,1); ne.m=-25*(1-seg(p,0.1,0.5));
+  } else if(AU.style==='filter wash'){
+    q=sm(seg(p,0.1,0.9)); cf=80*sm(seg(p,0.2,0.9)); nf=-85*(1-sm(seg(p,0.1,0.6)));
+    swapB(0.5,0.62); ce.m=-30*seg(p,0.5,1);
+  } else if(AU.style==='crossfader wobble'){
+    q=sm(seg(p,0.1,0.95))+0.18*Math.sin(p*Math.PI*6)*(1-p)*(p>0.05?1:0);
+    swapB(0.55,0.65); ne.m=-40*(1-seg(p,0,0.7)); ce.h=-35*seg(p,0.6,1); ne.h=-30*(1-seg(p,0,0.5));
+  } else { // blend
+    q=sm(p); swapB(0.35,0.65); ne.h=-70*(1-seg(p,0,0.5)); ce.h=-60*seg(p,0.5,1); ne.m=-30*(1-seg(p,0,0.6)); ce.m=-30*seg(p,0.5,1);
+  }
+  S.xf=at(q); c.eq={l:E(ce.l),m:E(ce.m),h:E(ce.h)}; n.eq={l:E(ne.l),m:E(ne.m),h:E(ne.h)}; c.filt=E(cf); n.filt=E(nf);
+  if(p>=1){ S.xf=to; }
+  applyMix();
 }
 function autoTick(){
   if(!AU.on) return;
@@ -302,15 +324,16 @@ function autoTick(){
       const bpm=getBpm(c); setGenre(n,pickGenre(bpm,[c.genre,n.genre])); setBpm(n,bpm); n.base=bpm;
       ev(n,"(function(){ goSection('intro'); LV.next=null; })()");
       ev(c,"(function(){ if(!SONG.on) LV.next='outro'; })()");
+      AU.style=AU.force||STYLES[Math.floor(Math.random()*STYLES.length)];
       lockStart(n,c,()=>{ AU.phase='mix'; AU.t0=Date.now(); AU.half=false; });
     }
   }
   else if(AU.phase==='mix'){
     const barMs=240000/getBpm(c), p=Math.min(1,(Date.now()-AU.t0)/(AU.fade*barMs));
-    const from=c.id==='A'?0:100, to=n.id==='A'?0:100; S.xf=Math.round(from+(to-from)*p); applyMix();
-    autoSay('Auto DJ: mixing Deck '+c.id+' into Deck '+n.id+' ('+ev(n,'genreObj().name')+') '+Math.round(p*100)+'%');
+    autoMix(c,n,p);
+    autoSay('Auto DJ: '+AU.style+' from Deck '+c.id+' into Deck '+n.id+' ('+ev(n,'genreObj().name')+') '+Math.round(p*100)+'%');
     if(p>=0.5&&!AU.half){ AU.half=true; ev(n,"(function(){ if(!SONG.on) LV.next='drop'; })()"); }
-    if(p>=1){ setPlay(c,false); AU.cur=n.id; AU.g0=0; AU.phase='play'; }
+    if(p>=1){ setPlay(c,false); c.eq={l:0,m:0,h:0}; c.filt=0; n.eq={l:0,m:0,h:0}; n.filt=0; applyMix(); AU.cur=n.id; AU.g0=0; AU.phase='play'; }
   }
 }
 function bend(d,dir,on){ if(on){ if(d.bendSave==null){ d.bendSave=getBpm(d); setBpm(d,d.bendSave*(1+dir*0.04)); } } else if(d.bendSave!=null){ setBpm(d,d.bendSave); d.bendSave=null; } }
@@ -501,7 +524,7 @@ function wireUI(){
   const pup=e=>{ const p=e.target.closest&&e.target.closest('.plat'); if(p) p._drag=false; };
   document.addEventListener('pointerup',pup); document.addEventListener('pointercancel',pup);
   document.addEventListener('dblclick',e=>{ const k=e.target.closest&&e.target.closest('.kd'); if(!k) return; const inp=k.querySelector('input'); if(inp.dataset.eq||inp.dataset.f){ inp.value=0; inp.dispatchEvent(new Event('input',{bubbles:true})); } });
-  $('auto').addEventListener('click',()=>autoOn(!AU.on)); $('autolen').addEventListener('change',()=>{ if(AU.on){ AU.len=+$('autolen').value; AU.fade=Math.min(8,Math.floor(AU.len/4)); } });
+  $('auto').addEventListener('click',()=>autoOn(!AU.on)); $('autolen').addEventListener('change',()=>{ if(AU.on){ AU.len=+$('autolen').value; AU.fade=Math.min(16,Math.floor(AU.len/2)); } });
   $('bothplay').addEventListener('click',bothPlay); $('bothstop').addEventListener('click',bothStop);
   $('wiz').addEventListener('click',()=>learnStart(wizList()));
   $('teachA').addEventListener('click',()=>{ $('msg').textContent='Set the pad to knob bank A, then turn its knobs 1 to 8 one at a time, in order.'; learnStart(['xf','mv','bass:A','bass:B','mid:A','mid:B','treb:A','treb:B']); });
@@ -521,7 +544,7 @@ $('go').addEventListener('click',()=>{
 });
 boot();
 // for tests
-window.__djTest={AU:AU,autoOn:autoOn,timing:timing,barTime:barTime,PC:PC,stepGenre:stepGenre,decks:decks,S:S,knob:knob,knobB:knobB,onMidi:onMidi,onNote:onNote,applyMix:applyMix,cross:cross,MAP:()=>MAP};
+window.__djTest={autoMix:autoMix,STYLES:STYLES,AU:AU,autoOn:autoOn,timing:timing,barTime:barTime,PC:PC,stepGenre:stepGenre,decks:decks,S:S,knob:knob,knobB:knobB,onMidi:onMidi,onNote:onNote,applyMix:applyMix,cross:cross,MAP:()=>MAP};
 })();
 </script>
 </body>
