@@ -707,6 +707,15 @@ html.st-lock,html.st-lock body{overflow:hidden}
 .pm-set>summary{cursor:pointer;font-weight:700;font-size:14px;min-height:28px;display:flex;align-items:center}
 .pm-set[open]>summary{margin-bottom:8px}
 .pm-set[open]{gap:10px}
+.pm-set>*:not(summary){margin-top:0}
+.pm-set .pm-row{margin-top:10px;row-gap:10px}
+.pm-set .pm-h{margin:20px 0 0;padding-top:14px;border-top:1px solid var(--line);font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.pm-set .pm-h:first-of-type{margin-top:6px;padding-top:0;border-top:0}
+.pm-set .pm-k{flex-direction:column;align-items:stretch;gap:5px;flex:1 1 100%}
+.pm-set .pm-k:has(input[type=checkbox]){flex-direction:row;align-items:center;gap:10px}
+.pm-set .pm-k select{width:100%;flex:none}
+.pm-set .pm-hint{margin-top:12px}
+
 .padm .lvb{font-size:13px}
 .padm .lvb[aria-pressed="true"]:not(.pm-b){box-shadow:inset 0 0 0 2px var(--ink)}
 @media(max-width:600px){
@@ -5197,7 +5206,7 @@ function meterPaint(){
   });
 }
 function sfx(f,key,pan,lvl){ const keep=master; try{ if(lvl===0) return; if(key&&ac&&masterReal) master=busFor(key,pan,lvl); f(); }catch(e){ SFX_ERR++; SFX_LAST=String(e&&e.message||e); if(SFX_ERR<=3){ try{ const m=$('recmsg'); if(m&&!REC.on) m.textContent='A sound could not play on this browser ('+(e&&e.message?e.message:'error')+'; instruments: '+['bass','stab','arp','lead'].map(patchId).join(', ')+'). Playback carries on without it.'; }catch(_){} } }finally{ master=keep; } }
-let SFX_ERR=0, SFX_LAST='', TICKN=0; const BUILD='b1425';
+let SFX_ERR=0, SFX_LAST='', TICKN=0; const BUILD='b1450';
 function schedule(step,time){
   const preview=cfg.target!=='midi'||!midi.out, send=canSend();
   if(preview){
@@ -6734,16 +6743,20 @@ function padBuild(){
    '<button class="lvb pm-b pm-play" id="pmplay" title="Play" aria-label="Play" aria-pressed="false">&#9654;&#65038;</button><button class="lvb pm-b" id="pmstop" title="Pause (stops the loop)" aria-label="Pause">&#10074;&#10074;</button><button class="lvb pm-b pm-rec" id="pmrec" title="Record your pad hits into the loop" aria-label="Record pad hits" aria-pressed="false">&#9679;</button></div></div>'+
    '<p class="pm-hint" id="pmtrk"></p><div class="pm-tl" id="pmtl" aria-label="Tracks"></div><div class="pm-row" id="pmsteps" hidden><button class="lvb" data-pst="tp">◀ Track</button><button class="lvb" data-pst="tn">Track ▶</button><button class="lvb" data-pst="bp">◀ Bar</button><button class="lvb" data-pst="bn">Bar ▶</button></div>'+
    '<p class="pm-last" id="pmlast" aria-live="polite"></p><p class="pm-hint" id="pmhint"></p>'+
-   '<details class="pm-set"><summary>Pad settings</summary>'+
+   '<details class="pm-set"><summary>Pad settings</summary>'+'<h4 class="pm-h">Pad controller</h4>'+
     '<div class="pm-row"><select id="pmin" aria-label="Pad controller input"><option value="">No pad found</option></select><button class="lvb pm-sm" id="pmconn">Connect MIDI</button></div>'+
     '<div class="pm-row"><button class="lvb pm-sm" id="pmlearn" aria-pressed="false">Learn pads</button><button class="lvb pm-sm" id="pmedit" aria-pressed="false">Edit pads</button></div>'+
+    '<h4 class="pm-h">Buttons and knobs</h4>'+
     '<div class="pm-row"><label class="pm-k">Teach a button or knob <select id="pmcsel">'+ctl+'</select></label><button class="lvb pm-sm" id="pmclearn" aria-pressed="false">Learn</button></div>'+
     '<div class="pm-row"><button class="lvb pm-sm" id="pmkball">Teach all 8 bank B knobs</button></div>'+
+    '<h4 class="pm-h">Sound</h4>'+
     '<div class="pm-row"><label class="pm-k">Kit <select id="pmkit"></select></label><label class="pm-k"><input type="checkbox" id="pmalso"> Also play the browser sound</label></div>'+
+    '<h4 class="pm-h">Banks</h4>'+
     '<div class="pm-row"><label class="pm-k">Bank B plays <select id="pmhwb"><option value="1">Punch effects</option><option value="2">Step input</option><option value="3">Launcher</option></select></label></div>'+
     '<div class="pm-row"><label class="pm-k"><input type="checkbox" id="pmsoft"> My pad has fewer banks: use the on-screen bank for its pads</label></div>'+
     '<div class="pm-row"><button class="lvb pm-sm" id="pmreset">Back to M-VAVE SMC-PAD settings</button></div>'+
-    '<div class="pm-row"><label class="pm-k">Pad lights test: output <select id="pmlout"></select></label><label class="pm-k">channel <select id="pmlch">'+Array.from({length:16},(_,n)=>'<option value="'+(n+1)+'">'+(n+1)+'</option>').join('')+'</select></label></div>'+
+    '<h4 class="pm-h">Lights test</h4>'+
+    '<div class="pm-row"><label class="pm-k">Pad output <select id="pmlout"></select></label><label class="pm-k">Channel <select id="pmlch">'+Array.from({length:16},(_,n)=>'<option value="'+(n+1)+'">'+(n+1)+'</option>').join('')+'</select></label></div>'+
     '<div class="pm-row"><button class="lvb pm-sm" id="pmltest">Start lights test</button><button class="lvb pm-sm" id="pmloff">Lights off</button></div><p class="pm-hint" id="pmltxt">Sends colour messages to the pad, one step a second and a half. Watch the pad and note the colours.</p>'+
     '<p class="pm-hint">Learn pads: tap it, then hit the bottom-left pad, so that pad is pad 1. Any 16-pad controller that sends notes works this way. Teach a button or knob: choose it, tap Learn, then press or turn it on your controller.</p>'+
    '</details></div>';
