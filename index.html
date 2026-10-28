@@ -647,9 +647,10 @@ html.st-lock,html.st-lock body{overflow:hidden}
 .pm-top{display:flex;justify-content:space-between;align-items:center;font-size:15px}
 .pm-sub{color:var(--muted);font-weight:600}
 .pm-x{flex:none;width:72px}
-.pm-tl{position:relative;flex:0 0 clamp(150px,27dvh,290px);min-height:0;overflow:hidden;border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:0 8px;box-sizing:border-box;display:flex;flex-direction:column;gap:5px;touch-action:none}
-.pm-tl::before,.pm-tl::after{content:"";flex:none;height:50%}
-.pm-tr{display:flex;align-items:center;gap:8px;opacity:.8;cursor:pointer;flex:none}
+.pm-tl{position:relative;flex:1 1 0;min-height:150px;overflow:hidden;border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:0 8px;box-sizing:border-box;display:flex;flex-direction:column;gap:5px;touch-action:none}
+.pm-tl{justify-content:flex-start}
+.pm-tr{display:flex;align-items:center;gap:8px;opacity:.8;cursor:pointer;flex:1 0 auto;max-height:84px;margin:0}
+.pm-tr.sel{flex:0 0 auto;max-height:none}
 .pm-nm{flex:0 0 112px;min-width:0;display:flex;flex-direction:column;gap:1px}
 .pm-nm b{font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pm-nm em{font-style:normal;font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -677,15 +678,15 @@ html.st-lock,html.st-lock body{overflow:hidden}
 .pm-chips{display:grid;grid-template-columns:1fr 1fr auto;gap:6px}
 .pm-chips .lvb{min-height:34px;font-size:12px;padding:0 4px}
 .padm .pm-chips .lvb.on{background:var(--ink);color:var(--bg);box-shadow:none}
-.pm-dev{flex:1 1 0;min-height:0;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;padding:12px;border-radius:20px;background:var(--surface);border:1px solid var(--line);box-shadow:0 2px 10px rgba(0,0,0,.12)}
+.pm-dev{flex:0 0 auto;min-height:0;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;padding:12px;border-radius:20px;background:var(--surface);border:1px solid var(--line);box-shadow:0 2px 10px rgba(0,0,0,.12)}
 .pm-knobs{display:grid;grid-template-columns:repeat(2,58px);grid-template-rows:repeat(4,1fr);gap:8px 10px;align-content:space-between}
 .pm-kn{grid-row:var(--gr);grid-column:var(--gc);display:flex;flex-direction:column;align-items:center;gap:1px;touch-action:none;user-select:none;-webkit-user-select:none;cursor:ns-resize;font-size:10px;color:var(--muted);text-align:center;line-height:1.1}
 .pm-kn i{display:block;width:42px;height:42px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#4a4f5c,#22252d);border:2px solid var(--line);position:relative;box-sizing:border-box}
 .pm-kn i::after{content:"";position:absolute;left:50%;top:3px;width:3px;height:13px;margin-left:-1.5px;border-radius:2px;background:#f1f3f8;transform-origin:50% 16px;transform:rotate(var(--r,-135deg))}
 .pm-kn b{font-size:11px;color:var(--ink)}
 .pm-kn span{max-width:58px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pm-grid{display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(4,minmax(0,1fr));gap:8px;min-width:0;min-height:0}
-.pm-pad{aspect-ratio:auto;min-height:0;min-width:0;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:14px 3px 4px;cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;position:relative;overflow:hidden;font-weight:700;font-size:13px;text-align:center;line-height:1.15}
+.pm-grid{display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:none;gap:8px;min-width:0;min-height:0}
+.pm-pad{aspect-ratio:1.1/1;min-height:0;min-width:0;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:14px 3px 4px;cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;position:relative;overflow:hidden;font-weight:700;font-size:13px;text-align:center;line-height:1.15}
 .pm-pad::before{content:"";position:absolute;inset:0;background:var(--c,#2f7f95);opacity:.16;transition:opacity .12s}
 .pm-pad>*{position:relative}
 .pm-pad em{position:absolute;left:6px;top:4px;font-style:normal;font-weight:600;font-size:9px;letter-spacing:.05em;color:var(--muted)}
@@ -711,7 +712,7 @@ html.st-lock,html.st-lock body{overflow:hidden}
 .pm-set[hidden]{display:none}
 .pm-sethead{display:flex;justify-content:space-between;align-items:center;font-size:16px;margin-bottom:4px}
 .pm-topb{display:flex;gap:5px;flex-wrap:nowrap;justify-content:flex-end}
-.pm-topb .pm-x{white-space:nowrap;flex:none}
+.pm-topb .pm-x{white-space:nowrap;flex:none;width:auto;min-width:64px;padding:0 16px}
 .pm-topb .lvb.on{background:var(--ink);color:var(--bg)}
 .pm-set .pm-row{margin-top:10px;row-gap:10px}
 .pm-set .pm-h{margin:20px 0 0;padding-top:14px;border-top:1px solid var(--line);font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
@@ -727,7 +728,7 @@ html.st-lock,html.st-lock body{overflow:hidden}
  .pm-top>span:first-child{display:none}
  .pm-top{justify-content:flex-end}
  .pm-top{width:100%}.pm-topb{width:100%}.pm-topb .pm-x{min-width:0;width:auto;flex:1 1 auto;padding:0 4px;font-size:12px}
- .pm-dev{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto auto;gap:8px;padding:8px}
+ .pm-dev{grid-template-columns:1fr;grid-template-rows:auto auto auto;gap:8px;padding:8px}
  .pm-grid{order:1;gap:6px}
  .pm-knobs{order:2;grid-template-columns:repeat(8,1fr);grid-template-rows:none;gap:2px;align-content:start}
  .pm-kn{grid-row:auto;grid-column:auto}
@@ -735,7 +736,7 @@ html.st-lock,html.st-lock body{overflow:hidden}
  .pm-kn span{display:none}
  .pm-btns{order:3;flex-direction:row}
  .pm-b{width:auto;min-height:40px}
- .pm-pad{font-size:12px;padding-top:11px}
+ .pm-pad{font-size:12px;padding-top:11px;aspect-ratio:1.2/1}
  #pmhint{display:none}
 }
 /* Wide screens (tablet or phone on its side): the pad on the left, the tracks on the right, all on one screen. */
@@ -750,7 +751,11 @@ html.st-lock,html.st-lock body{overflow:hidden}
  .pm-tl{grid-column:2;grid-row:4;flex:none;height:auto}
  #pmsteps{grid-column:2;grid-row:5}
  #pmhint{grid-column:2;grid-row:6}
- .pm-grid{align-self:center;aspect-ratio:1/1;max-height:100%;width:100%}
+ .pm-dev{flex:none}
+ .pm-grid{align-self:center;aspect-ratio:1/1;max-height:100%;width:100%;grid-template-rows:repeat(4,minmax(0,1fr))}
+ .pm-pad{aspect-ratio:auto}
+ .pm-tr.sel .pm-dots i{height:clamp(26px,4.6dvh,44px)}
+ .pm-tr{max-height:96px}
 }
 @media(max-height:420px){ .pm-kn span{display:none} .pm-kn i{width:34px;height:34px} .pm-kn i::after{height:11px;transform-origin:50% 13px} }
 </style>
@@ -781,7 +786,7 @@ html.st-lock,html.st-lock body{overflow:hidden}
   <details class="about midi" id="about" open>
     <summary>Before you start</summary>
     <div class="midi-body">
-    <p>Eight Bells makes patterns for an M-VAVE FM-1 running custom firmware, or the official M-VAVE firmware. Pick yours in Play on the FM-1 so the track layout, channels and notes match. If your FM-1 still has the stock firmware, install a custom one first. Slipway is a Windows app that lists custom FM-1 firmware and installs it for you, and a few firmwares have their own web flasher instead. Close Slipway, the firmware's web editor and the M-VAVE workbench before you connect here, because only one app can use the FM-1's MIDI port at a time.</p>
+    <p>Eight Bells makes patterns for an M-VAVE FM-1 running custom firmware, or the official M-VAVE firmware. Pick yours in Play on the FM-1 SMC-PAD so the track layout, channels and notes match. If your FM-1 still has the stock firmware, install a custom one first. Slipway is a Windows app that lists custom FM-1 firmware and installs it for you, and a few firmwares have their own web flasher instead. Close Slipway, the firmware's web editor and the M-VAVE workbench before you connect here, because only one app can use the FM-1's MIDI port at a time.</p>
     <ul>
       <li><a href="https://github.com/Discodave-Glitch/slipway" target="_blank" rel="noopener">Slipway on GitHub</a>, the app that installs FM-1 firmware</li>
       <li><a href="https://fm1.designburgapps.com/" target="_blank" rel="noopener">FM-1 firmware catalogue</a>, the list Slipway reads</li>
@@ -789,7 +794,7 @@ html.st-lock,html.st-lock body{overflow:hidden}
       <li><a href="https://github.com/hugelton/Felucca" target="_blank" rel="noopener">Felucca on GitHub</a>, the firmware and installer that Slipway uses</li>
     </ul>
     <p><strong>iPhone and iPad:</strong> Safari cannot talk to MIDI devices, so install the free <a href="https://apps.apple.com/app/id953846217" target="_blank" rel="noopener">Web MIDI Browser</a> app from the App Store and open this page inside it. Plug the FM-1 in with a USB adapter, then tap Connect MIDI in Play on the FM-1. This has been tested on an iPhone, and the FM-1 played the pattern.</p>
-    <p class="fine">Every firmware's card in Play on the FM-1 links to its own release page. Installing firmware is at your own risk. Save the stock firmware with Slipway before you change anything, so you can put it back.</p>
+    <p class="fine">Every firmware's card in Play on the FM-1 SMC-PAD links to its own release page. Installing firmware is at your own risk. Save the stock firmware with Slipway before you change anything, so you can put it back.</p>
     </div>
   </details>
 
@@ -798,7 +803,7 @@ html.st-lock,html.st-lock body{overflow:hidden}
   <div class="sides">
   <div class="pane setup">
   <details class="midi" id="midi" open>
-    <summary>Play on the FM-1</summary>
+    <summary>Play on the FM-1 SMC-PAD</summary>
     <div class="midi-body">
       <p class="mstatus" id="mstatus">MIDI is not connected. Plug in the FM-1 with a USB data cable, switch it on, then tap Connect.</p>
       <div class="rectip" id="rectip"></div>
@@ -1024,7 +1029,7 @@ html.st-lock,html.st-lock body{overflow:hidden}
     </details>
     <details class="midi" id="fxbox" hidden><summary>Punch effects <span class="cur" id="fxcur"></span><button type="button" class="dice" data-dice="fx" title="Surprise me: fire a random punch effect" aria-label="Surprise me: fire a random punch effect">&#127922;</button></summary>
       <p class="hint">With no FM-1 connected, hold a button to hear an approximation of the effect on the browser preview (loops and stutters repeat the last moment you heard).</p>
-      <p class="hint">Sloop plays its 27 punch effects from MIDI on notes F3 to G5. On the FM-1, go to GLO, then MIDI 3, and set FX CH to a free channel, for example 11. Tap Connect MIDI in Play on the FM-1 first. Choose the same channel here, then hold a button to run that effect on the whole mix. Other firmwares don't publish this, so the panel is hidden for them.</p>
+      <p class="hint">Sloop plays its 27 punch effects from MIDI on notes F3 to G5. On the FM-1, go to GLO, then MIDI 3, and set FX CH to a free channel, for example 11. Tap Connect MIDI in Play on the FM-1 SMC-PAD first. Choose the same channel here, then hold a button to run that effect on the whole mix. Other firmwares don't publish this, so the panel is hidden for them.</p>
       <div class="mrow">
       <div class="field"><label for="fxch">FX channel</label><select id="fxch"></select></div>
       <div class="field"><label for="fxoct">Octave</label><select id="fxoct"><option value="-12">One lower</option><option value="0" selected>As written</option><option value="12">One higher</option></select></div>
@@ -5232,7 +5237,7 @@ function meterPaint(){
   });
 }
 function sfx(f,key,pan,lvl){ const keep=master; try{ if(lvl===0) return; if(key&&ac&&masterReal) master=busFor(key,pan,lvl); f(); }catch(e){ SFX_ERR++; SFX_LAST=String(e&&e.message||e); if(SFX_ERR<=3){ try{ const m=$('recmsg'); if(m&&!REC.on) m.textContent='A sound could not play on this browser ('+(e&&e.message?e.message:'error')+'; instruments: '+['bass','stab','arp','lead'].map(patchId).join(', ')+'). Playback carries on without it.'; }catch(_){} } }finally{ master=keep; } }
-let SFX_ERR=0, SFX_LAST='', TICKN=0; const BUILD='b1550';
+let SFX_ERR=0, SFX_LAST='', TICKN=0; const BUILD='b1570';
 function schedule(step,time){
   const preview=cfg.target!=='midi'||!midi.out, send=canSend();
   if(preview){
@@ -6017,7 +6022,7 @@ function setPerf(on){
   try{ localStorage.setItem('eb_perf',on?'1':'0'); }catch(_){}
 }
 $('perfbtn').addEventListener('click',()=>setPerf(!document.body.classList.contains('perf')));
-try{ if(localStorage.getItem('eb_perf')==='1') setPerf(true); }catch(_){}
+try{ const pv=localStorage.getItem('eb_perf'); if(pv===null||pv==='1') setPerf(true); }catch(_){ setPerf(true); }
 async function sliceSample(id){
   const msg=$('psmsg');
   try{
@@ -6385,7 +6390,9 @@ function padStepBars(r){ return Math.max(1,Math.ceil(r.n/16)); }
 // < and > choose the track for every bank. In the Notes bank only the melodic (synth) tracks are offered.
 function padTrackMove(dir){
   let rs=lvTracks(); if(PADS.bank===4) rs=rs.filter(r=>r.kind==='s'); if(!rs.length) return;
-  const cur=padStepRow(), ck=cur?lvKey(cur):'', k=rs.findIndex(r=>lvKey(r)===ck), r=rs[k<0?(dir>0?0:rs.length-1):(k+dir+rs.length)%rs.length];
+  const cur=padStepRow(), ck=cur?lvKey(cur):'', k=rs.findIndex(r=>lvKey(r)===ck), nk=k<0?(dir>0?0:rs.length-1):k+dir;
+  if(nk<0||nk>=rs.length){ padSay(nk<0?'This is the first track.':'This is the last track.'); return; }
+  const r=rs[nk];
   PADS.ckey=lvKey(r); PADS.cbar=Math.min(PADS.cbar,padStepBars(r)-1);
   padSay('Track: '+r.name+'.'); padGrid(); padPaint(); padTick();
 }
