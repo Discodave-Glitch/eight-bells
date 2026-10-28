@@ -662,7 +662,7 @@ html.st-lock,html.st-lock body{overflow:hidden}
 .pm-tr.sel{opacity:1;flex-wrap:wrap;padding:8px;border:2px solid var(--c);border-radius:10px;background:var(--bg)}
 .pm-tr.sel .pm-nm b{font-size:14px}.pm-tr.sel .pm-nm em{font-size:12px;white-space:normal}
 .pm-tr.sel .pm-dots{flex:0 0 100%}
-.pm-tr.sel .pm-dots i{height:18px;border-radius:3px}
+.pm-tr.sel .pm-dots i{height:26px;border-radius:4px;cursor:pointer}
 .pm-tr.sel small{flex:0 0 100%;color:var(--muted);font-size:12px}
 .pm-tr.mu{opacity:.4}
 .pm-bt{display:flex;gap:4px;flex:none}
@@ -5208,7 +5208,7 @@ function meterPaint(){
   });
 }
 function sfx(f,key,pan,lvl){ const keep=master; try{ if(lvl===0) return; if(key&&ac&&masterReal) master=busFor(key,pan,lvl); f(); }catch(e){ SFX_ERR++; SFX_LAST=String(e&&e.message||e); if(SFX_ERR<=3){ try{ const m=$('recmsg'); if(m&&!REC.on) m.textContent='A sound could not play on this browser ('+(e&&e.message?e.message:'error')+'; instruments: '+['bass','stab','arp','lead'].map(patchId).join(', ')+'). Playback carries on without it.'; }catch(_){} } }finally{ master=keep; } }
-let SFX_ERR=0, SFX_LAST='', TICKN=0; const BUILD='b1520';
+let SFX_ERR=0, SFX_LAST='', TICKN=0; const BUILD='b1535';
 function schedule(step,time){
   const preview=cfg.target!=='midi'||!midi.out, send=canSend();
   if(preview){
@@ -6367,8 +6367,10 @@ function padTrackMove(dir){
 function padStepMove(dir){ padTrackMove(dir); }
 function padTrackPick(key){ const r=lvTracks().find(x=>lvKey(x)===key); if(!r) return; if(PADS.bank===4&&r.kind!=='s'){ padSay('The Notes bank plays melodic tracks. Choose a synth track.'); return; } PADS.ckey=key; PADS.cbar=Math.min(PADS.cbar,padStepBars(r)-1); padSay('Track: '+r.name+'.'); padGrid(); padPaint(); padTick(); }
 function padBarMove(dir){ const r=padStepRow(); if(!r) return; const nb=padStepBars(r); PADS.cbar=(PADS.cbar+dir+nb)%nb; padGrid(); padPaint(); }
-function padStepToggle(i){
-  const r=padStepRow(); if(!r) return; const s=PADS.cbar*16+i;
+function padStepToggle(i){ padCellToggle(PADS.cbar*16+i); }
+// Switch one step of the chosen track on or off (the pads in step input, and the step boxes in the track strip).
+function padCellToggle(s){
+  const r=padStepRow(); if(!r) return;
   if(s>=r.n){ padSay(r.name+' has only '+r.n+' steps.'); return; }
   const c=lvCard(r); if(!c){ padSay('That track is not on screen right now.'); return; }
   const keep=state.mode; state.mode='hit';
@@ -6700,7 +6702,7 @@ function padStrip(){
   const el=$('pmtl'); if(!el) return; const rows=lvTracks(), sel=padStepRow(), selk=sel?lvKey(sel):''; let h='';
   rows.forEach(r=>{
     const k=lvKey(r), on=k===selk, ec=lvEditCells(r), stp=playing&&ROLL.step>=0?ROLL.step%r.n:-1; let d='';
-    for(let n=0;n<r.n;n++){ if(on&&n%16===0) d+=(n?'</div>':'')+'<div class="pm-bar">'; d+='<i class="'+(ec[n]?'o':'')+(n===stp?' w':'')+'"></i>'; }
+    for(let n=0;n<r.n;n++){ if(on&&n%16===0) d+=(n?'</div>':'')+'<div class="pm-bar">'; d+='<i'+(on?' data-s="'+n+'"':'')+' class="'+(ec[n]?'o':'')+(n===stp?' w':'')+'"></i>'; }
     if(on) d+='</div>';
     let inf=''; if(on&&r.kind!=='v'){ const lv=padRowVal('lvl'), pn=padRowVal('pan'); inf='Level '+(lv==null?'–':lv+'%')+' · Pan '+(pn==null?'–':(pn===0?'centre':(pn<0?'L ':'R ')+Math.abs(pn))); }
     const bt='<span class="pm-bt"><button data-pa="m" class="'+(r.muted?'on':'')+'">M</button><button data-pa="s" class="'+(r.sel?'so':'')+'">S</button><button data-pa="l" class="'+(r.kind==='v'?(r.locked?'':'on'):(r.locked?'on':''))+'">'+(r.kind==='v'?(r.locked?'Off':'On'):'Lk')+'</button><button data-pa="c" title="Empty this track (Back undoes it)">Clr</button></span>';
@@ -6801,12 +6803,12 @@ function padBuild(){
   $('pmkball').addEventListener('click',()=>{ PADS.cseq=true; PADS.cc.kb=Array(8).fill(-1); PADS.cl='b0'; PADS.learn=false; padSay('Set the pad to its second knob bank, then turn its knob 1.'); padPaint(); });
   // The track strip: tap a row to choose it, flick or drag up and down (or use the mouse wheel) to move through the tracks.
   const tl=$('pmtl'); let tg=null;
-  tl.addEventListener('pointerdown',e=>{ const pa=e.target.closest('[data-pa]'); if(pa){ e.preventDefault(); const row=pa.closest('.pm-tr'); if(row) padRowAct(pa.dataset.pa,row.dataset.k); return; } const r=e.target.closest('.pm-tr'); tg={id:e.pointerId,y:e.clientY,moved:false,done:0,k:r?r.dataset.k:''}; try{ tl.setPointerCapture(e.pointerId); }catch(_){} });
+  tl.addEventListener('pointerdown',e=>{ const pa=e.target.closest('[data-pa]'); if(pa){ e.preventDefault(); const row=pa.closest('.pm-tr'); if(row) padRowAct(pa.dataset.pa,row.dataset.k); return; } const r=e.target.closest('.pm-tr'), dt=e.target.closest('.pm-tr.sel .pm-dots i[data-s]'); tg={id:e.pointerId,y:e.clientY,moved:false,done:0,k:r?r.dataset.k:'',s:dt?+dt.dataset.s:-1}; try{ tl.setPointerCapture(e.pointerId); }catch(_){} });
   tl.addEventListener('pointermove',e=>{
     if(!tg||e.pointerId!==tg.id) return; const dy=e.clientY-tg.y; if(Math.abs(dy)>8) tg.moved=true; if(!tg.moved) return;
     const st=Math.trunc(-dy/34); while(tg.done<st){ padTrackMove(1); tg.done++; } while(tg.done>st){ padTrackMove(-1); tg.done--; }
   });
-  ['pointerup','pointercancel'].forEach(ev=>tl.addEventListener(ev,e=>{ if(tg&&e.pointerId===tg.id){ if(ev==='pointerup'&&!tg.moved&&tg.k) padTrackPick(tg.k); tg=null; } }));
+  ['pointerup','pointercancel'].forEach(ev=>tl.addEventListener(ev,e=>{ if(tg&&e.pointerId===tg.id){ if(ev==='pointerup'&&!tg.moved){ if(tg.s>=0){ padCellToggle(tg.s); padTick(); } else if(tg.k) padTrackPick(tg.k); } tg=null; } }));
   tl.addEventListener('wheel',e=>{ e.preventDefault(); const n=Date.now(); if(n-(PADS.wt||0)<120) return; PADS.wt=n; padTrackMove(e.deltaY>0?1:-1); },{passive:false});
   $('pmsteps').addEventListener('click',e=>{ const b=e.target.closest('[data-pst]'); if(!b) return; const a=b.dataset.pst; if(a==='tp') padStepMove(-1); else if(a==='tn') padStepMove(1); else if(a==='bp') padBarMove(-1); else padBarMove(1); });
   $('pmkit').addEventListener('change',e=>{ PV.kit=e.target.value; savePV(); if(typeof renderPreview==='function') renderPreview(); padPaint(); });
