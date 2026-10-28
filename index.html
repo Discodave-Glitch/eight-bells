@@ -168,6 +168,8 @@ select:disabled, .ghost:disabled { cursor: default; }
 .ccrow h4 { grid-column: 1 / -1; margin: 0; font-size: 13px; }
 .tip { margin: 0; font-size: 13px; color: var(--muted); }
 .tip b { color: var(--ink); font-weight: 600; }
+.tiprow{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.tiprow .ptn{flex:none}
 
 .fwc { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin: 8px 0; display: flex; flex-direction: column; gap: 6px; }
 .fwc p { margin: 0; }
@@ -3444,7 +3446,7 @@ function synthHTML(t,i){
     `<span class="meta">${t.n} steps &middot; ${count(t.cells)} ${t.chords?'chords':'notes'}${t.custom?' &middot; edited':''}</span>`+
     `<button class="mini rdcol" data-act="redo">Redo</button><button class="mini" data-act="clear" title="Empty this track">Clear</button><button class="mini" data-act="lock" aria-pressed="${t.locked?'true':'false'}">Lock</button>`+
     `<button class="mini" data-act="mute" aria-pressed="${t.muted?'true':'false'}">Mute</button></div>`+
-    `${ROLLHTML}<p class="tip">${cfg.device!=='sloop'?'Plays on':'Try in Sloop'}: <b>${esc(soundTip(i))}</b></p>`+
+    `${ROLLHTML}<p class="tip tiprow"><span>${cfg.device!=='sloop'?'Plays on':'Try in Sloop'}: <b>${esc(soundTip(i))}</b></span><button class="mini ptn" data-act="redo" title="Make a new pattern for this track">Pattern</button></p>`+
     `<div class="params">${stepper('Hits','k',t.k)}${stepper('Steps','n',t.n)}${stepper('Rotate','r',t.r)}</div>`+
     `<div class="xrow"><button class="mini" data-act="chords" aria-pressed="${t.chords?'true':'false'}">Chords</button>`+
     `<label class="gate"><span class="lbl">Note length</span><select data-gate aria-label="Note length, synth ${i+1}">${gOpts}</select></label>`+
@@ -3480,7 +3482,7 @@ function drumHTML(d,k){
   return `<article class="track${d.muted?' muted':''}${TCOL.has('d'+k)?' col':''}" data-kind="d" data-di="${k}" style="--c:var(--t${state.synth.length+k+1})">`+
     `<div class="th">${tcolBtn('d'+k)}<span class="dot"></span><h3>${esc(trackNames()[state.synth.length+k])} <small>drums</small></h3><span class="meta">${d.n} steps</span>`+
     `<button class="mini xtra" data-act="dfill">Fill</button><button class="mini" data-act="redoall">Redo<span class="lg"> track</span></button><button class="mini" data-act="clear" title="Empty all four drum lanes">Clear</button><button class="mini" data-act="lock" aria-pressed="${d.locked?'true':'false'}">Lock</button><button class="mini" data-act="mute" aria-pressed="${d.muted?'true':'false'}">Mute</button></div>`+
-    `${ROLLHTML}<div class="params one">${stepper('Steps','n',d.n)}${lvlHTML(d.lvl,'Level, drums')}</div><div class="xrow">${panHTML(d.pan,'Pan, drums')}</div>${mtrHTML(d.lanes.map((_,q)=>'d'+k+'l'+q).join(','))}`+
+    `${ROLLHTML}<p class="tip tiprow"><span></span><button class="mini ptn" data-act="redoall" title="Make a new pattern for all four drum lanes">Pattern</button></p><div class="params one">${stepper('Steps','n',d.n)}${lvlHTML(d.lvl,'Level, drums')}</div><div class="xrow">${panHTML(d.pan,'Pan, drums')}</div>${mtrHTML(d.lanes.map((_,q)=>'d'+k+'l'+q).join(','))}`+
     `<div class="lanes">${lanes}</div></article>`;
 }
 let prevNow=[];
@@ -5237,7 +5239,7 @@ function meterPaint(){
   });
 }
 function sfx(f,key,pan,lvl){ const keep=master; try{ if(lvl===0) return; if(key&&ac&&masterReal) master=busFor(key,pan,lvl); f(); }catch(e){ SFX_ERR++; SFX_LAST=String(e&&e.message||e); if(SFX_ERR<=3){ try{ const m=$('recmsg'); if(m&&!REC.on) m.textContent='A sound could not play on this browser ('+(e&&e.message?e.message:'error')+'; instruments: '+['bass','stab','arp','lead'].map(patchId).join(', ')+'). Playback carries on without it.'; }catch(_){} } }finally{ master=keep; } }
-let SFX_ERR=0, SFX_LAST='', TICKN=0; const BUILD='b1570';
+let SFX_ERR=0, SFX_LAST='', TICKN=0; const BUILD='b1575';
 function schedule(step,time){
   const preview=cfg.target!=='midi'||!midi.out, send=canSend();
   if(preview){
@@ -5870,7 +5872,7 @@ function renderVox(){
   const dvsel=VOX.eng==='device'?`<select id="voxdv">${voxVoices().map(v=>`<option value="${esc(v.name)}">${esc(v.name)}${voxGender(v)}</option>`).join('')||'<option value="">No voices found on this device</option>'}</select>`:`<select id="voxvoice">${Object.keys(VOICES).map(k=>`<option value="${k}">${VOICES[k].name}</option>`).join('')}</select>`;
   box.innerHTML=`<div class="th">${tcolBtn('vox')}<span class="dot"></span><h3>Sample track <small>9th track, browser sound only</small></h3><span class="meta">${n} steps, ${VOX.lanes.length} voice${VOX.lanes.length>1?'s':''}, ${tot} hits</span><button class="mini rdcol" data-vact="new">Redo</button><button class="mini" data-vact="on" aria-pressed="${VOX.on}">${VOX.on?'On':'Off'}</button><button class="mini" data-vact="mute" aria-pressed="${VOX.mute}">Mute</button></div>`+
    `<div class="lanes">${VOX.lanes.map((l,i)=>`<button class="mini" data-vact="lane${i}" aria-pressed="${i===VOX.sel}">${i+1}. ${esc(laneName(l))}</button>`).join('')}${VOX.lanes.length<4?'<button class="mini ghost" data-vact="ladd">+ Add a voice</button>':''}${VOX.lanes.length>1?'<button class="mini ghost" data-vact="lrem">Remove this voice</button>':''}</div>`+
-   `${ROLLHTML}<div class="params two"><div class="field"><label for="voxsnd" class="lbl">Sound</label><select id="voxsnd">${opts}</select><button class="mini ghost" data-vact="hear">Hear</button></div><div class="field"><label for="voxeng" class="lbl">Engine</label><select id="voxeng"><option value="synth">Built-in synth</option><option value="device">Device voices (clearer words)</option></select></div></div>`+
+   `${ROLLHTML}<p class="tip tiprow"><span></span><button class="mini ptn" data-vact="new" title="Make a new pattern for this track">Pattern</button></p><div class="params two"><div class="field"><label for="voxsnd" class="lbl">Sound</label><select id="voxsnd">${opts}</select><button class="mini ghost" data-vact="hear">Hear</button></div><div class="field"><label for="voxeng" class="lbl">Engine</label><select id="voxeng"><option value="synth">Built-in synth</option><option value="device">Device voices (clearer words)</option></select></div></div>`+
    `<div class="params two"><div class="field"><label class="lbl">Voice</label>${dvsel}</div>${voxStep('Hold (steps)','hold',L.hold===0?'to next':L.hold)}</div>`+
    `<div class="params two">${voxStep('Hits','k',L.k)}${voxStep('Rotate','r',L.r)}</div>`+
    `<div class="params two">${voxStep('Pitch (semitones)','pitch',(L.pitch>0?'+':'')+L.pitch)}<div class="field"><label for="voxmode" class="lbl">Pitch pattern</label><select id="voxmode">${VOX_MODES.map(m=>`<option value="${m[0]}">${m[1]}</option>`).join('')}</select></div></div>`+
@@ -6218,6 +6220,7 @@ function lvClick(e){
     else LV.next=(LV.next===d.sec)?null:d.sec;
     lvPaint(); lvSecs(); return;
   }
+  if(d.pt!==undefined){ const r=lvTracks()[+d.pt]; if(r) padRedo(r); lvRender(); return; }
   if(d.m!==undefined){ const r=lvTracks()[+d.m]; lvPress(r,'mute'); return; }
   if(d.so!==undefined){ const r=lvTracks()[+d.so]; if(r.kind==='v'){ VSOLO=!VSOLO; if(canSend()) allOff(); lvRender(); return; } const sb=document.querySelector(typeof r.sk==='string'?`#solos [data-solol="${r.sk.slice(1)}"]`:`#solos [data-solo="${r.sk}"]`); if(sb) sb.click(); lvRender(); return; }
   if(d.lk!==undefined){ const r=lvTracks()[+d.lk]; lvPress(r,'lock'); return; }
@@ -6235,6 +6238,7 @@ function lvClick(e){
     for(let s=LV.bar*16;s<Math.min(r.n,LV.bar*16+16);s++){ const rr=lvEditRow(); if(rr&&(rr.kind==='v'?lvEditCells(rr)[s]:rr.cells[s])){ const cc=lvCard(rr); const sel=rr.kind==='v'?`[data-vact="cell"][data-s="${s}"]`:rr.kind==='s'?`[data-act="cell"][data-s="${s}"]`:`.lane[data-j="${rr.j}"] [data-act="cell"][data-s="${s}"]`; const cell=cc&&cc.querySelector(sel); if(cell) cell.click(); } }
     state.mode=keep; return; }
 }
+function padRedo(r){ const c=lvCard(r); if(!c) return false; const bt=r.kind==='v'?c.querySelector('[data-vact="new"]'):r.kind==='s'?c.querySelector('[data-act="redo"]'):c.querySelector('.lane[data-j="'+r.j+'"] [data-act="redo"]'); if(!bt) return false; bt.click(); return true; }
 function lvPress(r,act){ const c=lvCard(r); if(!c) return; if(r.kind==='v'){ const bt=c.querySelector(act==='mute'?'[data-vact="mute"]':'[data-vact="on"]'); if(bt) bt.click(); lvRender(); return; } const sel=r.kind==='s'?`[data-act="${act}"]`:(act==='mute'?`.lane[data-j="${r.j}"] [data-act="mute"]`:`[data-act="${act}"]`); const bt=c.querySelector(sel); if(bt) bt.click(); }
 function lvEditRow(){ if(!LV.edit) return null; return lvTracks().find(r=>lvKey(r)===LV.edit.key)||null; }
 function lvSet(on){
@@ -6257,7 +6261,7 @@ function lvRender(){
   if(!lvOn()||!LV.built) return;
   lvSecs(); lvPaint(); { const sp=$('lvsplit'); if(sp){ sp.textContent=SPLITD?'Drums: split':'Split drums'; sp.classList.toggle('on',SPLITD); } }
   const rows=lvTracks(), n=rows.length;
-  let h=rows.map((r,i)=>`<div class="lv-trk${r.muted?' mu':''}${LV.edit&&LV.edit.key===lvKey(r)?' sel':''}" data-r="${i}" style="--c:${r.col}"><button class="lv-nm" data-ed="${i}"><i></i>${esc(r.name)}</button><div class="lv-stw" data-ed-s="${i}"><div class="lv-st" style="grid-template-columns:repeat(${r.n},1fr)">${lvStrip(r.cells,r.n)}<em class="lv-ph"></em></div><div class="lv-lv"><u style="width:${Math.min(100,(r.lvl==null?100:r.lvl)/1.25)}%"></u></div></div><button class="lv-m${r.muted?' on':''}" data-m="${i}">M</button><button class="lv-m${r.sel?' so':''}" data-so="${i}">S</button><button class="lv-m${r.kind==='v'?(r.locked?'':' on'):(r.locked?' on':'')}" data-lk="${i}">${r.kind==='v'?(r.locked?'Off':'On'):'Lk'}</button></div>`).join('');
+  let h=rows.map((r,i)=>`<div class="lv-trk${r.muted?' mu':''}${LV.edit&&LV.edit.key===lvKey(r)?' sel':''}" data-r="${i}" style="--c:${r.col}"><button class="lv-nm" data-ed="${i}"><i></i>${esc(r.name)}</button><div class="lv-stw" data-ed-s="${i}"><div class="lv-st" style="grid-template-columns:repeat(${r.n},1fr)">${lvStrip(r.cells,r.n)}<em class="lv-ph"></em></div><div class="lv-lv"><u style="width:${Math.min(100,(r.lvl==null?100:r.lvl)/1.25)}%"></u></div></div><button class="lv-m" data-pt="${i}" title="New pattern for this track">P</button><button class="lv-m${r.muted?' on':''}" data-m="${i}">M</button><button class="lv-m${r.sel?' so':''}" data-so="${i}">S</button><button class="lv-m${r.kind==='v'?(r.locked?'':' on'):(r.locked?' on':'')}" data-lk="${i}">${r.kind==='v'?(r.locked?'Off':'On'):'Lk'}</button></div>`).join('');
   $('lvtrks').innerHTML=h;
   $('lvtrks').classList.toggle('many',n>10);
   lvEdit();
@@ -6708,6 +6712,7 @@ function padTrackLine(){
 // Mute, solo and lock for a track, the same buttons as Live view.
 function padRowAct(a,key){
   const r=lvTracks().find(x=>lvKey(x)===key); if(!r) return;
+  if(a==='p'){ if(padRedo(r)) padSay(r.name+': new pattern. Press Back to undo.'); else padSay('That track is not on screen right now.'); padTick(); return; }
   if(a==='m') lvPress(r,'mute');
   else if(a==='l') lvPress(r,'lock');
   else if(a==='c'){
@@ -6738,7 +6743,7 @@ function padStrip(){
     for(let n=0;n<r.n;n++){ if(on&&n%16===0) d+=(n?'</div>':'')+'<div class="pm-bar">'; d+='<i'+(on?' data-s="'+n+'"':'')+' class="'+(ec[n]?'o':'')+(n===stp?' w':'')+'"></i>'; }
     if(on) d+='</div>';
     let inf=''; if(on&&r.kind!=='v'){ const lv=padRowVal('lvl'), pn=padRowVal('pan'); inf='Level '+(lv==null?'–':lv+'%')+' · Pan '+(pn==null?'–':(pn===0?'centre':(pn<0?'L ':'R ')+Math.abs(pn))); }
-    const bt='<span class="pm-bt"><button data-pa="m" class="'+(r.muted?'on':'')+'">M</button><button data-pa="s" class="'+(r.sel?'so':'')+'">S</button><button data-pa="l" class="'+(r.kind==='v'?(r.locked?'':'on'):(r.locked?'on':''))+'">'+(r.kind==='v'?(r.locked?'Off':'On'):'Lk')+'</button><button data-pa="c" title="Empty this track (Back undoes it)">Clr</button></span>';
+    const bt='<span class="pm-bt"><button data-pa="p" title="New pattern for this track">P</button><button data-pa="m" class="'+(r.muted?'on':'')+'">M</button><button data-pa="s" class="'+(r.sel?'so':'')+'">S</button><button data-pa="l" class="'+(r.kind==='v'?(r.locked?'':'on'):(r.locked?'on':''))+'">'+(r.kind==='v'?(r.locked?'Off':'On'):'Lk')+'</button><button data-pa="c" title="Empty this track (Back undoes it)">Clr</button></span>';
     h+='<div class="pm-tr'+(on?' sel':'')+(r.muted?' mu':'')+'" data-k="'+k+'" style="--c:'+r.col+'"><div class="pm-nm"><b>'+esc(r.name)+'</b><em>'+esc(padTrackInfo(r,on))+'</em></div><div class="pm-dots">'+d+'</div>'+bt+(inf?'<small>'+inf+'</small>':'')+'</div>';
   });
   if(h!==PADS.tls){ PADS.tls=h; el.innerHTML=h; }
