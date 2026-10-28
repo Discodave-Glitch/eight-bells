@@ -650,7 +650,9 @@ html.st-lock,html.st-lock body{overflow:hidden}
 .pm-tl{position:relative;height:250px;overflow:hidden;border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:0 8px;box-sizing:border-box;display:flex;flex-direction:column;gap:5px;touch-action:none}
 .pm-tl::before,.pm-tl::after{content:"";flex:none;height:110px}
 .pm-tr{display:flex;align-items:center;gap:8px;opacity:.8;cursor:pointer;flex:none}
-.pm-tr b{flex:0 0 76px;font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pm-nm{flex:0 0 112px;min-width:0;display:flex;flex-direction:column;gap:1px}
+.pm-nm b{font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pm-nm em{font-style:normal;font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pm-dots{flex:1;display:flex;flex-direction:column;gap:3px;min-width:0}
 .pm-tr:not(.sel) .pm-dots{flex-direction:row;gap:1px}
 .pm-dots i{flex:1;height:6px;background:var(--line);border-radius:1px;min-width:0}
@@ -658,15 +660,15 @@ html.st-lock,html.st-lock body{overflow:hidden}
 .pm-dots i.w{outline:2px solid var(--ink);outline-offset:0}
 .pm-bar{display:flex;gap:3px}
 .pm-tr.sel{opacity:1;flex-wrap:wrap;padding:8px;border:2px solid var(--c);border-radius:10px;background:var(--bg)}
-.pm-tr.sel b{font-size:14px;flex:0 0 100%}
+.pm-tr.sel .pm-nm b{font-size:14px}.pm-tr.sel .pm-nm em{font-size:12px;white-space:normal}
 .pm-tr.sel .pm-dots{flex:0 0 100%}
 .pm-tr.sel .pm-dots i{height:18px;border-radius:3px}
 .pm-tr.sel small{flex:0 0 100%;color:var(--muted);font-size:12px}
 .pm-tr.mu{opacity:.4}
 .pm-bt{display:flex;gap:4px;flex:none}
-.pm-bt button{min-width:34px;height:28px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:12px;font-weight:600;padding:0 6px;touch-action:none}
+.pm-bt button{min-width:36px;height:28px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:12px;font-weight:600;padding:0 6px;touch-action:none}
 .pm-bt button.on{background:var(--ink);color:var(--bg)}.pm-bt button.so{background:#e8a43a;color:#0b0e16;border-color:#e8a43a}
-.pm-tr.sel .pm-bt{order:2}.pm-tr.sel b{flex:1 1 0;min-width:0}.pm-tr.sel .pm-bt button{height:34px;min-width:44px;font-size:14px}
+.pm-tr.sel .pm-bt{order:2}.pm-tr.sel .pm-nm{flex:1 1 0;min-width:0}.pm-tr.sel .pm-bt button{height:34px;min-width:44px;font-size:14px}
 .pm-tr.sel .pm-dots{order:3}.pm-tr.sel small{order:4}
 .pm-st,.pm-last,.pm-hint{margin:0;font-size:13px;color:var(--muted);line-height:1.35}
 .pm-last{min-height:2.7em;color:var(--ink)}
@@ -5206,7 +5208,7 @@ function meterPaint(){
   });
 }
 function sfx(f,key,pan,lvl){ const keep=master; try{ if(lvl===0) return; if(key&&ac&&masterReal) master=busFor(key,pan,lvl); f(); }catch(e){ SFX_ERR++; SFX_LAST=String(e&&e.message||e); if(SFX_ERR<=3){ try{ const m=$('recmsg'); if(m&&!REC.on) m.textContent='A sound could not play on this browser ('+(e&&e.message?e.message:'error')+'; instruments: '+['bass','stab','arp','lead'].map(patchId).join(', ')+'). Playback carries on without it.'; }catch(_){} } }finally{ master=keep; } }
-let SFX_ERR=0, SFX_LAST='', TICKN=0; const BUILD='b1450';
+let SFX_ERR=0, SFX_LAST='', TICKN=0; const BUILD='b1520';
 function schedule(step,time){
   const preview=cfg.target!=='midi'||!midi.out, send=canSend();
   if(preview){
@@ -6674,11 +6676,25 @@ function padRowAct(a,key){
   const r=lvTracks().find(x=>lvKey(x)===key); if(!r) return;
   if(a==='m') lvPress(r,'mute');
   else if(a==='l') lvPress(r,'lock');
+  else if(a==='c'){
+    const c=lvCard(r); const bt=c&&(r.kind==='v'?c.querySelector('[data-vact="clear"]'):r.kind==='s'?c.querySelector('[data-act="clear"]'):c.querySelector('.lane[data-j="'+r.j+'"] [data-act="clear"]'));
+    if(!bt){ padSay('That track is not on screen right now.'); return; }
+    bt.click(); padSay(r.name+' cleared. Press Back to undo.'); padTick(); return;
+  }
   else if(r.kind==='v'){ VSOLO=!VSOLO; if(canSend()) allOff(); }
   else{ const sb=document.querySelector(typeof r.sk==='string'?'#solos [data-solol="'+r.sk.slice(1)+'"]':'#solos [data-solo="'+r.sk+'"]'); if(sb) sb.click(); }
   const n=lvTracks().find(x=>lvKey(x)===key)||r;
   padSay(r.name+(a==='m'?(n.muted?' muted.':' unmuted.'):a==='l'?(r.kind==='v'?(n.locked?' off.':' on.'):(n.locked?' locked.':' unlocked.')):(n.sel?' solo on.':' solo off.')));
   padTick();
+}
+// What a track is and which instrument plays it: its type and sound, and the FM-1 channel when playing the FM-1.
+function padTrackInfo(r,full){
+  try{
+    if(r.kind==='s'){ const t=state.synth[r.i], role=t.role, id=patchId(role), p=PATCH_LIST.find(x=>x[0]===id), ch=cfg.ch[r.i];
+      return (full&&t.label?t.label:role[0].toUpperCase()+role.slice(1))+' \u00b7 '+(p?p[1]:id)+(full&&canSend()&&ch?' \u00b7 FM-1 channel '+ch:''); }
+    if(r.kind==='d'){ const dc=r.k?cfg.dch2:cfg.dch; return 'Drums \u00b7 '+KITS[kitId()].name+(full?' kit':'')+(full&&canSend()&&dc?' \u00b7 FM-1 channel '+dc+', note '+cfg.drum[r.j]:''); }
+    const L=VOX.lanes[Math.min(VOX.sel,VOX.lanes.length-1)], v=L&&VOICES[L.voice]; return 'Sample \u00b7 '+(v?v.name:(VOX.eng||'sound'));
+  }catch(_){ return ''; }
 }
 function padStrip(){
   const el=$('pmtl'); if(!el) return; const rows=lvTracks(), sel=padStepRow(), selk=sel?lvKey(sel):''; let h='';
@@ -6687,8 +6703,8 @@ function padStrip(){
     for(let n=0;n<r.n;n++){ if(on&&n%16===0) d+=(n?'</div>':'')+'<div class="pm-bar">'; d+='<i class="'+(ec[n]?'o':'')+(n===stp?' w':'')+'"></i>'; }
     if(on) d+='</div>';
     let inf=''; if(on&&r.kind!=='v'){ const lv=padRowVal('lvl'), pn=padRowVal('pan'); inf='Level '+(lv==null?'–':lv+'%')+' · Pan '+(pn==null?'–':(pn===0?'centre':(pn<0?'L ':'R ')+Math.abs(pn))); }
-    const bt='<span class="pm-bt"><button data-pa="m" class="'+(r.muted?'on':'')+'">M</button><button data-pa="s" class="'+(r.sel?'so':'')+'">S</button><button data-pa="l" class="'+(r.kind==='v'?(r.locked?'':'on'):(r.locked?'on':''))+'">'+(r.kind==='v'?(r.locked?'Off':'On'):'Lk')+'</button></span>';
-    h+='<div class="pm-tr'+(on?' sel':'')+(r.muted?' mu':'')+'" data-k="'+k+'" style="--c:'+r.col+'"><b>'+esc(r.name)+'</b>'+bt+'<div class="pm-dots">'+d+'</div>'+(inf?'<small>'+inf+'</small>':'')+'</div>';
+    const bt='<span class="pm-bt"><button data-pa="m" class="'+(r.muted?'on':'')+'">M</button><button data-pa="s" class="'+(r.sel?'so':'')+'">S</button><button data-pa="l" class="'+(r.kind==='v'?(r.locked?'':'on'):(r.locked?'on':''))+'">'+(r.kind==='v'?(r.locked?'Off':'On'):'Lk')+'</button><button data-pa="c" title="Empty this track (Back undoes it)">Clr</button></span>';
+    h+='<div class="pm-tr'+(on?' sel':'')+(r.muted?' mu':'')+'" data-k="'+k+'" style="--c:'+r.col+'"><div class="pm-nm"><b>'+esc(r.name)+'</b><em>'+esc(padTrackInfo(r,on))+'</em></div><div class="pm-dots">'+d+'</div>'+bt+(inf?'<small>'+inf+'</small>':'')+'</div>';
   });
   if(h!==PADS.tls){ PADS.tls=h; el.innerHTML=h; }
   const se=el.querySelector('.sel'); if(se) el.scrollTop=Math.max(0,se.offsetTop-(el.clientHeight-se.offsetHeight)/2);
