@@ -97,7 +97,7 @@ input[type=range]{width:100%;accent-color:var(--ink);min-height:28px;margin:0}
 <body>
 <div id="start">
   <h1>Eight Bells DJ<small>prototype</small></h1>
-  <p>Two decks, each making its own tune, with jog platters, a 3-band EQ, filters, a crossfader and punch pads. It plays through this device's speakers or headphones. It does not use the FM-1. Works with a MIDI DJ controller such as the Numark Party Mix Live (use Chrome or Edge on a computer or Android).</p>
+  <p>Two decks, each making its own tune, with jog platters, a 3-band EQ, filters, a crossfader and punch pads. It plays through this device's speakers or headphones. It does not use the FM-1. Made for the SMC-PAD, and any other MIDI controller can be taught with MIDI learn (use Chrome or Edge on a computer or Android).</p>
   <button id="go" disabled>Loading decks...</button>
   <p id="loadmsg">Loading...</p>
 </div>
@@ -114,7 +114,7 @@ input[type=range]{width:100%;accent-color:var(--ink);min-height:28px;margin:0}
     <div class="row"><button id="wiz">Guided setup</button><button id="learn">Learn one control</button><button id="clearmap">Clear mappings</button></div>
     <div class="chip" id="mon">Last message from your controller: none yet</div>
     <p class="hint">Guided setup walks through the controls one by one. When a control lights up yellow, press or move the matching control on your deck. Tap Skip for any it does not have. Your choices are remembered on this device. Jog wheel: turn it to nudge the tempo. CUE: hold it to preview, or tap it while playing to restart from the top. Pads button cycles Effects 1-4, 5-8 and Patterns 1-4, 5-8. Double-tap an EQ or filter knob to centre it.</p>
-    <p class="hint">The SMC-PAD still works as before: pads 36 to 67, knobs 1 to 8 on CC 30 to 37, CC 25 to 29 for play and stop.</p>
+    <p class="hint">The SMC-PAD still works as before: pads 36 to 67, knob bank A (CC 30 to 37) is volumes, filters, crossfader, tempos and master. Knob bank B (CC 38 to 45) is the EQ: Treble, Mid, Bass, Filter for Deck A, then the same four for Deck B. CC 25 to 29 are play and stop. If bank B does nothing on your pad, use Learn one control to teach it.</p>
     <p id="msg"></p>
   </details>
 </div>
@@ -305,6 +305,7 @@ function onNote(note,on){
   padHit(i,on,bank); if(!on) delete heldBank[note];
 }
 function knob(k,f){ const ids=['vol:A','vol:B','filt:A','filt:B','xf','tempo:A','tempo:B','mv']; if(ids[k]) ctlAbs(ids[k],f); }
+function knobB(k,f){ const ids=['treb:A','mid:A','bass:A','filt:A','treb:B','mid:B','bass:B','filt:B']; if(ids[k]) ctlAbs(ids[k],f); }
 function msgKey(m){ const st=m[0]&0xF0, ch=m[0]&15; if(st===0x90||st===0x80) return 'n:'+ch+':'+m[1]; if(st===0xB0) return 'c:'+ch+':'+m[1]; if(st===0xE0) return 'p:'+ch+':0'; return null; }
 function describe(m){ const st=m[0]&0xF0, ch=(m[0]&15)+1; if(st===0x90) return 'Note '+m[1]+(m[2]>0?' on':' off')+' (channel '+ch+')'; if(st===0x80) return 'Note '+m[1]+' off (channel '+ch+')'; if(st===0xB0) return 'Control '+m[1]+' = '+m[2]+' (channel '+ch+')'; if(st===0xE0) return 'Pitch bend (channel '+ch+')'; return 'Message '+m[0]; }
 function ctlMidi(id,st,m,isOn){
@@ -327,6 +328,7 @@ function onMidi(e){
   else if(st===0xB0){
     const cc=m[1];
     if(cc>=30&&cc<=37) knob(cc-30,v/127);
+    else if(cc>=38&&cc<=45) knobB(cc-38,v/127);
     else if(v>0){ if(cc===25) togglePlay(decks[0]); else if(cc===26) togglePlay(decks[1]); else if(cc===27) bothPlay(); else if(cc===28) bothStop(); else if(cc===29) sync(); }
   }
 }
@@ -338,7 +340,7 @@ function listInputs(){
   ins.forEach(i=>{ i.onmidimessage=onMidi; });
   const real=ins.filter(i=>!/through|private/i.test(i.name||''));
   $('midimsg').textContent=real.length?('Listening to: '+real.map(i=>(i.name||i.id).replace(/</g,'')).join(', ')):'No MIDI device found. Plug in your controller, then reload this page.';
-  if(real.some(i=>/numark|party/i.test(i.name||''))&&!Object.keys(MAP).length){ $('ctlp').open=true; $('midimsg').textContent+='. Found your Numark. Tap Guided setup to teach this page your controls.'; }
+  
 }
 async function midiInit(){
   if(!navigator.requestMIDIAccess){ $('midimsg').textContent='This browser has no MIDI. Use the on-screen controls, or Chrome or Edge on a computer or Android for a real controller.'; return; }
@@ -434,7 +436,7 @@ $('go').addEventListener('click',()=>{
 });
 boot();
 // for tests
-window.__djTest={decks:decks,S:S,knob:knob,onMidi:onMidi,onNote:onNote,applyMix:applyMix,cross:cross,MAP:()=>MAP};
+window.__djTest={decks:decks,S:S,knob:knob,knobB:knobB,onMidi:onMidi,onNote:onNote,applyMix:applyMix,cross:cross,MAP:()=>MAP};
 })();
 </script>
 </body>
