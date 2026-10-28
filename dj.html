@@ -320,6 +320,7 @@ function lockStart(d,o,done){ // start deck d exactly on deck o's next bar
 }
 /* ---------- Auto DJ: plays a deck for a while, brings the other in on the beat with a new tune, crossfades, swaps, repeats ---------- */
 const AU={flairAt:6,step:6,lastBar:0,last:'',on:false,cur:'A',phase:'idle',len:32,fade:16,g0:0,t0:0,half:false,timer:null,gen:null,style:'',force:''};
+const bump=(p,a,b)=>{ const k=(p-a)/(b-a); return k<=0||k>=1?0:Math.sin(Math.PI*k); };
 const clamp01=x=>Math.max(0,Math.min(1,x)), sm=x=>{ x=clamp01(x); return x*x*(3-2*x); }, seg=(p,a,b)=>clamp01((p-a)/(b-a));
 const STYLES=['blend','bass swap','filter wash','crossfader wobble'];
 const gstepOf=d=>ev(d,'gstep')||0;
@@ -353,10 +354,19 @@ function swapSound(d){ // change one instrument role (bass, stab, arp or lead) o
   return ev(d,"(function(){ var map={bass:['Bass'],stab:['Stabs and chords','Keys and organs','Pads','Brass and reeds'],arp:['Plucks and bells','Keys and organs','Leads','World'],lead:['Leads','Brass and reeds','Strings and bowed','World']}; var ks=Object.keys(map), r=ks[Math.floor(Math.random()*ks.length)]; var l=PATCH_LIST.filter(function(p){return map[r].indexOf(p[2])>=0}).map(function(p){return p[0]}).filter(function(x){return PATCHES[x]}); var c=bagPick('patch-'+r,l); PV.patch[r]=c; if(typeof savePV==='function') savePV(); if(typeof renderPreview==='function') renderPreview(); return r+':'+c; })()");
 }
 function fxHit(d,name,ms){ const i=FXN.indexOf(name); if(i<0) return; fx(d,i,true); setTimeout(()=>fx(d,i,false),ms); }
+function startSwell(c){ // a bass, mid or treble swell: push a band up (or dip it for a tease) and bring it back
+  const band=['l','m','h'][Math.floor(Math.random()*3)], up=Math.random()<0.7, amp=up?(55+Math.random()*45):-(60+Math.random()*40);
+  AU.swell={id:c.id,band:band,amp:amp,t0:Date.now(),dur:60000/getBpm(c)*[4,8,12][Math.floor(Math.random()*3)]};
+}
+function swellTick(c){
+  const w=AU.swell; if(!w) return; const d=D(w.id), p=(Date.now()-w.t0)/w.dur;
+  if(p>=1||!d||d.id!==c.id){ if(d) d.eq[w.band]=0; AU.swell=null; applyMix(); return; }
+  d.eq[w.band]=Math.round(w.amp*Math.sin(Math.PI*p)); applyMix();
+}
 function autoFlair(c){ // now and then: a sound swap or a short effect hit on the deck that is playing
   const b=barsOf(c); if(b<AU.flairAt) return; AU.flairAt=b+[6,8,10,12][Math.floor(Math.random()*4)];
   const beat=60000/getBpm(c);
-  if(Math.random()<0.45) swapSound(c);
+  const r=Math.random(); if(r<0.4) startSwell(c); else if(r<0.6) swapSound(c);
   else { const e=[['Echo',4],['Stutter',2],['Reverse',4],['Loop 1/8',2],['Low-pass sweep',8],['High-pass sweep',6]][Math.floor(Math.random()*6)]; fxHit(c,e[0],beat*e[1]); }
 }
 function autoStepSecs(c){ // wander through the patterns while a deck plays on its own
@@ -365,20 +375,20 @@ function autoStepSecs(c){ // wander through the patterns while a deck plays on i
   queueSec(c,rndSec(MIDSEC,ev(c,'state.section')));
 }
 function autoMix(c,n,p){ // moves the crossfader and the bass, mid and treble of both decks through one of several handover styles
-  const from=c.id==='A'?0:100, to=n.id==='A'?0:100, at=q=>Math.round(from+(to-from)*clamp01(q)), E=v=>Math.round(v);
+  const from=c.id==='A'?0:100, to=n.id==='A'?0:100, at=q=>Math.round(from+(to-from)*clamp01(q)), E=v=>Math.round(Math.max(-100,Math.min(100,v)));
   let q, ce={l:0,m:0,h:0}, ne={l:0,m:0,h:0}, cf=0, nf=0;
   const swapB=(a,b)=>{ const k=sm(seg(p,a,b)); ce.l=-100*k; ne.l=-100*(1-k); };
   if(AU.style==='bass swap'){
     q=p<0.2?sm(p/0.2)*0.5:(p<0.55?0.5:0.5+0.5*sm(seg(p,0.55,1)));
-    swapB(0.5,0.58); ne.h=-55*(1-seg(p,0,0.3)); ce.h=-45*seg(p,0.6,1); ne.m=-25*(1-seg(p,0.1,0.5));
+    swapB(0.5,0.58); ne.h=-55*(1-seg(p,0,0.3)); ce.h=-45*seg(p,0.6,1)+45*bump(p,0.15,0.55); ne.m=-25*(1-seg(p,0.1,0.5))+45*bump(p,0.6,1); ne.l+=80*bump(p,0.58,1);
   } else if(AU.style==='filter wash'){
     q=sm(seg(p,0.1,0.9)); cf=80*sm(seg(p,0.2,0.9)); nf=-85*(1-sm(seg(p,0.1,0.6)));
-    swapB(0.5,0.62); ce.m=-30*seg(p,0.5,1);
+    swapB(0.5,0.62); ce.m=-30*seg(p,0.5,1); ce.l+=65*bump(p,0.05,0.5); ne.h+=55*bump(p,0.5,1); ne.l+=55*bump(p,0.62,1);
   } else if(AU.style==='crossfader wobble'){
     q=sm(seg(p,0.1,0.95))+0.18*Math.sin(p*Math.PI*6)*(1-p)*(p>0.05?1:0);
-    swapB(0.55,0.65); ne.m=-40*(1-seg(p,0,0.7)); ce.h=-35*seg(p,0.6,1); ne.h=-30*(1-seg(p,0,0.5));
+    swapB(0.55,0.65); ne.m=-40*(1-seg(p,0,0.7))+70*bump(p,0.3,0.85); ce.h=-35*seg(p,0.6,1)+55*bump(p,0.05,0.5); ne.h=-30*(1-seg(p,0,0.5)); ne.l+=70*bump(p,0.65,1);
   } else { // blend
-    q=sm(p); swapB(0.35,0.65); ne.h=-70*(1-seg(p,0,0.5)); ce.h=-60*seg(p,0.5,1); ne.m=-30*(1-seg(p,0,0.6)); ce.m=-30*seg(p,0.5,1);
+    q=sm(p); swapB(0.35,0.65); ne.h=-70*(1-seg(p,0,0.5))+50*bump(p,0.4,0.95); ce.h=-60*seg(p,0.5,1); ne.m=-30*(1-seg(p,0,0.6)); ce.m=-30*seg(p,0.5,1)+55*bump(p,0.05,0.6); ne.l+=60*bump(p,0.5,1);
   }
   S.xf=at(q); c.eq={l:E(ce.l),m:E(ce.m),h:E(ce.h)}; n.eq={l:E(ne.l),m:E(ne.m),h:E(ne.h)}; c.filt=E(cf); n.filt=E(nf);
   if(p>=1){ S.xf=to; }
@@ -391,7 +401,7 @@ function autoTick(){
     if(!playing(c)){ autoOn(false); autoSay('Auto DJ stopped because the deck was stopped.'); return; }
     const left=AU.len-AU.fade-barsOf(c);
     autoSay('Auto DJ: Deck '+c.id+' ('+ev(c,'genreObj().name')+') is playing. Next mix in '+Math.max(0,left)+' bars.');
-    if(left>0){ autoStepSecs(c); autoFlair(c); }
+    if(left>0){ autoStepSecs(c); autoFlair(c); swellTick(c); } else if(AU.swell){ const w=D(AU.swell.id); if(w) w.eq[AU.swell.band]=0; AU.swell=null; }
     if(left<=0){
       AU.phase='wait';
       const bpm=getBpm(c); freshDeck(n,pickGenre(bpm,[c.genre,n.genre])); setBpm(n,bpm); n.base=bpm;
@@ -619,7 +629,7 @@ $('go').addEventListener('click',()=>{
 });
 boot();
 // for tests
-window.__djTest={freshDeck:freshDeck,swapSound:swapSound,autoFlair:autoFlair,autoStepSecs:autoStepSecs,autoMix:autoMix,STYLES:STYLES,AU:AU,autoOn:autoOn,timing:timing,barTime:barTime,PC:PC,stepGenre:stepGenre,decks:decks,S:S,knob:knob,knobB:knobB,onMidi:onMidi,onNote:onNote,applyMix:applyMix,cross:cross,MAP:()=>MAP};
+window.__djTest={startSwell:startSwell,swellTick:swellTick,freshDeck:freshDeck,swapSound:swapSound,autoFlair:autoFlair,autoStepSecs:autoStepSecs,autoMix:autoMix,STYLES:STYLES,AU:AU,autoOn:autoOn,timing:timing,barTime:barTime,PC:PC,stepGenre:stepGenre,decks:decks,S:S,knob:knob,knobB:knobB,onMidi:onMidi,onNote:onNote,applyMix:applyMix,cross:cross,MAP:()=>MAP};
 })();
 </script>
 </body>
