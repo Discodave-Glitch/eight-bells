@@ -319,7 +319,7 @@ function lockStart(d,o,done){ // start deck d exactly on deck o's next bar
   d.syncing=true; d.syncT=setTimeout(()=>{ d.syncing=false; ev(d,"startPlay()"); if(done) done(); },Math.max(0,T-lead-a.now));
 }
 /* ---------- Auto DJ: plays a deck for a while, brings the other in on the beat with a new tune, crossfades, swaps, repeats ---------- */
-const AU={on:false,cur:'A',phase:'idle',len:32,fade:16,g0:0,t0:0,half:false,timer:null,gen:null,style:'',force:''};
+const AU={flairAt:6,step:6,lastBar:0,last:'',on:false,cur:'A',phase:'idle',len:32,fade:16,g0:0,t0:0,half:false,timer:null,gen:null,style:'',force:''};
 const clamp01=x=>Math.max(0,Math.min(1,x)), sm=x=>{ x=clamp01(x); return x*x*(3-2*x); }, seg=(p,a,b)=>clamp01((p-a)/(b-a));
 const STYLES=['blend','bass swap','filter wash','crossfader wobble'];
 const gstepOf=d=>ev(d,'gstep')||0;
@@ -340,7 +340,29 @@ function autoOn(on){
   if(playing(n)) setPlay(n,false);
   S.xf=AU.cur==='A'?0:100; applyMix();
   if(!playing(c)) setPlay(c,true);
-  AU.g0=playing(c)?gstepOf(c):0; AU.phase='play'; AU.timer=setInterval(autoTick,120); autoSay('Auto DJ starting with Deck '+AU.cur+'...');
+  AU.g0=playing(c)?gstepOf(c):0; AU.lastBar=0; AU.flairAt=6; queueSec(c,rndSec(['intro','bld','drop'],'')); AU.phase='play'; AU.timer=setInterval(autoTick,120); autoSay('Auto DJ starting with Deck '+AU.cur+'...');
+}
+const MIDSEC=['bld','drop','chorus','brk','bridge','half'];
+function rndSec(pool,not){ const c=pool.filter(x=>x!==not); return c[Math.floor(Math.random()*c.length)]; }
+function queueSec(d,id){ AU.last=id; ev(d,"(function(id){ if(SONG.on) return; if(playing){ LV.next=(id===state.section)?null:id; } else { goSection(id); LV.next=null; } })('"+id+"')"); }
+function freshDeck(d,id){ // new genre with a random engine, random sounds from every instrument family, and a random kit
+  d.genre=id; ev(d,"(function(id){ state.section=null; LV.next=null; if(typeof surpriseEngine==='function') surpriseEngine(); setGenre(id); if(typeof surpriseSounds==='function') surpriseSounds(); if(typeof renderAll==='function') renderAll(); })('"+id+"')");
+  newBase(d); const sel=$('deck'+d.id)&&$('deck'+d.id).querySelector('select'); if(sel) sel.value=id;
+}
+function swapSound(d){ // change one instrument role (bass, stab, arp or lead) on the fly
+  return ev(d,"(function(){ var map={bass:['Bass'],stab:['Stabs and chords','Keys and organs','Pads','Brass and reeds'],arp:['Plucks and bells','Keys and organs','Leads','World'],lead:['Leads','Brass and reeds','Strings and bowed','World']}; var ks=Object.keys(map), r=ks[Math.floor(Math.random()*ks.length)]; var l=PATCH_LIST.filter(function(p){return map[r].indexOf(p[2])>=0}).map(function(p){return p[0]}).filter(function(x){return PATCHES[x]}); var c=bagPick('patch-'+r,l); PV.patch[r]=c; if(typeof savePV==='function') savePV(); if(typeof renderPreview==='function') renderPreview(); return r+':'+c; })()");
+}
+function fxHit(d,name,ms){ const i=FXN.indexOf(name); if(i<0) return; fx(d,i,true); setTimeout(()=>fx(d,i,false),ms); }
+function autoFlair(c){ // now and then: a sound swap or a short effect hit on the deck that is playing
+  const b=barsOf(c); if(b<AU.flairAt) return; AU.flairAt=b+[6,8,10,12][Math.floor(Math.random()*4)];
+  const beat=60000/getBpm(c);
+  if(Math.random()<0.45) swapSound(c);
+  else { const e=[['Echo',4],['Stutter',2],['Reverse',4],['Loop 1/8',2],['Low-pass sweep',8],['High-pass sweep',6]][Math.floor(Math.random()*6)]; fxHit(c,e[0],beat*e[1]); }
+}
+function autoStepSecs(c){ // wander through the patterns while a deck plays on its own
+  const b=barsOf(c); if(b-AU.lastBar<AU.step) return;
+  AU.lastBar=b; AU.step=[4,4,6,8][Math.floor(Math.random()*4)];
+  queueSec(c,rndSec(MIDSEC,ev(c,'state.section')));
 }
 function autoMix(c,n,p){ // moves the crossfader and the bass, mid and treble of both decks through one of several handover styles
   const from=c.id==='A'?0:100, to=n.id==='A'?0:100, at=q=>Math.round(from+(to-from)*clamp01(q)), E=v=>Math.round(v);
@@ -369,21 +391,23 @@ function autoTick(){
     if(!playing(c)){ autoOn(false); autoSay('Auto DJ stopped because the deck was stopped.'); return; }
     const left=AU.len-AU.fade-barsOf(c);
     autoSay('Auto DJ: Deck '+c.id+' ('+ev(c,'genreObj().name')+') is playing. Next mix in '+Math.max(0,left)+' bars.');
+    if(left>0){ autoStepSecs(c); autoFlair(c); }
     if(left<=0){
       AU.phase='wait';
-      const bpm=getBpm(c); setGenre(n,pickGenre(bpm,[c.genre,n.genre])); setBpm(n,bpm); n.base=bpm;
-      ev(n,"(function(){ goSection('intro'); LV.next=null; })()");
-      ev(c,"(function(){ if(!SONG.on) LV.next='outro'; })()");
+      const bpm=getBpm(c); freshDeck(n,pickGenre(bpm,[c.genre,n.genre])); setBpm(n,bpm); n.base=bpm;
+      queueSec(n,rndSec(['intro','bld','intro'],''));
+      queueSec(c,rndSec(['outro','outro','brk','bridge'],''));
       AU.style=AU.force||STYLES[Math.floor(Math.random()*STYLES.length)];
-      lockStart(n,c,()=>{ AU.phase='mix'; AU.t0=Date.now(); AU.half=false; });
+      lockStart(n,c,()=>{ AU.phase='mix'; AU.t0=Date.now(); AU.half=false; AU.third=false; });
     }
   }
   else if(AU.phase==='mix'){
     const barMs=240000/getBpm(c), p=Math.min(1,(Date.now()-AU.t0)/(AU.fade*barMs));
     autoMix(c,n,p);
     autoSay('Auto DJ: '+AU.style+' from Deck '+c.id+' into Deck '+n.id+' ('+ev(n,'genreObj().name')+') '+Math.round(p*100)+'%');
-    if(p>=0.5&&!AU.half){ AU.half=true; ev(n,"(function(){ if(!SONG.on) LV.next='drop'; })()"); }
-    if(p>=1){ setPlay(c,false); c.eq={l:0,m:0,h:0}; c.filt=0; n.eq={l:0,m:0,h:0}; n.filt=0; applyMix(); AU.cur=n.id; AU.g0=0; AU.phase='play'; }
+    if(p>=0.5&&!AU.half){ AU.half=true; fxHit(c,['Reverse','Echo','Tape stop'][Math.floor(Math.random()*3)],240000/getBpm(c)/2); queueSec(n,rndSec(['drop','chorus','half','bld'],'')); }
+    if(p>=0.8&&!AU.third){ AU.third=true; queueSec(n,rndSec(['drop','chorus','bridge'],'')); }
+    if(p>=1){ setPlay(c,false); c.eq={l:0,m:0,h:0}; c.filt=0; n.eq={l:0,m:0,h:0}; n.filt=0; applyMix(); AU.cur=n.id; AU.g0=0; AU.lastBar=Math.floor(barsOf(n)); AU.flairAt=Math.floor(barsOf(n))+6; AU.phase='play'; }
   }
 }
 function bend(d,dir,on){ if(on){ if(d.bendSave==null){ d.bendSave=getBpm(d); setBpm(d,d.bendSave*(1+dir*0.04)); } } else if(d.bendSave!=null){ setBpm(d,d.bendSave); d.bendSave=null; } }
@@ -595,7 +619,7 @@ $('go').addEventListener('click',()=>{
 });
 boot();
 // for tests
-window.__djTest={autoMix:autoMix,STYLES:STYLES,AU:AU,autoOn:autoOn,timing:timing,barTime:barTime,PC:PC,stepGenre:stepGenre,decks:decks,S:S,knob:knob,knobB:knobB,onMidi:onMidi,onNote:onNote,applyMix:applyMix,cross:cross,MAP:()=>MAP};
+window.__djTest={freshDeck:freshDeck,swapSound:swapSound,autoFlair:autoFlair,autoStepSecs:autoStepSecs,autoMix:autoMix,STYLES:STYLES,AU:AU,autoOn:autoOn,timing:timing,barTime:barTime,PC:PC,stepGenre:stepGenre,decks:decks,S:S,knob:knob,knobB:knobB,onMidi:onMidi,onNote:onNote,applyMix:applyMix,cross:cross,MAP:()=>MAP};
 })();
 </script>
 </body>
