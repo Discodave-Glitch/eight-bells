@@ -119,7 +119,7 @@ input[type=range]{width:100%;accent-color:var(--ink);min-height:28px;margin:0}
     <div class="chip" id="padnote"></div>
     <div class="chip" id="mon">Last message from your controller: none yet</div>
     <p class="hint">Guided setup walks through the controls one by one. When a control lights up yellow, press or move the matching control on your deck. Tap Skip for any it does not have. Your choices are remembered on this device. Jog wheel: turn it to nudge the tempo. CUE: hold it to preview, or tap it while playing to restart from the top. Double-tap an EQ or filter knob to centre it.</p>
-    <p class="hint">SMC-PAD pads: Bank A pads are effects, Bank B pads are patterns (the pad's own Bank button picks). Pads 1 to 8 (bottom two rows) are Deck A and pads 9 to 16 (top two rows) are Deck B, read left to right: Intro, Build-up, Drop, Chorus, then Break, Bridge, Half, Outro (effects: Loop 1/4, Loop 1/8, Stutter, Reverse, then Tape stop, Low-pass, High-pass, Echo). Knob bank A (CC 30 to 37): knob 1 crossfader, knob 2 master volume, then pairs for Deck A and Deck B: knobs 3 and 4 volumes, 5 and 6 filters, 7 and 8 tempos. Knob bank B (CC 38 to 45, or the numbers you taught Eight Bells Pad mode on this device) is the EQ, laid out like the mixer: Deck A on the left-hand knobs 7, 5, 3, 1 (Treble, Mid, Bass, Filter from the top down) and Deck B on the right-hand knobs 8, 6, 4, 2. Buttons work like Pad mode in Eight Bells: &lt; and &gt; (CC 25, 26) change the genre of the highlighted deck, Play (27) and Stop (28) run both decks, Record (29) picks which deck is highlighted. If bank B does nothing on your pad, use Learn one control to teach it.</p>
+    <p class="hint">SMC-PAD pads: Bank A pads are effects, Bank B pads are patterns (the pad's own Bank button picks). Pads 1 to 8 (bottom two rows) are Deck A and pads 9 to 16 (top two rows) are Deck B, read left to right: Intro, Build-up, Drop, Chorus, then Break, Bridge, Half, Outro (effects: Loop 1/4, Loop 1/8, Stutter, Reverse, then Tape stop, Low-pass, High-pass, Echo). Knob bank A (CC 30 to 37): knob 1 crossfader, knob 2 master volume, then pairs for Deck A and Deck B: knobs 3 and 4 volumes, 5 and 6 filters, 7 and 8 tempos. Knob bank B (CC 38 to 45, or the numbers you taught Eight Bells Pad mode on this device) is the EQ, laid out like the mixer: Deck A on the left-hand knobs 7, 5, 3, 1 (Treble, Mid, Bass, Filter from the top down) and Deck B on the right-hand knobs 8, 6, 4, 2. Buttons: &lt; and &gt; (CC 25, 26) play or pause Deck A and Deck B, Play (27) and Stop (28) run both decks, Record (29) syncs Deck B to Deck A. If bank B does nothing on your pad, use Learn one control to teach it.</p>
     <p id="msg"></p>
   </details>
 </div>
@@ -197,7 +197,7 @@ function buildUI(){
   $('console').innerHTML=deckHTML(decks[0],opts)+
    '<div class="mixer" aria-label="Mixer"><div class="strips">'+stripHTML(decks[0])+stripHTML(decks[1])+'</div>'+
    '<div class="xfw" data-ctl="xf" data-kind="abs"><div class="lbl"><span>Crossfader <i class="bt">A1</i></span></div><div class="xfr"><b class="A">A</b><input type="range" id="xf" min="0" max="100" value="50" aria-label="Crossfader"><b class="B">B</b></div><div class="row"><button data-xf="0">All A</button><button data-xf="50">Centre</button><button data-xf="100">All B</button></div></div>'+
-   '<div class="xfw"><div class="lbl"><span>Pad buttons</span></div><div class="pbtn"><button data-ctl="prev" data-kind="btn" data-a="prev" aria-label="Previous genre">&lt;</button><button data-ctl="next" data-kind="btn" data-a="next" aria-label="Next genre">&gt;</button><button data-ctl="playall" data-kind="btn" data-a="playall">Play</button><button data-ctl="stopall" data-kind="btn" data-a="stopall">Stop</button><button data-ctl="focus" data-kind="btn" data-a="focus" id="focusb">Rec: A</button></div><div class="chip">&lt; &gt; change the genre of the highlighted deck. Record picks which deck is highlighted.</div></div>'+
+   '<div class="xfw"><div class="lbl"><span>Pad buttons</span></div><div class="pbtn"><button data-ctl="prev" data-kind="btn" data-a="prev" aria-label="Play or pause Deck A">&lt; A</button><button data-ctl="next" data-kind="btn" data-a="next" aria-label="Play or pause Deck B">B &gt;</button><button data-ctl="playall" data-kind="btn" data-a="playall">Play</button><button data-ctl="stopall" data-kind="btn" data-a="stopall">Stop</button><button data-ctl="focus" data-kind="btn" data-a="focus" id="focusb">Sync</button></div><div class="chip">&lt; plays or pauses Deck A, &gt; plays or pauses Deck B. Record syncs Deck B to Deck A.</div></div>'+
    '<div class="mvr">'+knobHTML('Master <i class="bt">A2</i>','mv','id="mv"',0,100,85,'mvv','Master volume')+'</div></div>'+
    deckHTML(decks[1],opts);
   decks.forEach(d=>{ $('deck'+d.id).querySelector('select').value=d.genre; d.page=0; d.held={}; });
@@ -260,15 +260,15 @@ function padAct(d,j,on,mode){ // j is 0 to 7, mode 0 effects or 1 patterns
 }
 
 /* ---------- named controls: used by taps, the platter and MIDI learn ---------- */
-const NAMES={prev:'Pad button <',next:'Pad button >',playall:'Pad button Play',stopall:'Pad button Stop',focus:'Pad button Record (pick deck)',sec:'Pattern',fx:'Effect',play:'PLAY',cue:'CUE',sync:'SYNC',bass:'Bass knob',mid:'Mid knob',treb:'Treble knob',filt:'Filter knob',vol:'Channel volume fader',tempo:'Pitch (tempo) fader',jog:'Jog wheel (turn it)',mode:'Pad mode button',bendm:'Bend slower',bendp:'Bend faster',xf:'Crossfader',mv:'Master volume'};
+const NAMES={prev:'Pad button < (play A)',next:'Pad button > (play B)',playall:'Pad button Play',stopall:'Pad button Stop',focus:'Pad button Record (sync)',sec:'Pattern',fx:'Effect',play:'PLAY',cue:'CUE',sync:'SYNC',bass:'Bass knob',mid:'Mid knob',treb:'Treble knob',filt:'Filter knob',vol:'Channel volume fader',tempo:'Pitch (tempo) fader',jog:'Jog wheel (turn it)',mode:'Pad mode button',bendm:'Bend slower',bendp:'Bend faster',xf:'Crossfader',mv:'Master volume'};
 function ctlName(id){ const p=id.split(':'); if(p[0]==='pad') return 'Deck '+p[1]+' pad '+(+p[2]+1); if(p[0]==='sec') return 'Deck '+p[1]+' pattern: '+SECS[+p[2]][1]; if(p[0]==='fx') return 'Deck '+p[1]+' effect: '+FXN[+p[2]]; return (p[1]?'Deck '+p[1]+' ':'')+(NAMES[p[0]]||id); }
 function stepGenre(dir){
   const d=D(S.focus), sel=$('deck'+d.id).querySelector('select'), n=sel.options.length; let i=sel.selectedIndex+dir; i=Math.max(0,Math.min(n-1,i)); if(i===sel.selectedIndex) return;
   setGenre(d,sel.options[i].value);
 }
-function setFocus(id){ S.focus=id; decks.forEach(x=>$('deck'+x.id).classList.toggle('focus',x.id===id)); const b=$('focusb'); if(b) b.textContent='Rec: '+id; }
+function setFocus(id){ S.focus=id; decks.forEach(x=>$('deck'+x.id).classList.toggle('focus',x.id===id)); const b=$('focusb'); }
 function ctlPress(id){
-  if(id==='prev') return stepGenre(-1); if(id==='next') return stepGenre(1); if(id==='playall') return bothPlay(); if(id==='stopall') return bothStop(); if(id==='focus') return setFocus(S.focus==='A'?'B':'A');
+  if(id==='prev') return togglePlay(decks[0]); if(id==='next') return togglePlay(decks[1]); if(id==='playall') return bothPlay(); if(id==='stopall') return bothStop(); if(id==='focus') return sync();
   const p=id.split(':'), d=D(p[1]);
   if(p[0]==='play') togglePlay(d); else if(p[0]==='sync') syncTo(d); else if(p[0]==='mode'){ d.page=(d.page+1)%4; paintPads(); } else if(p[0]==='sec') section(d,SECS[+p[2]][0]);
 }
@@ -343,7 +343,7 @@ function onMidi(e){
     const cc=m[1], c=PC.cc, ka=c.k.indexOf(cc), kb=c.kb.indexOf(cc);
     if(ka>=0) knob(ka,v/127);
     else if(kb>=0) knobB(kb,v/127);
-    else if(v>0){ if(cc===c.prev) stepGenre(-1); else if(cc===c.next) stepGenre(1); else if(cc===c.play) bothPlay(); else if(cc===c.stop) bothStop(); else if(cc===c.rec) ctlPress('focus'); }
+    else if(v>0){ if(cc===c.prev) togglePlay(decks[0]); else if(cc===c.next) togglePlay(decks[1]); else if(cc===c.play) bothPlay(); else if(cc===c.stop) bothStop(); else if(cc===c.rec) ctlPress('focus'); }
   }
 }
 function bothPlay(){ const any=decks.some(playing); if(any){ return; } decks.forEach(d=>setPlay(d,true)); }
