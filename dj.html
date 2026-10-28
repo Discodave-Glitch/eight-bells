@@ -98,9 +98,13 @@ body.nolbl .bt{display:none}
 #wiztxt{flex:1 1 220px;font-weight:600}
 .ctlp{margin:0;padding:0;border:0;background:none;position:static}
 #autost i{font-style:normal;display:inline-block;white-space:inherit}
-#autost span.mq i{white-space:nowrap;animation:mq var(--dur,10s) ease-in-out infinite alternate}
-@keyframes mq{0%,12%{transform:translateX(0)}88%,100%{transform:translateX(var(--mq,0px))}}
-@media (prefers-reduced-motion:reduce){ #autost span.mq i{animation:none} #autost span{overflow-x:auto} }
+#autost i b{font-weight:inherit;display:inline-block}
+#autost i b+b{display:none}
+#autost span.mq i{white-space:nowrap;animation:tk var(--dur,12s) linear infinite}
+#autost span.mq i b+b{display:inline-block;padding-left:3em}
+@keyframes tk{from{transform:translateX(0)}to{transform:translateX(var(--mq,0px))}}
+#autost.st-still i,#autost.st-still i b,#autost span.clip i,#autost span.clip i b{display:inline}
+#autost span.clip{text-overflow:ellipsis}
 #autost{display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 16px}#autonx{color:var(--ink);opacity:.85;text-align:right;margin-left:auto}
 #rpt{width:100%;box-sizing:border-box;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:8px;font:12px/1.35 ui-monospace,Menlo,Consolas,monospace}
 #mkgood,#mkbad{padding:0 10px;min-width:44px}
@@ -179,6 +183,7 @@ body.nolbl .bt{display:none}
     <div class="row"><button id="wiz">Guided setup</button><button id="learn">Learn one control</button><button id="teachA">Teach knob bank A</button><button id="teachB">Teach knob bank B</button><button id="clearmap">Clear mappings</button></div>
     <label class="row chip" style="cursor:pointer"><input type="checkbox" id="padlbl" checked> Show pad labels (A3, B5 and so on) next to the knobs and faders</label>
     <div class="chip" id="padnote"></div>
+    <div class="row"><b class="chip">Long status text</b><select id="sttext" aria-label="What the status line does when its text is too long"><option value="ticker" selected>Scrolling ticker</option><option value="shrink">Shrink to fit</option><option value="still">Cut off</option></select></div>
     <div class="row"><b class="chip">Vocals and samples</b><select id="voxuse" aria-label="Vocals and samples Auto DJ may use"><option value="off">Off</option><option value="voices" selected>Built-in voices</option><option value="all">Built-in voices + my samples</option></select><select id="voxoften" aria-label="How often Auto DJ uses vocals and samples"><option value="rare">Only at big moments</option><option value="some">Now and then</option><option value="often" selected>Often</option></select></div>
     <div class="row"><b class="chip">Set report</b><button id="rptcopy">Copy</button><button id="rptshare">Share</button><button id="rptdl">Download</button></div>
     <textarea id="rpt" readonly rows="6" aria-label="Auto DJ set report" placeholder="Start Auto DJ and the report builds as it plays."></textarea>
@@ -188,7 +193,7 @@ body.nolbl .bt{display:none}
     <p id="msg"></p>
   </div></details></div>
   </div>
-  <div class="chip" id="autost" style="min-height:1.4em;margin:-4px 0 8px"><span id="auton"><i></i></span><span id="autonx"><i></i></span></div>
+  <div class="chip" id="autost" style="min-height:1.4em;margin:-4px 0 8px"><span id="auton"><i><b></b><b></b></i></span><span id="autonx"><i><b></b><b></b></i></span></div>
   <div class="console" id="console"></div>
 </div>
 <div id="wizbar" hidden><span id="wiztxt"></span><button id="wizskip">Skip</button><button id="wizstop">Done</button></div>
@@ -369,12 +374,21 @@ const LOG=[], TRK=[];
 function stamp(ms){ const s=Math.max(0,Math.round(ms/1000)), h=Math.floor(s/3600), m=Math.floor(s%3600/60), x=s%60; return (h?h+':':'')+(h?String(m).padStart(2,'0'):m)+':'+String(x).padStart(2,'0'); }
 function saveLog(){ try{ localStorage.setItem('ebdj.report',JSON.stringify({LOG:LOG.slice(-1500),TRK:TRK,set:AU.setInfo||'',t0:AU.tStart||0})); }catch(e){} }
 function alog(kind,text){ if(!AU.tStart||(!AU.on&&kind!=='stop')) return; LOG.push({t:Date.now()-AU.tStart,kind:kind,text:text,tr:AU.tr}); if(LOG.length>3000) LOG.shift(); AU.lastEv=text; if(kind!=='fx'&&kind!=='section'&&kind!=='eq'&&kind!=='sound') saveLog(); }
-function mqFit(sp){ // if the text is wider than its box (phone or tablet on its side), let it drift to and fro so it can all be read
-  const i=sp.firstChild; if(!i) return; const over=Math.ceil(i.scrollWidth-sp.clientWidth), on=sp.classList.contains('mq');
-  if(over>4){ if(!on) sp.classList.add('mq'); const cur=parseFloat(sp.style.getPropertyValue('--mq'))||0; if(Math.abs(cur+over)>6){ sp.style.setProperty('--mq',-over+'px'); sp.style.setProperty('--dur',Math.max(6,over/22)+'s'); } }
-  else if(on){ sp.classList.remove('mq'); sp.style.removeProperty('--mq'); }
+const stMode=()=>{ const m=($('sttext')&&$('sttext').value)||'ticker'; return (m==='ticker'&&window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)?'shrink':m; };
+function mqFit(sp,txt){ // long status text: a continuous ticker, or shrink it to fit, or cut it off (chosen in Setup)
+  const i=sp.firstChild, b1=i.children[0], b2=i.children[1], mode=stMode(), natural=b1.offsetWidth/(sp._sc||1), box=sp.clientWidth, over=natural>box+3;
+  if(mode==='ticker'){
+    if(sp._sc&&sp._sc!==1){ sp._sc=1; i.style.fontSize=''; }
+    sp.classList.remove('clip');
+    if(over){ if(!sp.classList.contains('mq')){ b2.textContent=txt; sp.classList.add('mq'); } else b2.textContent=txt; const shift=b2.offsetLeft-b1.offsetLeft; if(shift>0&&Math.abs(shift+(parseFloat(sp.style.getPropertyValue('--mq'))||0))>6){ sp.style.setProperty('--mq',-shift+'px'); sp.style.setProperty('--dur',Math.max(5,shift/45)+'s'); } }
+    else if(sp.classList.contains('mq')){ sp.classList.remove('mq'); b2.textContent=''; sp.style.removeProperty('--mq'); }
+  } else {
+    if(sp.classList.contains('mq')){ sp.classList.remove('mq'); b2.textContent=''; sp.style.removeProperty('--mq'); }
+    if(mode==='shrink'){ const sc=over?Math.max(.7,Math.floor(box/natural*.98*100)/100):1; if(Math.abs(sc-(sp._sc||1))>.02||(sc===1&&sp._sc)){ sp._sc=sc; i.style.fontSize=sc===1?'':(sc*100)+'%'; } sp.classList.toggle('clip',over&&natural*sc>box+3); }
+    else { if(sp._sc&&sp._sc!==1){ sp._sc=1; i.style.fontSize=''; } sp.classList.toggle('clip',over); }
+  }
 }
-function autoSay(t,nx){ const a=$('auton'), b=$('autonx'); if(!a||!b){ const e=$('autost'); if(e) e.textContent=t; return; } a.firstChild.textContent=t; b.firstChild.textContent=nx!==undefined?nx:''; mqFit(a); mqFit(b); }
+function autoSay(t,nx){ const a=$('auton'), b=$('autonx'); if(!a||!b){ const e=$('autost'); if(e) e.textContent=t; return; } const n=nx!==undefined?nx:''; a.firstChild.children[0].textContent=t; b.firstChild.children[0].textContent=n; mqFit(a,t); mqFit(b,n); }
 function pickGenre(bpm,not){
   if(!AU.gen) AU.gen=decks[0].win.eval('GENRES.map(function(g){return [g.id,g.bpm[0],g.bpm[1]]})');
   let c=AU.gen.filter(g=>not.indexOf(g[0])<0&&g[1]<=bpm+5&&g[2]>=bpm-5); // beginners' tip: stay within about 5 BPM
@@ -784,6 +798,9 @@ function wireUI(){
   document.addEventListener('pointerup',pup); document.addEventListener('pointercancel',pup);
   document.addEventListener('dblclick',e=>{ const k=e.target.closest&&e.target.closest('.kd'); if(!k) return; const inp=k.querySelector('input'); if(inp.dataset.eq||inp.dataset.f){ inp.value=0; inp.dispatchEvent(new Event('input',{bubbles:true})); } });
   $('gfx').addEventListener('click',()=>setGfx(GFXI+1)); { let on=true; try{ on=localStorage.getItem('ebdj.lbl')!=='0'; }catch(e){} setLbl(on); $('padlbl').addEventListener('change',e=>setLbl(e.target.checked)); } $('gfx').textContent='Deck: '+GFX[GFXI][0];
+  try{ const v=localStorage.getItem('ebdj.sttext'); if(v&&[...$('sttext').options].some(o=>o.value===v)) $('sttext').value=v; }catch(e){}
+  const stApply=()=>{ const m=$('sttext').value; const st=$('autost'); st.classList.remove('st-ticker','st-shrink','st-still'); st.classList.add('st-'+m); ['auton','autonx'].forEach(id=>{ const sp=$(id); sp._sc=1; sp.classList.remove('mq','clip'); sp.firstChild.style.fontSize=''; sp.style.removeProperty('--mq'); sp.firstChild.children[1].textContent=''; mqFit(sp,sp.firstChild.children[0].textContent); }); };
+  stApply(); $('sttext').addEventListener('change',()=>{ try{ localStorage.setItem('ebdj.sttext',$('sttext').value); }catch(e){} stApply(); });
   ['voxuse','voxoften'].forEach(id=>{ try{ const v=localStorage.getItem('ebdj.'+id); if(v&&[...$(id).options].some(o=>o.value===v)) $(id).value=v; }catch(e){} $(id).addEventListener('change',()=>{ try{ localStorage.setItem('ebdj.'+id,$(id).value); }catch(e){} if(id==='voxuse'){ VOXOK=null; voxPrep(); if(voxMode()==='off') voxOffAll(); } }); });
   $('mkgood').addEventListener('click',()=>markSet(true)); $('mkbad').addEventListener('click',()=>markSet(false)); $('rptcopy').addEventListener('click',reportCopy); $('rptshare').addEventListener('click',reportShare); $('rptdl').addEventListener('click',reportDownload); $('ctlp').addEventListener('toggle',refreshReport);
   try{ const r=JSON.parse(localStorage.getItem('ebdj.report')||'null'); if(r&&r.LOG&&!LOG.length){ r.LOG.forEach(x=>LOG.push(x)); (r.TRK||[]).forEach(x=>TRK.push(x)); AU.setInfo=r.set||''; AU.tStart=r.t0||0; refreshReport(); } }catch(e){}
