@@ -51,6 +51,7 @@ input[type=range]{width:100%;accent-color:var(--ink);min-height:28px;margin:0}
 .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.grid4 button{min-height:40px;padding:0 3px;font-size:12px;line-height:1.1}.grid4 .sb.cur,.grid4 .fb.hold{background:var(--c);color:#07090e;border-color:var(--c)}.grid4 .sb.q{outline:2px dashed var(--c)}
 .trans{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .trans button{min-height:48px;font-weight:700;letter-spacing:.04em}
+.trans button.on{background:var(--ink);color:var(--bg)}
 .trans .play.on{background:var(--c);color:#07090e;border-color:var(--c)}
 .pads4{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
 .pad{aspect-ratio:1.6;min-height:0;padding:2px;font-size:12px;line-height:1.1;border-radius:12px;background:var(--panel2);border:2px solid var(--c)}
@@ -119,7 +120,7 @@ input[type=range]{width:100%;accent-color:var(--ink);min-height:28px;margin:0}
     <div class="chip" id="padnote"></div>
     <div class="chip" id="mon">Last message from your controller: none yet</div>
     <p class="hint">Guided setup walks through the controls one by one. When a control lights up yellow, press or move the matching control on your deck. Tap Skip for any it does not have. Your choices are remembered on this device. Jog wheel: turn it to nudge the tempo. CUE: hold it to preview, or tap it while playing to restart from the top. Double-tap an EQ or filter knob to centre it.</p>
-    <p class="hint">SMC-PAD pads: Bank A pads are effects, Bank B pads are patterns (the pad's own Bank button picks). Pads 1 to 8 (bottom two rows) are Deck A and pads 9 to 16 (top two rows) are Deck B, read left to right: Intro, Build-up, Drop, Chorus, then Break, Bridge, Half, Outro (effects: Loop 1/4, Loop 1/8, Stutter, Reverse, then Tape stop, Low-pass, High-pass, Echo). Knob bank A (CC 30 to 37): knob 1 crossfader, knob 2 master volume, then pairs for Deck A and Deck B: knobs 3 and 4 volumes, 5 and 6 filters, 7 and 8 tempos. Knob bank B (CC 38 to 45, or the numbers you taught Eight Bells Pad mode on this device) is the EQ, laid out like the mixer: Deck A on the left-hand knobs 7, 5, 3, 1 (Treble, Mid, Bass, Filter from the top down) and Deck B on the right-hand knobs 8, 6, 4, 2. Buttons: &lt; and &gt; (CC 25, 26) play or pause Deck A and Deck B, Play (27) and Stop (28) run both decks, Record (29) syncs Deck B to Deck A. If bank B does nothing on your pad, use Learn one control to teach it.</p>
+    <p class="hint">SMC-PAD pads: Bank A pads are effects, Bank B pads are patterns (the pad's own Bank button picks). Pads 1 to 8 (bottom two rows) are Deck A and pads 9 to 16 (top two rows) are Deck B, read left to right: Intro, Build-up, Drop, Chorus, then Break, Bridge, Half, Outro (effects: Loop 1/4, Loop 1/8, Stutter, Reverse, then Tape stop, Low-pass, High-pass, Echo). Knob bank A (CC 30 to 37): knob 1 crossfader, knob 2 master volume, then the EQ with Deck A on the odd knobs and Deck B on the even knobs: Bass 3 and 4, Mid 5 and 6, Treble 7 and 8. Knob bank B (CC 38 to 45, or the numbers you taught Eight Bells Pad mode on this device): knobs 1 and 2 the same crossfader and master volume, then volumes 3 and 4, filters 5 and 6, tempos 7 and 8. Buttons: &lt; and &gt; (CC 25, 26) play or pause Deck A and Deck B, Play (27) and Stop (28) run both decks, Record (29) syncs Deck B to Deck A. If bank B does nothing on your pad, use Learn one control to teach it.</p>
     <p id="msg"></p>
   </details>
 </div>
@@ -176,7 +177,7 @@ function deckHTML(d,opts){
    '<div class="tools"><button data-a="gen" data-d="'+i+'">New pattern</button><button data-a="rand" data-d="'+i+'">Random genre</button><button data-bend="-1" data-ctl="bendm:'+i+'" data-kind="hold" data-hold="1" data-d="'+i+'">Bend -</button><button data-bend="1" data-ctl="bendp:'+i+'" data-kind="hold" data-hold="1" data-d="'+i+'">Bend +</button></div>'+
    '<div class="screen"><div class="bpmn"><span id="bp'+i+'">--</span><small>BPM</small></div><div class="stat" id="st'+i+'"></div><div class="bar"><i id="pos'+i+'"></i></div></div>'+
    '<div class="plrow"><div class="plat" data-ctl="jog:'+i+'" data-kind="rel" data-d="'+i+'" role="img" aria-label="Jog platter, deck '+i+'. Drag to nudge the tempo.">'+PLATTER+'</div>'+
-   '<div class="pitch"><span class="lbl">Pitch <i class="bt">A'+(i==='A'?7:8)+'</i></span><input class="vf" type="range" orient="vertical" min="40" max="240" step="1" data-t="'+i+'" data-ctl="tempo:'+i+'" data-kind="abs" aria-label="Tempo, deck '+i+'"></div></div>'+
+   '<div class="pitch"><span class="lbl">Pitch <i class="bt">B'+(i==='A'?7:8)+'</i></span><input class="vf" type="range" orient="vertical" min="40" max="240" step="1" data-t="'+i+'" data-ctl="tempo:'+i+'" data-kind="abs" aria-label="Tempo, deck '+i+'"></div></div>'+
    '<div class="trans"><button data-ctl="sync:'+i+'" data-kind="btn" data-a="sync" data-d="'+i+'">SYNC</button><button data-ctl="cue:'+i+'" data-kind="hold" data-hold="1" data-d="'+i+'">CUE</button><button class="play" id="pl'+i+'" data-ctl="play:'+i+'" data-kind="btn" data-a="play" data-d="'+i+'">PLAY</button></div>'+
    '<div class="lbl"><span>Patterns (queue for the end of the loop)</span></div><div class="grid4" id="secs'+i+'">'+FLIP(SECS).map(([x,k])=>'<button class="sb" data-ctl="sec:'+i+':'+k+'" data-kind="btn" data-a="sec" data-d="'+i+'" data-k="'+k+'">'+x[1]+'</button>').join('')+'</div>'+
    '<div class="lbl"><span>Effects (hold)</span></div><div class="grid4" id="fxs'+i+'">'+FLIP(FXN).map(([n,k])=>'<button class="fb" data-ctl="fx:'+i+':'+k+'" data-kind="hold" data-hold="1" data-d="'+i+'" data-k="'+k+'">'+n.replace(' sweep','')+'</button>').join('')+'</div>'+
@@ -185,20 +186,20 @@ function deckHTML(d,opts){
 function stripHTML(d){
   const i=d.id;
   return '<div class="strip '+i+'"><b>'+i+'</b>'+
-   knobHTML('Treble <i class="bt">B'+(i==='A'?7:8)+'</i>','treb:'+i,'data-eq="h" data-d="'+i+'"',-100,100,0,'eqh'+i,'Treble, deck '+i)+
-   knobHTML('Mid <i class="bt">B'+(i==='A'?5:6)+'</i>','mid:'+i,'data-eq="m" data-d="'+i+'"',-100,100,0,'eqm'+i,'Mid, deck '+i)+
-   knobHTML('Bass <i class="bt">B'+(i==='A'?3:4)+'</i>','bass:'+i,'data-eq="l" data-d="'+i+'"',-100,100,0,'eql'+i,'Bass, deck '+i)+
-   knobHTML('Filter <i class="bt">B'+(i==='A'?1:2)+' A'+(i==='A'?5:6)+'</i>','filt:'+i,'data-f="'+i+'"',-100,100,0,'fl'+i,'Filter, deck '+i)+
-   '<div class="chv" data-ctl="vol:'+i+'" data-kind="abs"><span class="kl chip">Volume <i class="bt">A'+(i==='A'?3:4)+'</i></span><input class="vf" type="range" min="0" max="100" value="85" data-v="'+i+'" aria-label="Volume, deck '+i+'"><span class="kv chip" id="vl'+i+'"></span></div></div>';
+   knobHTML('Treble <i class="bt">A'+(i==='A'?7:8)+'</i>','treb:'+i,'data-eq="h" data-d="'+i+'"',-100,100,0,'eqh'+i,'Treble, deck '+i)+
+   knobHTML('Mid <i class="bt">A'+(i==='A'?5:6)+'</i>','mid:'+i,'data-eq="m" data-d="'+i+'"',-100,100,0,'eqm'+i,'Mid, deck '+i)+
+   knobHTML('Bass <i class="bt">A'+(i==='A'?3:4)+'</i>','bass:'+i,'data-eq="l" data-d="'+i+'"',-100,100,0,'eql'+i,'Bass, deck '+i)+
+   knobHTML('Filter <i class="bt">B'+(i==='A'?5:6)+'</i>','filt:'+i,'data-f="'+i+'"',-100,100,0,'fl'+i,'Filter, deck '+i)+
+   '<div class="chv" data-ctl="vol:'+i+'" data-kind="abs"><span class="kl chip">Volume <i class="bt">B'+(i==='A'?3:4)+'</i></span><input class="vf" type="range" min="0" max="100" value="85" data-v="'+i+'" aria-label="Volume, deck '+i+'"><span class="kv chip" id="vl'+i+'"></span></div></div>';
 }
 function buildUI(){
   const names=decks[0].win.eval('GENRES.map(function(g){return [g.id,g.name]})').sort((a,b)=>a[1].localeCompare(b[1],undefined,{numeric:true}));
   const opts=names.map(g=>'<option value="'+g[0]+'">'+g[1].replace(/&/g,'&amp;')+'</option>').join('');
   $('console').innerHTML=deckHTML(decks[0],opts)+
    '<div class="mixer" aria-label="Mixer"><div class="strips">'+stripHTML(decks[0])+stripHTML(decks[1])+'</div>'+
-   '<div class="xfw" data-ctl="xf" data-kind="abs"><div class="lbl"><span>Crossfader <i class="bt">A1</i></span></div><div class="xfr"><b class="A">A</b><input type="range" id="xf" min="0" max="100" value="50" aria-label="Crossfader"><b class="B">B</b></div><div class="row"><button data-xf="0">All A</button><button data-xf="50">Centre</button><button data-xf="100">All B</button></div></div>'+
+   '<div class="xfw" data-ctl="xf" data-kind="abs"><div class="lbl"><span>Crossfader <i class="bt">A1 B1</i></span></div><div class="xfr"><b class="A">A</b><input type="range" id="xf" min="0" max="100" value="50" aria-label="Crossfader"><b class="B">B</b></div><div class="row"><button data-xf="0">All A</button><button data-xf="50">Centre</button><button data-xf="100">All B</button></div></div>'+
    '<div class="xfw"><div class="lbl"><span>Pad buttons</span></div><div class="pbtn"><button data-ctl="prev" data-kind="btn" data-a="prev" aria-label="Play or pause Deck A">&lt; A</button><button data-ctl="next" data-kind="btn" data-a="next" aria-label="Play or pause Deck B">B &gt;</button><button data-ctl="playall" data-kind="btn" data-a="playall">Play</button><button data-ctl="stopall" data-kind="btn" data-a="stopall">Stop</button><button data-ctl="focus" data-kind="btn" data-a="focus" id="focusb">Sync</button></div><div class="chip">&lt; plays or pauses Deck A, &gt; plays or pauses Deck B. Record syncs Deck B to Deck A.</div></div>'+
-   '<div class="mvr">'+knobHTML('Master <i class="bt">A2</i>','mv','id="mv"',0,100,85,'mvv','Master volume')+'</div></div>'+
+   '<div class="mvr">'+knobHTML('Master <i class="bt">A2 B2</i>','mv','id="mv"',0,100,85,'mvv','Master volume')+'</div></div>'+
    deckHTML(decks[1],opts);
   decks.forEach(d=>{ $('deck'+d.id).querySelector('select').value=d.genre; d.page=0; d.held={}; });
   paintPads(); refreshMapped(); setFocus(S.focus);
@@ -246,7 +247,18 @@ function randGenre(d){ ev(d,"$('gsurp').click()"); d.genre=ev(d,'state.genre'); 
 function newPattern(d){ ev(d,"$('gen').click()"); newBase(d); }
 function section(d,id){ ev(d,"(function(id){ if(SONG.on) return; if(playing){ LV.next=(id===state.section)?null:id; } else { goSection(id); LV.next=null; } })('"+id+"')"); }
 function fx(d,i,on){ const n=fxIndex(FXN[i]); if(n<0) return; ev(d,"padFx("+n+","+(on?'true':'false')+")"); }
-function syncTo(d){ const o=decks.find(x=>x!==d); const v=getBpm(o); setBpm(d,v); d.base=v; }
+function timing(d){ return JSON.parse(ev(d,"(function(){ var c=ac.currentTime, e=performance.timeOrigin+performance.now(), t=ac.getOutputTimestamp?ac.getOutputTimestamp():null, pe=e, ct=c; if(t&&t.performanceTime>0&&t.contextTime>0){ pe=performance.timeOrigin+t.performanceTime; ct=t.contextTime; } return JSON.stringify({n:gstep,nt:nextTime,ct:ct,pe:pe,now:e,bpm:state.bpm,p:!!playing}); })()")); }
+function barTime(a){ const sd=60/a.bpm/4*1000; return a.pe+(a.nt-a.ct)*1000+((16-a.n%16)%16)*sd; } // epoch ms when this deck next hits the start of a bar
+// SYNC: match the tempo, then (if both decks are playing) hold this deck for a moment and restart it exactly on the other deck's next bar, so the beats line up.
+function syncTo(d){
+  if(d.syncing) return; // already waiting for the bar
+  const o=decks.find(x=>x!==d); const v=getBpm(o); setBpm(d,v); d.base=v;
+  if(!playing(o)||!playing(d)) return;
+  const a=timing(o), sd=60/a.bpm/4*1000, bar=16*sd, lead=60+30;
+  let T=barTime(a); while(T-lead<a.now+25) T+=bar;
+  ev(d,"stopPlay()"); const el=document.querySelector('[data-ctl=\"sync:'+d.id+'\"]'); if(el) el.classList.add('on'); d.syncing=true;
+  d.syncT=setTimeout(()=>{ d.syncing=false; if(el) el.classList.remove('on'); ev(d,"startPlay()"); },Math.max(0,T-lead-a.now));
+}
 function sync(){ const a=decks[0], b=decks[1]; const v=getBpm(a); setBpm(b,v); b.base=v; }
 function bend(d,dir,on){ if(on){ if(d.bendSave==null){ d.bendSave=getBpm(d); setBpm(d,d.bendSave*(1+dir*0.04)); } } else if(d.bendSave!=null){ setBpm(d,d.bendSave); d.bendSave=null; } }
 function jog(d,delta){ if(d.jogBase==null) d.jogBase=getBpm(d); const pct=Math.max(-0.1,Math.min(0.1,delta*0.012)); setBpm(d,d.jogBase*(1+pct)); clearTimeout(d.jogT); d.jogT=setTimeout(()=>{ setBpm(d,d.jogBase); d.jogBase=null; },170); }
@@ -270,7 +282,7 @@ function setFocus(id){ S.focus=id; decks.forEach(x=>$('deck'+x.id).classList.tog
 function ctlPress(id){
   if(id==='prev') return togglePlay(decks[0]); if(id==='next') return togglePlay(decks[1]); if(id==='playall') return bothPlay(); if(id==='stopall') return bothStop(); if(id==='focus') return sync();
   const p=id.split(':'), d=D(p[1]);
-  if(p[0]==='play') togglePlay(d); else if(p[0]==='sync') syncTo(d); else if(p[0]==='mode'){ d.page=(d.page+1)%4; paintPads(); } else if(p[0]==='sec') section(d,SECS[+p[2]][0]);
+  if(p[0]==='play'){ if(d.syncing){ clearTimeout(d.syncT); d.syncing=false; const e=document.querySelector('[data-ctl="sync:'+d.id+'"]'); if(e) e.classList.remove('on'); } else togglePlay(d); } else if(p[0]==='sync') syncTo(d); else if(p[0]==='mode'){ d.page=(d.page+1)%4; paintPads(); } else if(p[0]==='sec') section(d,SECS[+p[2]][0]);
 }
 function ctlHold(id,on){
   const p=id.split(':'), d=D(p[1]); if(!d) return;
@@ -318,8 +330,8 @@ function onNote(note,on){
   if(on) heldBank[note]=bank; else bank=heldBank[note]==null?bank:heldBank[note];
   padHit(i,on,bank); if(!on) delete heldBank[note];
 }
-function knob(k,f){ const ids=['xf','mv','vol:A','vol:B','filt:A','filt:B','tempo:A','tempo:B']; if(ids[k]) ctlAbs(ids[k],f); }
-function knobB(k,f){ const ids=['filt:A','filt:B','bass:A','bass:B','mid:A','mid:B','treb:A','treb:B']; if(ids[k]) ctlAbs(ids[k],f); }
+function knob(k,f){ const ids=['xf','mv','bass:A','bass:B','mid:A','mid:B','treb:A','treb:B']; if(ids[k]) ctlAbs(ids[k],f); }
+function knobB(k,f){ const ids=['xf','mv','vol:A','vol:B','filt:A','filt:B','tempo:A','tempo:B']; if(ids[k]) ctlAbs(ids[k],f); }
 function msgKey(m){ const st=m[0]&0xF0, ch=m[0]&15; if(st===0x90||st===0x80) return 'n:'+ch+':'+m[1]; if(st===0xB0) return 'c:'+ch+':'+m[1]; if(st===0xE0) return 'p:'+ch+':0'; return null; }
 function describe(m){ const st=m[0]&0xF0, ch=(m[0]&15)+1; if(st===0x90) return 'Note '+m[1]+(m[2]>0?' on':' off')+' (channel '+ch+')'; if(st===0x80) return 'Note '+m[1]+' off (channel '+ch+')'; if(st===0xB0) return 'Control '+m[1]+' = '+m[2]+' (channel '+ch+')'; if(st===0xE0) return 'Pitch bend (channel '+ch+')'; return 'Message '+m[0]; }
 function ctlMidi(id,st,m,isOn){
@@ -438,8 +450,8 @@ function wireUI(){
   document.addEventListener('dblclick',e=>{ const k=e.target.closest&&e.target.closest('.kd'); if(!k) return; const inp=k.querySelector('input'); if(inp.dataset.eq||inp.dataset.f){ inp.value=0; inp.dispatchEvent(new Event('input',{bubbles:true})); } });
   $('bothplay').addEventListener('click',bothPlay); $('bothstop').addEventListener('click',bothStop);
   $('wiz').addEventListener('click',()=>learnStart(wizList()));
-  $('teachA').addEventListener('click',()=>{ $('msg').textContent='Set the pad to knob bank A, then turn its knobs 1 to 8 one at a time, in order.'; learnStart(['xf','mv','vol:A','vol:B','filt:A','filt:B','tempo:A','tempo:B']); });
-  $('teachB').addEventListener('click',()=>{ $('msg').textContent='Set the pad to knob bank B, then turn its knobs 1 to 8 one at a time, in order.'; learnStart(['filt:A','filt:B','bass:A','bass:B','mid:A','mid:B','treb:A','treb:B']); }); $('learn').addEventListener('click',()=>learnStart(null));
+  $('teachA').addEventListener('click',()=>{ $('msg').textContent='Set the pad to knob bank A, then turn its knobs 1 to 8 one at a time, in order.'; learnStart(['xf','mv','bass:A','bass:B','mid:A','mid:B','treb:A','treb:B']); });
+  $('teachB').addEventListener('click',()=>{ $('msg').textContent='Set the pad to knob bank B, then turn its knobs 1 to 8 one at a time, in order.'; learnStart(['xf','mv','vol:A','vol:B','filt:A','filt:B','tempo:A','tempo:B']); }); $('learn').addEventListener('click',()=>learnStart(null));
   $('wizskip').addEventListener('click',learnNext); $('wizstop').addEventListener('click',()=>learnStop('Learn mode finished.'));
   $('clearmap').addEventListener('click',()=>{ MAP={}; saveMap(); refreshMapped(); $('msg').textContent='All mappings cleared.'; });
 }
@@ -455,7 +467,7 @@ $('go').addEventListener('click',()=>{
 });
 boot();
 // for tests
-window.__djTest={PC:PC,stepGenre:stepGenre,decks:decks,S:S,knob:knob,knobB:knobB,onMidi:onMidi,onNote:onNote,applyMix:applyMix,cross:cross,MAP:()=>MAP};
+window.__djTest={timing:timing,barTime:barTime,PC:PC,stepGenre:stepGenre,decks:decks,S:S,knob:knob,knobB:knobB,onMidi:onMidi,onNote:onNote,applyMix:applyMix,cross:cross,MAP:()=>MAP};
 })();
 </script>
 </body>
