@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Eight Bells DJ (prototype)</title>
+<style>
+:root{--bg:#0f1218;--panel:#181d27;--panel2:#202737;--line:#2e384d;--ink:#eef2fa;--muted:#9aa6bd;--a:#4c8dff;--b:#f59e3d;--ok:#46c48a;--bad:#ef6a6a}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.35 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-text-size-adjust:100%}
+body{padding:max(12px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) max(24px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left))}
+h1{font-size:20px;margin:0}h1 small{font-size:13px;color:var(--muted);font-weight:500;margin-left:6px}
+button,select{font:inherit;color:var(--ink);background:var(--panel2);border:1px solid var(--line);border-radius:10px;min-height:40px;padding:0 12px;cursor:pointer;touch-action:manipulation}
+button:active{filter:brightness(1.25)}
+button.on{background:var(--ink);color:var(--bg)}
+select{max-width:100%}
+input[type=range]{width:100%;accent-color:var(--ink);min-height:30px}
+.hid{position:fixed;left:-3000px;top:0;width:1000px;height:760px;border:0;opacity:0;pointer-events:none}
+#start{position:fixed;inset:0;z-index:20;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:24px}
+#start[hidden]{display:none}
+#start p{max-width:460px;color:var(--muted);margin:0}
+#go{min-height:52px;padding:0 34px;font-size:18px;font-weight:700;background:var(--ink);color:var(--bg)}
+#go:disabled{opacity:.45}
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.top .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.decks{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:860px){.decks{grid-template-columns:1fr 1fr}}
+.deck{background:var(--panel);border:2px solid var(--c);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.deck.A{--c:var(--a)}.deck.B{--c:var(--b)}
+.dh{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.dh b{font-size:18px;color:var(--c)}
+.dh select{flex:1 1 180px;min-width:0}
+.stat{font-size:13px;color:var(--muted);min-height:1.3em}
+.bar{height:8px;border-radius:5px;background:var(--panel2);overflow:hidden}.bar i{display:block;height:100%;width:0;background:var(--c)}
+.row2{display:grid;grid-template-columns:repeat(auto-fit,minmax(86px,1fr));gap:8px}
+.lbl{font-size:12px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;display:flex;justify-content:space-between}
+.fld{min-width:0}
+.secs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.secs button{padding:0 4px;font-size:13px;min-height:38px}.secs button.q{outline:2px dashed var(--c)}.secs button.cur{background:var(--c);color:#0b0e16;border-color:var(--c)}
+.fxs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.fxs button{padding:0 4px;font-size:13px;min-height:42px}.fxs button.hold{background:var(--c);color:#0b0e16}
+.mix{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px;margin:12px 0;display:grid;gap:10px}
+.mixrow{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center}
+.mixrow b{font-size:18px}.mixrow .A{color:var(--a)}.mixrow .B{color:var(--b)}
+.pads{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+@media(min-width:860px){.pads{grid-template-columns:minmax(0,420px) minmax(0,1fr)}}
+.pgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.pad{aspect-ratio:1.15;min-height:0;padding:2px;font-size:12px;line-height:1.15;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:var(--panel2);border:2px solid var(--c)}
+.pad small{color:var(--muted);font-size:10px}.pad.A{--c:var(--a)}.pad.B{--c:var(--b)}.pad.hit{background:var(--c);color:#0b0e16}.pad.hit small{color:#0b0e16}
+.knobs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px;align-content:start}
+.hint{color:var(--muted);font-size:13px;margin:6px 0 0}
+.chip{font-size:12px;color:var(--muted)}
+#msg{font-size:13px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div id="start">
+  <h1>Eight Bells DJ<small>prototype</small></h1>
+  <p>Two decks, each making its own tune, with a crossfader, a filter per deck and punch effects. It plays through this device's speakers or headphones. It does not use the FM-1.</p>
+  <button id="go" disabled>Loading decks...</button>
+  <p id="loadmsg">Loading...</p>
+</div>
+
+<div id="app" hidden>
+  <div class="top">
+    <h1>Eight Bells DJ<small>prototype, separate from the main app</small></h1>
+    <div class="row">
+      <button id="bothplay">Play both</button>
+      <button id="bothstop">Stop both</button>
+      <button id="sync" title="Make Deck B the same tempo as Deck A">Sync B to A</button>
+    </div>
+  </div>
+
+  <div class="decks" id="decks"></div>
+
+  <div class="mix">
+    <div class="mixrow"><b class="A">A</b><input type="range" id="xf" min="0" max="100" value="50" aria-label="Crossfader"><b class="B">B</b></div>
+    <div class="row" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <button data-xf="0">All A</button><button data-xf="50">Centre</button><button data-xf="100">All B</button>
+      <label class="chip" style="margin-left:auto">Master volume</label><input type="range" id="mv" min="0" max="100" value="85" style="width:160px" aria-label="Master volume">
+    </div>
+  </div>
+
+  <div class="pads">
+    <div>
+      <div class="row" style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+        <button id="bkA" class="on">Bank A: effects</button><button id="bkB">Bank B: patterns</button>
+      </div>
+      <div class="pgrid" id="pgrid"></div>
+      <p class="hint">Bottom two rows are Deck A, top two rows are Deck B. Hold an effects pad to keep the effect on.</p>
+    </div>
+    <div>
+      <div class="row" style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;align-items:center">
+        <label class="chip">Pad controller</label><select id="midiin"><option value="">None</option></select>
+        <span id="midimsg" class="chip"></span>
+      </div>
+      <div class="knobs" id="knobs"></div>
+      <p class="hint">Knobs 1 to 8 (CC 30 to 37): Deck A volume, Deck B volume, Deck A filter, Deck B filter, crossfader, Deck A tempo, Deck B tempo, master volume. Buttons: CC 25 Deck A play, CC 26 Deck B play, CC 27 play both, CC 28 stop both, CC 29 sync.</p>
+      <p id="msg"></p>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+// Each deck is a whole copy of Eight Bells running quietly in a hidden frame. Its settings are kept in memory only, so it never touches the real app's saved settings.
+const SHIM='<script>(function(){var m={};var S={getItem:function(k){return Object.prototype.hasOwnProperty.call(m,k)?m[k]:null},setItem:function(k,v){m[k]=String(v)},removeItem:function(k){delete m[k]},clear:function(){m={}},key:function(i){return Object.keys(m)[i]||null}};Object.defineProperty(S,"length",{get:function(){return Object.keys(m).length}});try{Object.defineProperty(window,"localStorage",{value:S,configurable:true});Object.defineProperty(window,"sessionStorage",{value:S,configurable:true});}catch(e){}})();<\/script>';
+const SECS=[['intro','Intro'],['bld','Build-up'],['drop','Drop'],['chorus','Chorus'],['brk','Break'],['bridge','Bridge'],['half','Half'],['outro','Outro']];
+const FXN=['Loop 1/4','Loop 1/8','Stutter','Reverse','Tape stop','Low-pass sweep','High-pass sweep','Echo']; // looked up by name below
+const decks=[{id:'A',genre:'house'},{id:'B',genre:'techno'}];
+const S={xf:50,mv:85,bank:0,started:false};
+
+function ev(d,code){ try{ return d.win.eval(code); }catch(e){ return undefined; } }
+function ready(d){ try{ return !!d.win&&d.win.eval("typeof startPlay==='function'&&!!state&&Array.isArray(GENRES)&&!!document.getElementById('gen')&&typeof padFx==='function'"); }catch(e){ return false; } }
+
+async function boot(){
+  let text;
+  try{ const r=await fetch('index.html',{cache:'no-cache'}); text=await r.text(); }catch(e){ $('loadmsg').textContent='Could not load Eight Bells (index.html).'; return; }
+  text=text.replace(/<head>/i,'<head>'+SHIM);
+  decks.forEach(d=>{ const f=document.createElement('iframe'); f.className='hid'; f.setAttribute('aria-hidden','true'); f.title='Deck '+d.id+' engine'; f.srcdoc=text; document.body.appendChild(f); d.frame=f; });
+  const t0=Date.now();
+  const wait=setInterval(()=>{
+    decks.forEach(d=>{ if(!d.win&&d.frame.contentWindow){ d.win=d.frame.contentWindow; } });
+    if(decks.every(ready)){ clearInterval(wait); $('go').disabled=false; $('go').textContent='Start DJ'; $('loadmsg').textContent='Both decks are ready.'; }
+    else if(Date.now()-t0>30000){ clearInterval(wait); $('loadmsg').textContent='The decks are taking too long to load. Reload the page.'; }
+  },150);
+}
+
+function fxIndex(name){ const L=decks[0].win.eval('FX_LIST.map(function(x){return x[1]})'); return L.indexOf(name); }
+
+function buildUI(){
+  const names=decks[0].win.eval('GENRES.map(function(g){return [g.id,g.name]})').sort((a,b)=>a[1].localeCompare(b[1],undefined,{numeric:true}));
+  const opts=names.map(g=>'<option value="'+g[0]+'">'+g[1].replace(/&/g,'&amp;')+'</option>').join('');
+  $('decks').innerHTML=decks.map(d=>
+   '<section class="deck '+d.id+'" id="deck'+d.id+'" aria-label="Deck '+d.id+'">'+
+   '<div class="dh"><b>Deck '+d.id+'</b><select data-g="'+d.id+'" aria-label="Genre, deck '+d.id+'">'+opts+'</select></div>'+
+   '<div class="row2"><button data-a="gen" data-d="'+d.id+'">New pattern</button><button data-a="rand" data-d="'+d.id+'">Random genre</button><button data-a="play" data-d="'+d.id+'" id="pl'+d.id+'">Play</button></div>'+
+   '<div class="stat" id="st'+d.id+'"></div><div class="bar"><i id="pos'+d.id+'"></i></div>'+
+   '<div class="fld"><div class="lbl"><span>Tempo</span><span id="bp'+d.id+'"></span></div><input type="range" min="40" max="240" step="1" data-t="'+d.id+'" aria-label="Tempo, deck '+d.id+'"></div>'+
+   '<div class="row2"><button data-bend="-1" data-d="'+d.id+'">Bend slower</button><button data-bend="1" data-d="'+d.id+'">Bend faster</button></div>'+
+   '<div class="fld"><div class="lbl"><span>Volume</span><span id="vl'+d.id+'"></span></div><input type="range" min="0" max="100" value="85" data-v="'+d.id+'" aria-label="Volume, deck '+d.id+'"></div>'+
+   '<div class="fld"><div class="lbl"><span>Filter (left low-pass, right high-pass)</span><span id="fl'+d.id+'"></span></div><input type="range" min="-100" max="100" value="0" data-f="'+d.id+'" aria-label="Filter, deck '+d.id+'"></div>'+
+   '<div class="lbl"><span>Pattern (queues for the end of the loop)</span></div><div class="secs" id="secs'+d.id+'">'+SECS.map(s=>'<button data-sec="'+s[0]+'" data-d="'+d.id+'">'+s[1]+'</button>').join('')+'</div>'+
+   '<div class="lbl"><span>Effects (hold)</span></div><div class="fxs" id="fxs'+d.id+'">'+FXN.map((n,i)=>'<button data-fx="'+i+'" data-d="'+d.id+'">'+n.replace(' sweep','')+'</button>').join('')+'</div>'+
+   '</section>').join('');
+  decks.forEach(d=>{ $('deck'+d.id).querySelector('select').value=d.genre; });
+  // pads
+  const cell=(i)=>{ const dk=i<8?'A':'B'; return '<button class="pad '+dk+'" data-pad="'+i+'"><span></span><small></small></button>'; };
+  let h=''; for(let r=3;r>=0;r--) for(let c=0;c<4;c++) h+=cell(r*4+c); $('pgrid').innerHTML=h;
+  // knob sliders (they move with the real knobs)
+  const KN=['A volume','B volume','A filter','B filter','Crossfader','A tempo','B tempo','Master volume'];
+  $('knobs').innerHTML=KN.map((n,i)=>'<div class="fld"><div class="lbl"><span>'+(i+1)+'. '+n+'</span></div><input type="range" min="0" max="127" value="64" data-k="'+i+'" aria-label="Knob '+(i+1)+': '+n+'"></div>').join('');
+  paintPads();
+}
+
+function paintPads(){
+  document.querySelectorAll('.pad').forEach(b=>{
+    const i=+b.dataset.pad, j=i%8, sp=b.querySelector('span'), sm=b.querySelector('small');
+    if(S.bank===0){ sp.textContent=FXN[j].replace(' sweep',''); sm.textContent='effect'; }
+    else{ sp.textContent=SECS[j][1]; sm.textContent='pattern'; }
+  });
+  $('bkA').classList.toggle('on',S.bank===0); $('bkB').classList.toggle('on',S.bank===1);
+}
+
+/* ---------- audio: each deck gets a filter and a volume on its output ---------- */
+function wireDeck(d){
+  ev(d,"(function(){ ensureAudio(); ac.resume(); var g=ac.createGain(), lp=ac.createBiquadFilter(), hp=ac.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=20000; hp.type='highpass'; hp.frequency.value=20; OUTTAP.disconnect(); OUTTAP.connect(hp); hp.connect(lp); lp.connect(g); g.connect(ac.destination); window.__dj={g:g,lp:lp,hp:hp}; })()");
+  d.vol=85; d.filt=0; d.bendSave=null;
+}
+function cross(id){ const x=S.xf/100; return id==='A'?Math.cos(x*Math.PI/2):Math.sin(x*Math.PI/2); }
+function applyMix(){
+  decks.forEach(d=>{
+    const j=d.win&&d.win.__dj; if(!j) return; const t=j.g.context.currentTime;
+    const f=d.filt/100, lp=f<0?20000*Math.pow(0.012,-f):20000, hp=f>0?20*Math.pow(300,f):20;
+    j.lp.frequency.setTargetAtTime(lp,t,0.03); j.hp.frequency.setTargetAtTime(hp,t,0.03);
+    j.g.gain.setTargetAtTime((d.vol/100)*cross(d.id)*(S.mv/100),t,0.02);
+    $('vl'+d.id).textContent=d.vol+'%'; $('fl'+d.id).textContent=f===0?'off':(f<0?'low-pass ':'high-pass ')+Math.round(Math.abs(f)*100)+'%';
+  });
+  $('xf').value=S.xf; $('mv').value=S.mv;
+}
+
+/* ---------- deck actions ---------- */
+const D=id=>decks.find(x=>x.id===id);
+function setBpm(d,v){ v=Math.max(40,Math.min(240,Math.round(v))); ev(d,"(function(v){var e=$('bpm');e.value=v;e.dispatchEvent(new Event('input',{bubbles:true}));})("+v+")"); }
+function getBpm(d){ return ev(d,'state.bpm'); }
+function newBase(d){ d.base=getBpm(d); }
+function playing(d){ return !!ev(d,'playing'); }
+function togglePlay(d){ ev(d,"(function(){ if(playing){ stopPlay(); } else { startPlay(); } })()"); }
+function setPlay(d,on){ if(playing(d)!==on) togglePlay(d); }
+function setGenre(d,id){ d.genre=id; ev(d,"(function(){ state.section=null; LV.next=null; setGenre('"+id+"'); if(typeof renderAll==='function') renderAll(); })()"); newBase(d); $('deck'+d.id).querySelector('select').value=id; }
+function randGenre(d){ ev(d,"$('gsurp').click()"); d.genre=ev(d,'state.genre'); $('deck'+d.id).querySelector('select').value=d.genre; newBase(d); }
+function newPattern(d){ ev(d,"$('gen').click()"); newBase(d); }
+function section(d,id){ ev(d,"(function(id){ if(SONG.on) return; if(playing){ LV.next=(id===state.section)?null:id; } else { goSection(id); LV.next=null; } })('"+id+"')"); }
+function fx(d,i,on){ const n=fxIndex(FXN[i]); if(n<0) return; ev(d,"padFx("+n+","+(on?'true':'false')+")"); const b=document.querySelector('#fxs'+d.id+' [data-fx="'+i+'"]'); if(b) b.classList.toggle('hold',on); }
+function sync(){ const a=decks[0], b=decks[1]; const v=getBpm(a); setBpm(b,v); b.base=v; }
+function bend(d,dir,on){ if(on){ if(d.bendSave==null){ d.bendSave=getBpm(d); setBpm(d,d.bendSave*(1+dir*0.04)); } } else if(d.bendSave!=null){ setBpm(d,d.bendSave); d.bendSave=null; } }
+
+/* ---------- screen refresh ---------- */
+function paint(){
+  decks.forEach(d=>{
+    let st; try{ st=JSON.parse(ev(d,"JSON.stringify({p:!!playing,b:state.bpm,s:state.section,n:(typeof LV!=='undefined'&&LV.next)||null,g:genreObj().name,pos:(playing&&ROLL.step>=0)?(ROLL.step%loopLen())/loopLen():-1})")); }catch(e){ return; }
+    if(!st) return;
+    const sn={intro:'Intro',bld:'Build-up',drop:'Drop',chorus:'Chorus',brk:'Breakdown',bridge:'Bridge',half:'Half-time',allt:'All tracks',outro:'Outro'};
+    $('st'+d.id).textContent=st.g+' · '+(st.s?sn[st.s]:'full pattern')+(st.n?' · next: '+sn[st.n]:'')+' · '+(st.p?'playing':'stopped');
+    $('bp'+d.id).textContent=st.b+' BPM';
+    const sl=$('deck'+d.id).querySelector('[data-t]'); if(document.activeElement!==sl) sl.value=st.b;
+    $('pos'+d.id).style.width=(st.pos<0?0:Math.round(st.pos*100))+'%';
+    $('pl'+d.id).textContent=st.p?'Stop':'Play'; $('pl'+d.id).classList.toggle('on',st.p);
+    $('secs'+d.id).querySelectorAll('button').forEach(b=>{ b.classList.toggle('cur',b.dataset.sec===st.s); b.classList.toggle('q',b.dataset.sec===st.n); });
+    if(!d.base) d.base=st.b;
+  });
+}
+
+/* ---------- pads and MIDI ---------- */
+function padHit(i,on,bank){
+  const b=document.querySelector('.pad[data-pad="'+i+'"]'); if(b) b.classList.toggle('hit',on);
+  const d=D(i<8?'A':'B'), j=i%8; if(!d) return;
+  if(bank===0) fx(d,j,on); else if(on) section(d,SECS[j][0]);
+}
+let heldBank={};
+function onNote(note,on){
+  let bank=null,i=-1; if(note>=36&&note<=51){ bank=0; i=note-36; } else if(note>=52&&note<=67){ bank=1; i=note-52; } else return;
+  if(on) heldBank[note]=bank; else bank=heldBank[note]==null?bank:heldBank[note];
+  padHit(i,on,bank); if(!on) delete heldBank[note];
+}
+function knob(k,f){ // f is 0 to 1
+  const sl=document.querySelector('[data-k="'+k+'"]'); if(sl) sl.value=Math.round(f*127);
+  const A=decks[0],B=decks[1];
+  if(k===0){ A.vol=Math.round(f*100); const s=document.querySelector('[data-v="A"]'); if(s) s.value=A.vol; }
+  else if(k===1){ B.vol=Math.round(f*100); const s=document.querySelector('[data-v="B"]'); if(s) s.value=B.vol; }
+  else if(k===2){ A.filt=Math.round((f*2-1)*100); const s=document.querySelector('[data-f="A"]'); if(s) s.value=A.filt; }
+  else if(k===3){ B.filt=Math.round((f*2-1)*100); const s=document.querySelector('[data-f="B"]'); if(s) s.value=B.filt; }
+  else if(k===4){ S.xf=Math.round(f*100); }
+  else if(k===5||k===6){ const d=k===5?A:B; if(d.base) setBpm(d,d.base*(0.88+0.24*f)); }
+  else if(k===7){ S.mv=Math.round(f*100); }
+  applyMix();
+}
+function onMidi(e){
+  const m=e.data; if(!m||m.length<2) return; const st=m[0]&0xF0;
+  if(st===0x90&&m[2]>0) onNote(m[1],true); else if(st===0x80||(st===0x90&&m[2]===0)) onNote(m[1],false);
+  else if(st===0xB0){
+    const cc=m[1], v=m[2];
+    if(cc>=30&&cc<=37) knob(cc-30,v/127);
+    else if(v>0){ if(cc===25) togglePlay(decks[0]); else if(cc===26) togglePlay(decks[1]); else if(cc===27) bothPlay(); else if(cc===28) bothStop(); else if(cc===29) sync(); }
+  }
+}
+function bothPlay(){ const any=decks.some(playing); if(any){ return; } decks.forEach(d=>setPlay(d,true)); }
+function bothStop(){ decks.forEach(d=>setPlay(d,false)); }
+let midiAcc=null, midiIn=null;
+function listInputs(){
+  const sel=$('midiin'), cur=sel.value; const ins=midiAcc?[...midiAcc.inputs.values()]:[];
+  sel.innerHTML='<option value="">None</option>'+ins.map(i=>'<option value="'+i.id+'">'+(i.name||i.id).replace(/</g,'')+'</option>').join('');
+  if(cur&&ins.find(i=>i.id===cur)) sel.value=cur;
+  else{ const pad=ins.find(i=>/smc-pad/i.test(i.name||'')&&!/private|master|port/i.test(i.name||''))||ins.find(i=>/smc|pad/i.test(i.name||'')); if(pad){ sel.value=pad.id; useInput(pad.id); } }
+}
+function useInput(id){
+  if(midiIn){ midiIn.onmidimessage=null; midiIn=null; }
+  if(!midiAcc||!id){ $('midimsg').textContent=''; return; }
+  const inp=midiAcc.inputs.get(id); if(!inp) return; midiIn=inp; inp.onmidimessage=onMidi; $('midimsg').textContent='Listening to '+(inp.name||'the pad');
+}
+async function midiInit(){
+  if(!navigator.requestMIDIAccess){ $('midimsg').textContent='This browser has no MIDI. Use the on-screen pads, or a MIDI-capable browser app on iPhone.'; return; }
+  try{ midiAcc=await navigator.requestMIDIAccess(); midiAcc.onstatechange=listInputs; listInputs(); }catch(e){ $('midimsg').textContent='MIDI is blocked. Allow it in the browser to use a pad.'; }
+}
+
+/* ---------- wiring ---------- */
+function wireUI(){
+  document.addEventListener('click',e=>{
+    const t=e.target.closest('button'); if(!t) return;
+    if(t.dataset.a){ const d=D(t.dataset.d); if(t.dataset.a==='gen') newPattern(d); else if(t.dataset.a==='rand') randGenre(d); else if(t.dataset.a==='play') togglePlay(d); }
+    else if(t.dataset.sec){ section(D(t.dataset.d),t.dataset.sec); }
+    else if(t.dataset.xf){ S.xf=+t.dataset.xf; applyMix(); }
+  });
+  $('deck'+'A').addEventListener('change',e=>{ if(e.target.dataset.g) setGenre(D('A'),e.target.value); });
+  $('deckB').addEventListener('change',e=>{ if(e.target.dataset.g) setGenre(D('B'),e.target.value); });
+  document.addEventListener('input',e=>{
+    const t=e.target;
+    if(t.dataset.t){ const d=D(t.dataset.t); setBpm(d,+t.value); d.base=+t.value; }
+    else if(t.dataset.v){ D(t.dataset.v).vol=+t.value; applyMix(); }
+    else if(t.dataset.f){ D(t.dataset.f).filt=+t.value; applyMix(); }
+    else if(t.dataset.k!=null){ knob(+t.dataset.k,(+t.value)/127); }
+    else if(t.id==='xf'){ S.xf=+t.value; applyMix(); }
+    else if(t.id==='mv'){ S.mv=+t.value; applyMix(); }
+  });
+  // hold buttons: effects and bend
+  const hold=(sel,fn)=>{ document.addEventListener('pointerdown',e=>{ const b=e.target.closest(sel); if(!b) return; e.preventDefault(); try{ b.setPointerCapture(e.pointerId); }catch(_){} fn(b,true); b._h=true; });
+    const up=e=>{ const b=e.target.closest(sel); if(b&&b._h){ b._h=false; fn(b,false); } }; document.addEventListener('pointerup',up); document.addEventListener('pointercancel',up); };
+  hold('[data-fx]',(b,on)=>fx(D(b.dataset.d),+b.dataset.fx,on));
+  hold('[data-bend]',(b,on)=>bend(D(b.dataset.d),+b.dataset.bend,on));
+  hold('.pad',(b,on)=>padHit(+b.dataset.pad,on,S.bank));
+  $('bkA').addEventListener('click',()=>{ S.bank=0; paintPads(); }); $('bkB').addEventListener('click',()=>{ S.bank=1; paintPads(); });
+  $('bothplay').addEventListener('click',bothPlay); $('bothstop').addEventListener('click',bothStop); $('sync').addEventListener('click',sync);
+  $('midiin').addEventListener('change',e=>useInput(e.target.value));
+}
+
+$('go').addEventListener('click',()=>{
+  if(S.started) return; S.started=true;
+  buildUI();
+  decks.forEach(d=>{ wireDeck(d); setGenre(d,d.genre); });
+  decks[1].base=getBpm(decks[1]);
+  $('start').hidden=true; $('app').hidden=false;
+  wireUI(); applyMix(); paint(); setInterval(paint,200); midiInit();
+});
+boot();
+// for tests
+window.__djTest={decks:decks,S:S,knob:knob,onMidi:onMidi,onNote:onNote,applyMix:applyMix,cross:cross};
+})();
+</script>
+</body>
+</html>
