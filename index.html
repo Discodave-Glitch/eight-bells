@@ -478,8 +478,8 @@ html.lv-lock,html.lv-lock body{overflow:hidden !important}
 .lv-fx{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
 .lvfx{font-size:10px;min-height:30px;border-radius:9px;padding:0 2px;touch-action:none;user-select:none;-webkit-user-select:none}
 .lvfx[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
-.lv-vol{align-items:center}.lv-vol .lvb{flex:none;width:84px;padding:0 4px;font-size:12px}
-.lv-volr{flex:1;display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:0 10px;min-height:34px;font-size:12px;color:var(--muted)}.lv-volr input{flex:1;min-width:0;width:0}
+.lv-vol{align-items:center}.lv-vol{gap:6px}.lv-vol .lvb{flex:none;width:58px;padding:0 4px;font-size:12px}
+.lv-volr{flex:1;display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:0 8px;gap:5px;min-height:34px;font-size:11px;color:var(--muted)}.lv-volr input{flex:1;min-width:0;width:0}
 .lv-exit{background:var(--cell)}
 .lv-edit{background:color-mix(in srgb,var(--c) 14%,var(--surface));border:2px solid var(--c);border-radius:12px;padding:8px;display:flex;flex-direction:column;gap:7px;flex:none}
 .lv-edtop{display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:13px}.lv-edtop i{display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--c);margin-right:6px}
@@ -710,7 +710,8 @@ html.st-lock,html.st-lock body{overflow:hidden}
 .pm-set{position:fixed;top:0;bottom:0;left:50%;transform:translateX(-50%);width:min(100%,560px);z-index:6;overflow-y:auto;background:var(--bg);padding:max(12px,env(safe-area-inset-top)) 16px 48px;box-sizing:border-box;border-left:1px solid var(--line);border-right:1px solid var(--line)}
 .pm-set[hidden]{display:none}
 .pm-sethead{display:flex;justify-content:space-between;align-items:center;font-size:16px;margin-bottom:4px}
-.pm-topb{display:flex;gap:8px}
+.pm-topb{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.pm-topb .lvb.on{background:var(--ink);color:var(--bg)}
 .pm-set .pm-row{margin-top:10px;row-gap:10px}
 .pm-set .pm-h{margin:20px 0 0;padding-top:14px;border-top:1px solid var(--line);font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .pm-set .pm-h:first-of-type{margin-top:6px;padding-top:0;border-top:0}
@@ -722,6 +723,9 @@ html.st-lock,html.st-lock body{overflow:hidden}
 .padm .lvb{font-size:13px}
 .padm .lvb[aria-pressed="true"]:not(.pm-b){box-shadow:inset 0 0 0 2px var(--ink)}
 @media(max-width:600px){
+ .pm-top>span:first-child{display:none}
+ .pm-top{justify-content:flex-end}
+ .pm-topb .pm-x{padding:0 10px;font-size:13px}
  .pm-dev{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto auto;gap:8px;padding:8px}
  .pm-grid{order:1;gap:6px}
  .pm-knobs{order:2;grid-template-columns:repeat(8,1fr);grid-template-rows:none;gap:2px;align-content:start}
@@ -5227,7 +5231,7 @@ function meterPaint(){
   });
 }
 function sfx(f,key,pan,lvl){ const keep=master; try{ if(lvl===0) return; if(key&&ac&&masterReal) master=busFor(key,pan,lvl); f(); }catch(e){ SFX_ERR++; SFX_LAST=String(e&&e.message||e); if(SFX_ERR<=3){ try{ const m=$('recmsg'); if(m&&!REC.on) m.textContent='A sound could not play on this browser ('+(e&&e.message?e.message:'error')+'; instruments: '+['bass','stab','arp','lead'].map(patchId).join(', ')+'). Playback carries on without it.'; }catch(_){} } }finally{ master=keep; } }
-let SFX_ERR=0, SFX_LAST='', TICKN=0; const BUILD='b1540';
+let SFX_ERR=0, SFX_LAST='', TICKN=0; const BUILD='b1545';
 function schedule(step,time){
   const preview=cfg.target!=='midi'||!midi.out, send=canSend();
   if(preview){
@@ -6172,7 +6176,7 @@ function lvBuild(){
    <div class="lv-r"><div class="lv-row lv-gp" id="lvgp" style="order:2"><button class="lvb lv-gen" id="lvgen">Generate</button><button class="lvb lv-play" id="lvplay">Play</button><button class="lvb lv-rec" id="lvrec" data-lv="rec"></button></div>
     <div class="lv-row lv-bpm" id="lvbpm" style="order:3"><button class="lvb" data-lv="bpm-">&minus;</button><div class="lv-v"><b id="lvbpmv"></b> <small>BPM</small></div><button class="lvb" data-lv="bpm+">+</button><button class="lvb lv-sw" data-lv="swing" id="lvsw"></button></div>
     <div class="lv-fxw" id="lvfxw" style="order:8"><div class="lv-lbl">Punch effects (hold)</div><div class="lv-fx" id="lvfx"></div></div>
-    <div class="lv-row lv-vol" id="lvvol" style="order:9"><label class="lv-volr"><span>Volume</span><input type="range" id="lvvolr" min="10" max="150" aria-label="Preview volume"></label><button class="lvb lv-exit" data-lv="stage">Stage</button><button class="lvb lv-exit" data-lv="exit">Exit</button></div></div>
+    <div class="lv-row lv-vol" id="lvvol" style="order:9"><label class="lv-volr"><span>Vol</span><input type="range" id="lvvolr" min="10" max="150" aria-label="Preview volume"></label><button class="lvb lv-exit" data-lv="stage">Stage</button><button class="lvb lv-exit" data-lv="pad">Pad</button><button class="lvb lv-exit" data-lv="exit">Exit</button></div></div>
   </div>`;
   $('lvdice').innerHTML=LV_DICE.map(x=>`<button class="lvb lv-d" data-dice-lv="${x[0]}" title="${x[2]}"><span>\u{1F3B2}</span><small>${x[1]}</small></button>`).join('');
   $('lvfx').innerHTML=LV_FX.map(i=>`<button class="lvb lvfx" data-fx="${i}">${FX_LIST[i][1].replace(' sweep','')}</button>`).join('');
@@ -6191,7 +6195,8 @@ function lvClick(e){
   if(d.lv){
     const a=d.lv;
     if(a==='exit') lvSet(false);
-    if(a==='stage'){ lvSet(false); const sb=$('stagebtn'); if(sb) sb.click(); }
+    if(a==='pad'){ lvSet(false); const pb=$('padbtn'); if(pb&&!padOn()) pb.click(); }
+    else if(a==='stage'){ lvSet(false); const sb=$('stagebtn'); if(sb) sb.click(); }
     else if(a==='split'){ const sb=document.querySelector('#solos [data-splitd]'); if(sb) sb.click(); lvRender(); }
     else if(a==='bars'){ LV.barsOpen=!LV.barsOpen; lvPaint(); }
     else if(a==='bpm-'||a==='bpm+'){ const el=$('bpm'); el.value=clamp(+el.value+(a==='bpm+'?1:-1),+el.min,+el.max); el.dispatchEvent(new Event('input',{bubbles:true})); lvPaint(); }
@@ -6717,6 +6722,7 @@ function padTrackInfo(r,full){
     const L=VOX.lanes[Math.min(VOX.sel,VOX.lanes.length-1)], v=L&&VOICES[L.voice]; return 'Sample \u00b7 '+(v?v.name:(VOX.eng||'sound'));
   }catch(_){ return ''; }
 }
+function padSplitLab(){ const b=$('pmsplit'); if(b){ b.textContent=SPLITD?'Drums: split':'Split drums'; b.classList.toggle('on',SPLITD); } }
 function padStrip(){
   const el=$('pmtl'); if(!el) return; const rows=lvTracks(), sel=padStepRow(), selk=sel?lvKey(sel):''; let h='';
   rows.forEach(r=>{
@@ -6731,7 +6737,7 @@ function padStrip(){
   const se=el.querySelector('.sel'); if(se) el.scrollTop=Math.max(0,se.offsetTop-(el.clientHeight-se.offsetHeight)/2);
 }
 function padTick(){
-  if(!padOn()) return; padKnobsPaint(); padTrackLine(); padStrip();
+  if(!padOn()) return; padSplitLab(); padKnobsPaint(); padTrackLine(); padStrip();
   if(PADS.bank===1||(PADS.bank===0&&!padAisNotes())){ PADS.gsig=''; return; }
   const els=document.querySelectorAll('#pmgrid .pm-pad');
   if(PADS.bank===2){
@@ -6772,7 +6778,7 @@ function padBuild(){
   const chips='<button class="lvb" data-bk="0" aria-pressed="false">Bank A · Drums</button><button class="lvb" data-bk="1" aria-pressed="false">Bank B</button><button class="lvb" id="pmkbtn" aria-pressed="false" title="Which set of knobs the screen shows (it follows the real knobs when you turn them)">Knobs A</button>';
   const ctl=['play','stop','rec','prev','next'].map(k=>'<option value="'+k+'">'+padCtlName(k)+'</option>').join('')+Array.from({length:8},(_,n)=>'<option value="k'+n+'">Knob '+(n+1)+'</option>').join('')+Array.from({length:8},(_,n)=>'<option value="b'+n+'">Bank B knob '+(n+1)+'</option>').join('');
   $('padm').innerHTML='<div class="pm-in">'+
-   '<div class="pm-top"><span><b>Eight Bells</b> <span class="pm-sub">Pad mode</span></span><span class="pm-topb"><button class="lvb pm-x" id="pmsetbtn" aria-expanded="false">Settings</button><button class="lvb pm-x" id="pmexit">Exit</button></span></div>'+
+   '<div class="pm-top"><span><b>Eight Bells</b> <span class="pm-sub">Pad mode</span></span><span class="pm-topb"><button class="lvb pm-x" id="pmsplit" title="Solo the kick, snare, hat and perc on their own">Split drums</button><button class="lvb pm-x" id="pmstage">Stage</button><button class="lvb pm-x" id="pmsetbtn" aria-expanded="false">Settings</button><button class="lvb pm-x" id="pmexit">Exit</button></span></div>'+
    '<p class="pm-st" id="pmst" aria-live="polite"></p>'+
    '<div class="pm-chips" id="pmchips">'+chips+'</div>'+
    '<div class="pm-dev"><div class="pm-knobs" id="pmknobs">'+kn+'</div><div class="pm-grid" id="pmgrid"></div>'+
@@ -6798,6 +6804,8 @@ function padBuild(){
     '<p class="pm-hint">Learn pads: tap it, then hit the bottom-left pad, so that pad is pad 1. Any 16-pad controller that sends notes works this way. Teach a button or knob: choose it, tap Learn, then press or turn it on your controller.</p>'+
    '</div></div>';
   $('pmexit').addEventListener('click',()=>padSet(false));
+  $('pmsplit').addEventListener('click',()=>{ const sb=document.querySelector('#solos [data-splitd]'); if(sb) sb.click(); padSplitLab(); padStrip(); });
+  $('pmstage').addEventListener('click',()=>{ padSet(false); const sb=$('stagebtn'); if(sb) sb.click(); });
   const pset=on=>{ $('pmset').hidden=!on; $('pmsetbtn').setAttribute('aria-expanded',String(on)); if(on){ padLightOuts(); $('pmset').scrollTop=0; } };
   $('pmsetbtn').addEventListener('click',()=>pset($('pmset').hidden));
   $('pmsetx').addEventListener('click',()=>pset(false));

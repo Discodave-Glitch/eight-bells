@@ -1,5 +1,5 @@
 // Lets the web page work offline once it has been opened and installed.
-const CACHE = 'eight-bells-v3pads-s10281540';
+const CACHE = 'eight-bells-v3pads-s10281545';
 const FILES = ['./', 'index.html', 'logo.svg', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png'];
 
 self.addEventListener('install', (e) => {
