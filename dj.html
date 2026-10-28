@@ -67,6 +67,10 @@ input[type=range]{width:100%;accent-color:var(--ink);min-height:28px;margin:0}
 .strip>b{color:var(--c)}
 .kn{display:flex;flex-direction:column;align-items:center;gap:0;border-radius:10px;padding:2px}
 .kn .kl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.bt{font-style:normal;font-size:9px;color:#07090e;background:var(--ink);border-radius:5px;padding:0 3px;margin-left:2px;letter-spacing:0}
+.pitch .bt{display:block;margin:0 auto}
+.deck.focus{box-shadow:0 0 0 3px var(--c)}
+.pbtn{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.pbtn button{min-height:40px;padding:0 2px;font-size:12px}
 .kn .kv{font-size:10px;color:var(--muted);min-height:12px}
 .kd{position:relative;width:56px;height:56px;touch-action:none;cursor:ns-resize;border-radius:50%}
 .kd:focus-within{outline:2px solid var(--ink)}
@@ -114,7 +118,7 @@ input[type=range]{width:100%;accent-color:var(--ink);min-height:28px;margin:0}
     <div class="row"><button id="wiz">Guided setup</button><button id="learn">Learn one control</button><button id="clearmap">Clear mappings</button></div>
     <div class="chip" id="mon">Last message from your controller: none yet</div>
     <p class="hint">Guided setup walks through the controls one by one. When a control lights up yellow, press or move the matching control on your deck. Tap Skip for any it does not have. Your choices are remembered on this device. Jog wheel: turn it to nudge the tempo. CUE: hold it to preview, or tap it while playing to restart from the top. Pads button cycles Effects 1-4, 5-8 and Patterns 1-4, 5-8. Double-tap an EQ or filter knob to centre it.</p>
-    <p class="hint">The SMC-PAD still works as before: pads 36 to 67, knob bank A (CC 30 to 37) is volumes, filters, crossfader, tempos and master. Knob bank B (CC 38 to 45) is the EQ: Treble, Mid, Bass, Filter for Deck A, then the same four for Deck B. CC 25 to 29 are play and stop. If bank B does nothing on your pad, use Learn one control to teach it.</p>
+    <p class="hint">SMC-PAD pads: Bank A pads are effects, Bank B pads are patterns (the pad's own Bank button picks). Left two columns are Deck A, right two columns are Deck B, with the same effect or pattern on both sides of each row (bottom row: Loop 1/4 and Loop 1/8, then Stutter and Reverse, then Tape stop and Low-pass, top row: High-pass and Echo). Knob bank A (CC 30 to 37): knob 1 master volume, knob 2 crossfader, then pairs for Deck A and Deck B: knobs 3 and 4 volumes, 5 and 6 filters, 7 and 8 tempos. Knob bank B (CC 38 to 45) is the EQ: Treble, Mid, Bass, Filter for Deck A, then the same four for Deck B. Buttons work like Pad mode in Eight Bells: &lt; and &gt; (CC 25, 26) change the genre of the highlighted deck, Play (27) and Stop (28) run both decks, Record (29) picks which deck is highlighted. If bank B does nothing on your pad, use Learn one control to teach it.</p>
     <p id="msg"></p>
   </details>
 </div>
@@ -130,7 +134,7 @@ const SECS=[['intro','Intro'],['bld','Build-up'],['drop','Drop'],['chorus','Chor
 const FXN=['Loop 1/4','Loop 1/8','Stutter','Reverse','Tape stop','Low-pass sweep','High-pass sweep','Echo'];
 const PAGES=['Effects 1-4','Effects 5-8','Patterns 1-4','Patterns 5-8'];
 const decks=[{id:'A',genre:'house'},{id:'B',genre:'techno'}];
-const S={xf:50,mv:85,started:false,learn:null};
+const S={xf:50,mv:85,started:false,learn:null,focus:'A'};
 let MAP={};
 try{ MAP=JSON.parse(localStorage.getItem('ebdj.map.v1')||'{}')||{}; }catch(e){ MAP={}; }
 function saveMap(){ try{ localStorage.setItem('ebdj.map.v1',JSON.stringify(MAP)); }catch(e){} }
@@ -165,7 +169,7 @@ function deckHTML(d,opts){
    '<div class="tools"><button data-a="gen" data-d="'+i+'">New pattern</button><button data-a="rand" data-d="'+i+'">Random genre</button><button data-bend="-1" data-ctl="bendm:'+i+'" data-kind="hold" data-hold="1" data-d="'+i+'">Bend -</button><button data-bend="1" data-ctl="bendp:'+i+'" data-kind="hold" data-hold="1" data-d="'+i+'">Bend +</button></div>'+
    '<div class="screen"><div class="bpmn"><span id="bp'+i+'">--</span><small>BPM</small></div><div class="stat" id="st'+i+'"></div><div class="bar"><i id="pos'+i+'"></i></div></div>'+
    '<div class="plrow"><div class="plat" data-ctl="jog:'+i+'" data-kind="rel" data-d="'+i+'" role="img" aria-label="Jog platter, deck '+i+'. Drag to nudge the tempo.">'+PLATTER+'</div>'+
-   '<div class="pitch"><span class="lbl">Pitch</span><input class="vf" type="range" orient="vertical" min="40" max="240" step="1" data-t="'+i+'" data-ctl="tempo:'+i+'" data-kind="abs" aria-label="Tempo, deck '+i+'"></div></div>'+
+   '<div class="pitch"><span class="lbl">Pitch <i class="bt">A'+(i==='A'?7:8)+'</i></span><input class="vf" type="range" orient="vertical" min="40" max="240" step="1" data-t="'+i+'" data-ctl="tempo:'+i+'" data-kind="abs" aria-label="Tempo, deck '+i+'"></div></div>'+
    '<div class="trans"><button data-ctl="sync:'+i+'" data-kind="btn" data-a="sync" data-d="'+i+'">SYNC</button><button data-ctl="cue:'+i+'" data-kind="hold" data-hold="1" data-d="'+i+'">CUE</button><button class="play" id="pl'+i+'" data-ctl="play:'+i+'" data-kind="btn" data-a="play" data-d="'+i+'">PLAY</button></div>'+
    '<div class="lbl"><span>Patterns (queue for the end of the loop)</span></div><div class="grid4" id="secs'+i+'">'+SECS.map((x,k)=>'<button class="sb" data-ctl="sec:'+i+':'+k+'" data-kind="btn" data-a="sec" data-d="'+i+'" data-k="'+k+'">'+x[1]+'</button>').join('')+'</div>'+
    '<div class="lbl"><span>Effects (hold)</span></div><div class="grid4" id="fxs'+i+'">'+FXN.map((n,k)=>'<button class="fb" data-ctl="fx:'+i+':'+k+'" data-kind="hold" data-hold="1" data-d="'+i+'" data-k="'+k+'">'+n.replace(' sweep','')+'</button>').join('')+'</div>'+
@@ -176,22 +180,23 @@ function deckHTML(d,opts){
 function stripHTML(d){
   const i=d.id;
   return '<div class="strip '+i+'"><b>'+i+'</b>'+
-   knobHTML('Treble','treb:'+i,'data-eq="h" data-d="'+i+'"',-100,100,0,'eqh'+i,'Treble, deck '+i)+
-   knobHTML('Mid','mid:'+i,'data-eq="m" data-d="'+i+'"',-100,100,0,'eqm'+i,'Mid, deck '+i)+
-   knobHTML('Bass','bass:'+i,'data-eq="l" data-d="'+i+'"',-100,100,0,'eql'+i,'Bass, deck '+i)+
-   knobHTML('Filter','filt:'+i,'data-f="'+i+'"',-100,100,0,'fl'+i,'Filter, deck '+i)+
-   '<div class="chv" data-ctl="vol:'+i+'" data-kind="abs"><span class="kl chip">Volume</span><input class="vf" type="range" min="0" max="100" value="85" data-v="'+i+'" aria-label="Volume, deck '+i+'"><span class="kv chip" id="vl'+i+'"></span></div></div>';
+   knobHTML('Treble <i class="bt">B'+(i==='A'?1:5)+'</i>','treb:'+i,'data-eq="h" data-d="'+i+'"',-100,100,0,'eqh'+i,'Treble, deck '+i)+
+   knobHTML('Mid <i class="bt">B'+(i==='A'?2:6)+'</i>','mid:'+i,'data-eq="m" data-d="'+i+'"',-100,100,0,'eqm'+i,'Mid, deck '+i)+
+   knobHTML('Bass <i class="bt">B'+(i==='A'?3:7)+'</i>','bass:'+i,'data-eq="l" data-d="'+i+'"',-100,100,0,'eql'+i,'Bass, deck '+i)+
+   knobHTML('Filter <i class="bt">B'+(i==='A'?4:8)+' A'+(i==='A'?5:6)+'</i>','filt:'+i,'data-f="'+i+'"',-100,100,0,'fl'+i,'Filter, deck '+i)+
+   '<div class="chv" data-ctl="vol:'+i+'" data-kind="abs"><span class="kl chip">Volume <i class="bt">A'+(i==='A'?3:4)+'</i></span><input class="vf" type="range" min="0" max="100" value="85" data-v="'+i+'" aria-label="Volume, deck '+i+'"><span class="kv chip" id="vl'+i+'"></span></div></div>';
 }
 function buildUI(){
   const names=decks[0].win.eval('GENRES.map(function(g){return [g.id,g.name]})').sort((a,b)=>a[1].localeCompare(b[1],undefined,{numeric:true}));
   const opts=names.map(g=>'<option value="'+g[0]+'">'+g[1].replace(/&/g,'&amp;')+'</option>').join('');
   $('console').innerHTML=deckHTML(decks[0],opts)+
    '<div class="mixer" aria-label="Mixer"><div class="strips">'+stripHTML(decks[0])+stripHTML(decks[1])+'</div>'+
-   '<div class="xfw" data-ctl="xf" data-kind="abs"><div class="lbl"><span>Crossfader</span></div><div class="xfr"><b class="A">A</b><input type="range" id="xf" min="0" max="100" value="50" aria-label="Crossfader"><b class="B">B</b></div><div class="row"><button data-xf="0">All A</button><button data-xf="50">Centre</button><button data-xf="100">All B</button></div></div>'+
-   '<div class="mvr">'+knobHTML('Master','mv','id="mv"',0,100,85,'mvv','Master volume')+'</div></div>'+
+   '<div class="xfw" data-ctl="xf" data-kind="abs"><div class="lbl"><span>Crossfader <i class="bt">A2</i></span></div><div class="xfr"><b class="A">A</b><input type="range" id="xf" min="0" max="100" value="50" aria-label="Crossfader"><b class="B">B</b></div><div class="row"><button data-xf="0">All A</button><button data-xf="50">Centre</button><button data-xf="100">All B</button></div></div>'+
+   '<div class="xfw"><div class="lbl"><span>Pad buttons</span></div><div class="pbtn"><button data-ctl="prev" data-kind="btn" data-a="prev" aria-label="Previous genre">&lt;</button><button data-ctl="next" data-kind="btn" data-a="next" aria-label="Next genre">&gt;</button><button data-ctl="playall" data-kind="btn" data-a="playall">Play</button><button data-ctl="stopall" data-kind="btn" data-a="stopall">Stop</button><button data-ctl="focus" data-kind="btn" data-a="focus" id="focusb">Rec: A</button></div><div class="chip">&lt; &gt; change the genre of the highlighted deck. Record picks which deck is highlighted.</div></div>'+
+   '<div class="mvr">'+knobHTML('Master <i class="bt">A1</i>','mv','id="mv"',0,100,85,'mvv','Master volume')+'</div></div>'+
    deckHTML(decks[1],opts);
   decks.forEach(d=>{ $('deck'+d.id).querySelector('select').value=d.genre; d.page=0; d.held={}; });
-  paintPads(); refreshMapped();
+  paintPads(); refreshMapped(); setFocus(S.focus);
 }
 function paintPads(){
   decks.forEach(d=>{
@@ -250,9 +255,15 @@ function padAct(d,j,on,mode){ // j is 0 to 7, mode 0 effects or 1 patterns
 }
 
 /* ---------- named controls: used by taps, the platter and MIDI learn ---------- */
-const NAMES={sec:'Pattern',fx:'Effect',play:'PLAY',cue:'CUE',sync:'SYNC',bass:'Bass knob',mid:'Mid knob',treb:'Treble knob',filt:'Filter knob',vol:'Channel volume fader',tempo:'Pitch (tempo) fader',jog:'Jog wheel (turn it)',mode:'Pad mode button',bendm:'Bend slower',bendp:'Bend faster',xf:'Crossfader',mv:'Master volume'};
+const NAMES={prev:'Pad button <',next:'Pad button >',playall:'Pad button Play',stopall:'Pad button Stop',focus:'Pad button Record (pick deck)',sec:'Pattern',fx:'Effect',play:'PLAY',cue:'CUE',sync:'SYNC',bass:'Bass knob',mid:'Mid knob',treb:'Treble knob',filt:'Filter knob',vol:'Channel volume fader',tempo:'Pitch (tempo) fader',jog:'Jog wheel (turn it)',mode:'Pad mode button',bendm:'Bend slower',bendp:'Bend faster',xf:'Crossfader',mv:'Master volume'};
 function ctlName(id){ const p=id.split(':'); if(p[0]==='pad') return 'Deck '+p[1]+' pad '+(+p[2]+1); if(p[0]==='sec') return 'Deck '+p[1]+' pattern: '+SECS[+p[2]][1]; if(p[0]==='fx') return 'Deck '+p[1]+' effect: '+FXN[+p[2]]; return (p[1]?'Deck '+p[1]+' ':'')+(NAMES[p[0]]||id); }
+function stepGenre(dir){
+  const d=D(S.focus), sel=$('deck'+d.id).querySelector('select'), n=sel.options.length; let i=sel.selectedIndex+dir; i=Math.max(0,Math.min(n-1,i)); if(i===sel.selectedIndex) return;
+  setGenre(d,sel.options[i].value);
+}
+function setFocus(id){ S.focus=id; decks.forEach(x=>$('deck'+x.id).classList.toggle('focus',x.id===id)); const b=$('focusb'); if(b) b.textContent='Rec: '+id; }
 function ctlPress(id){
+  if(id==='prev') return stepGenre(-1); if(id==='next') return stepGenre(1); if(id==='playall') return bothPlay(); if(id==='stopall') return bothStop(); if(id==='focus') return setFocus(S.focus==='A'?'B':'A');
   const p=id.split(':'), d=D(p[1]);
   if(p[0]==='play') togglePlay(d); else if(p[0]==='sync') syncTo(d); else if(p[0]==='mode'){ d.page=(d.page+1)%4; paintPads(); } else if(p[0]==='sec') section(d,SECS[+p[2]][0]);
 }
@@ -297,14 +308,14 @@ function paint(){
 }
 
 /* ---------- MIDI ---------- */
-function padHit(i,on,bank){ const d=D(i<8?'A':'B'); if(d) padAct(d,i%8,on,bank); }
+function padHit(i,on,bank){ const r=i>>2, c=i&3, d=D(c<2?'A':'B'); if(d) padAct(d,r*2+(c&1),on,bank); } // left two columns = Deck A, right two = Deck B, same effect or pattern on both sides of each row
 let heldBank={};
 function onNote(note,on){
   let bank=null,i=-1; if(note>=36&&note<=51){ bank=0; i=note-36; } else if(note>=52&&note<=67){ bank=1; i=note-52; } else return;
   if(on) heldBank[note]=bank; else bank=heldBank[note]==null?bank:heldBank[note];
   padHit(i,on,bank); if(!on) delete heldBank[note];
 }
-function knob(k,f){ const ids=['vol:A','vol:B','filt:A','filt:B','xf','tempo:A','tempo:B','mv']; if(ids[k]) ctlAbs(ids[k],f); }
+function knob(k,f){ const ids=['mv','xf','vol:A','vol:B','filt:A','filt:B','tempo:A','tempo:B']; if(ids[k]) ctlAbs(ids[k],f); }
 function knobB(k,f){ const ids=['treb:A','mid:A','bass:A','filt:A','treb:B','mid:B','bass:B','filt:B']; if(ids[k]) ctlAbs(ids[k],f); }
 function msgKey(m){ const st=m[0]&0xF0, ch=m[0]&15; if(st===0x90||st===0x80) return 'n:'+ch+':'+m[1]; if(st===0xB0) return 'c:'+ch+':'+m[1]; if(st===0xE0) return 'p:'+ch+':0'; return null; }
 function describe(m){ const st=m[0]&0xF0, ch=(m[0]&15)+1; if(st===0x90) return 'Note '+m[1]+(m[2]>0?' on':' off')+' (channel '+ch+')'; if(st===0x80) return 'Note '+m[1]+' off (channel '+ch+')'; if(st===0xB0) return 'Control '+m[1]+' = '+m[2]+' (channel '+ch+')'; if(st===0xE0) return 'Pitch bend (channel '+ch+')'; return 'Message '+m[0]; }
@@ -329,7 +340,7 @@ function onMidi(e){
     const cc=m[1];
     if(cc>=30&&cc<=37) knob(cc-30,v/127);
     else if(cc>=38&&cc<=45) knobB(cc-38,v/127);
-    else if(v>0){ if(cc===25) togglePlay(decks[0]); else if(cc===26) togglePlay(decks[1]); else if(cc===27) bothPlay(); else if(cc===28) bothStop(); else if(cc===29) sync(); }
+    else if(v>0){ if(cc===25) stepGenre(-1); else if(cc===26) stepGenre(1); else if(cc===27) bothPlay(); else if(cc===28) bothStop(); else if(cc===29) ctlPress('focus'); }
   }
 }
 function bothPlay(){ const any=decks.some(playing); if(any){ return; } decks.forEach(d=>setPlay(d,true)); }
@@ -390,6 +401,7 @@ function wireUI(){
   document.addEventListener('touchstart',swallow,{capture:true,passive:false});
   document.addEventListener('click',e=>{
     const t=e.target.closest('button'); if(!t) return;
+    if(t.dataset.a&&!D(t.dataset.d)){ ctlPress(t.dataset.ctl); return; }
     if(t.dataset.a){ const d=D(t.dataset.d); const a=t.dataset.a; if(a==='gen') newPattern(d); else if(a==='rand') randGenre(d); else if(a==='sync') ctlPress('sync:'+d.id); else if(a==='play') ctlPress('play:'+d.id); else if(a==='mode') ctlPress('mode:'+d.id); else if(a==='sec') ctlPress('sec:'+d.id+':'+t.dataset.k); }
     else if(t.dataset.xf){ S.xf=+t.dataset.xf; applyMix(); }
   });
@@ -436,7 +448,7 @@ $('go').addEventListener('click',()=>{
 });
 boot();
 // for tests
-window.__djTest={decks:decks,S:S,knob:knob,knobB:knobB,onMidi:onMidi,onNote:onNote,applyMix:applyMix,cross:cross,MAP:()=>MAP};
+window.__djTest={stepGenre:stepGenre,decks:decks,S:S,knob:knob,knobB:knobB,onMidi:onMidi,onNote:onNote,applyMix:applyMix,cross:cross,MAP:()=>MAP};
 })();
 </script>
 </body>
