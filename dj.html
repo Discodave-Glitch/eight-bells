@@ -25,7 +25,7 @@ input[type=range]{width:100%;accent-color:var(--ink);min-height:28px;margin:0}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 /* the console: deck A, mixer, deck B */
 .console{display:grid;grid-template-columns:1fr;gap:10px}
-@media(min-width:900px){.console{grid-template-columns:minmax(0,1fr) 300px minmax(0,1fr);align-items:start}}
+@media(min-width:900px){.console{grid-template-columns:minmax(0,1fr) 300px minmax(0,1fr);align-items:stretch}.deck .grid4{flex:1 1 auto;grid-auto-rows:minmax(40px,1fr)}.mixer{justify-content:space-between}}
 .deck{background:var(--panel);border:2px solid var(--c);border-radius:18px;padding:10px;display:flex;flex-direction:column;gap:9px;min-width:0}
 .deck.A{--c:var(--a)}.deck.B{--c:var(--b)}
 .dh{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
@@ -71,7 +71,7 @@ input[type=range]{width:100%;accent-color:var(--ink);min-height:28px;margin:0}
 .bt{font-style:normal;font-size:9px;color:#07090e;background:var(--ink);border-radius:5px;padding:0 3px;margin-left:2px;letter-spacing:0}
 .pitch .bt{display:block;margin:0 auto}
 .deck.focus{box-shadow:0 0 0 3px var(--c)}
-.pbtn{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.pbtn button{min-height:40px;padding:0 2px;font-size:12px}
+.pbtn{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.pbtn button{min-height:40px;padding:0 2px;font-size:12px;white-space:nowrap}
 .kn .kv{font-size:10px;color:var(--muted);min-height:12px}
 .kd{position:relative;width:56px;height:56px;touch-action:none;cursor:ns-resize;border-radius:50%}
 .kd:focus-within{outline:2px solid var(--ink)}
@@ -83,6 +83,7 @@ input[type=range]{width:100%;accent-color:var(--ink);min-height:28px;margin:0}
 .chv .vf{height:140px;min-height:140px;flex:none;accent-color:var(--c)}
 .xfw{background:var(--panel2);border-radius:14px;padding:8px 10px;display:grid;gap:4px}
 .xfr{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center}
+.xfb{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.xfb button{padding:0 4px;min-height:38px}
 .xfr b{font-size:17px}.xfr .A{color:var(--a)}.xfr .B{color:var(--b)}
 .mvr{display:flex;align-items:center;justify-content:center;gap:10px}
 .learning{outline:3px solid #ffd54a;outline-offset:2px;animation:pulse 1s ease-in-out infinite}
@@ -197,8 +198,8 @@ function buildUI(){
   const opts=names.map(g=>'<option value="'+g[0]+'">'+g[1].replace(/&/g,'&amp;')+'</option>').join('');
   $('console').innerHTML=deckHTML(decks[0],opts)+
    '<div class="mixer" aria-label="Mixer"><div class="strips">'+stripHTML(decks[0])+stripHTML(decks[1])+'</div>'+
-   '<div class="xfw" data-ctl="xf" data-kind="abs"><div class="lbl"><span>Crossfader <i class="bt">A1 B1</i></span></div><div class="xfr"><b class="A">A</b><input type="range" id="xf" min="0" max="100" value="50" aria-label="Crossfader"><b class="B">B</b></div><div class="row"><button data-xf="0">All A</button><button data-xf="50">Centre</button><button data-xf="100">All B</button></div></div>'+
-   '<div class="xfw"><div class="lbl"><span>Pad buttons</span></div><div class="pbtn"><button data-ctl="prev" data-kind="btn" data-a="prev" aria-label="Sync Deck A to Deck B">&lt; Sync A</button><button data-ctl="next" data-kind="btn" data-a="next" aria-label="Sync Deck B to Deck A">Sync B &gt;</button><button data-ctl="playall" data-kind="btn" data-a="playall">Play</button><button data-ctl="stopall" data-kind="btn" data-a="stopall">Stop</button><button data-ctl="focus" data-kind="btn" data-a="focus" id="focusb">Sync</button></div><div class="chip">&lt; syncs Deck A to Deck B, &gt; syncs Deck B to Deck A. Record also syncs Deck B to Deck A.</div></div>'+
+   '<div class="xfw" data-ctl="xf" data-kind="abs"><div class="lbl"><span>Crossfader <i class="bt">A1 B1</i></span></div><div class="xfr"><b class="A">A</b><input type="range" id="xf" min="0" max="100" value="50" aria-label="Crossfader"><b class="B">B</b></div><div class="xfb"><button data-xf="0">All A</button><button data-xf="50">Centre</button><button data-xf="100">All B</button></div></div>'+
+   '<div class="xfw"><div class="lbl"><span>Pad buttons</span></div><div class="pbtn"><button data-ctl="prev" data-kind="btn" data-a="prev" aria-label="Sync Deck A to Deck B">&lt; A</button><button data-ctl="next" data-kind="btn" data-a="next" aria-label="Sync Deck B to Deck A">B &gt;</button><button data-ctl="playall" data-kind="btn" data-a="playall">Play</button><button data-ctl="stopall" data-kind="btn" data-a="stopall">Stop</button><button data-ctl="focus" data-kind="btn" data-a="focus" id="focusb">Sync</button></div><div class="chip">&lt; syncs Deck A to Deck B, &gt; syncs Deck B to Deck A. Record also syncs Deck B to Deck A.</div></div>'+
    '<div class="mvr">'+knobHTML('Master <i class="bt">A2 B2</i>','mv','id="mv"',0,100,85,'mvv','Master volume')+'</div></div>'+
    deckHTML(decks[1],opts);
   decks.forEach(d=>{ $('deck'+d.id).querySelector('select').value=d.genre; d.page=0; d.held={}; });
