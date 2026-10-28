@@ -1121,6 +1121,17 @@ function seedFrom(str){
 }
 function newSeed(){ const A='abcdefghjkmnpqrstuvwxyz23456789'; let r=''; for(let i=0;i<6;i++) r+=A[Math.floor(Math.random()*A.length)]; return r; }
 function pick(a){ return a[Math.floor(rnd()*a.length)]; }
+// Shuffle bag for the dice: deals out every option in a random order before any comes round again, and never deals the same one twice in a row.
+const BAGS={};
+function bagPick(key,items,idOf){
+  idOf=idOf||(x=>x); const ids=items.map(idOf); if(!ids.length) return undefined;
+  const b=BAGS[key]||(BAGS[key]={left:[],last:null}); b.left=b.left.filter(id=>ids.includes(id));
+  if(!b.left.length){
+    b.left=ids.slice(); for(let i=b.left.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [b.left[i],b.left[j]]=[b.left[j],b.left[i]]; }
+    if(b.left.length>1&&b.left[b.left.length-1]===b.last){ const j=Math.floor(Math.random()*(b.left.length-1)); [b.left[b.left.length-1],b.left[j]]=[b.left[j],b.left[b.left.length-1]]; }
+  }
+  const id=b.left.pop(); b.last=id; return items[ids.indexOf(id)];
+}
 function rint(a,b){ return a+Math.floor(rnd()*(b-a+1)); }
 function clamp(v,lo,hi){ return Math.max(lo,Math.min(hi,v)); }
 
@@ -3895,7 +3906,7 @@ $('engines').addEventListener('click',e=>{
 });
 $('gfind').addEventListener('input',renderGenres);
 $('gsurp').addEventListener('click',()=>{
-  const pool=GENRES.filter(g=>g.id!==state.genre), g=pool[Math.floor(Math.random()*pool.length)];
+  const pool=GENRES.filter(g=>g.id!==state.genre), g=bagPick('genre',pool,x=>x.id);
   pushHist(); state.section=null; if(SURP.eng&&!NOSURP.v) surpriseEngine(); setGenre(g.id); if(SURP.inst&&!NOSURP.v) surpriseSounds(); renderAll();
 });
 $('genres').addEventListener('click',e=>{
@@ -4771,10 +4782,10 @@ const SURP={inst:false,eng:false}; try{ const j=JSON.parse(localStorage.getItem(
 function saveSurp(){ try{ localStorage.setItem('eb_surp',JSON.stringify(SURP)); }catch(_){} }
 function surpriseSounds(){
   const grp=n=>PATCH_LIST.filter(p=>n.includes(p[2])).map(p=>p[0]), P={bass:grp(['Bass']),stab:grp(['Stabs and chords','Keys and organs','Pads','Brass and reeds']),arp:grp(['Plucks and bells','Keys and organs','Leads','World']),lead:grp(['Leads','Brass and reeds','Strings and bowed','World'])};
-  ['bass','stab','arp','lead'].forEach(r=>{ const l=P[r].filter(x=>PATCHES[x]); PV.patch[r]=l[Math.floor(Math.random()*l.length)]; });
-  const ks=Object.keys(KITS); PV.kit=ks[Math.floor(Math.random()*ks.length)]; savePV(); if(typeof renderPreview==='function') renderPreview();
+  ['bass','stab','arp','lead'].forEach(r=>{ const l=P[r].filter(x=>PATCHES[x]); let c=bagPick('patch-'+r,l); if(c===PV.patch[r]&&l.length>1) c=bagPick('patch-'+r,l); PV.patch[r]=c; });
+  const ks=Object.keys(KITS); let kc=bagPick('kit',ks); if(kc===PV.kit&&ks.length>1) kc=bagPick('kit',ks); PV.kit=kc; savePV(); if(typeof renderPreview==='function') renderPreview();
 }
-function surpriseEngine(){ const pool=ENGINES.filter(e=>e.id!==state.engine); state.engine=pool[Math.floor(Math.random()*pool.length)].id; }
+function surpriseEngine(){ const pool=ENGINES.filter(e=>e.id!==state.engine); state.engine=bagPick('eng',pool,e=>e.id).id; }
 
 Object.assign(PATCHES,{
  moog(t,f,v,d){ const {flt,g}=pxChain(t,0,'lowpass',2600,320,0.2,5); pxOsc('sawtooth',f,t,d+0.2).connect(flt); pxOsc('sawtooth',f,t,d+0.2,-7).connect(flt); const sb=pxOsc('square',f/2,t,d+0.2), x=ac.createGain(); x.gain.value=0.6; sb.connect(x); x.connect(flt); pxAdsr(g,t,0.2*v,0.003,0.15,0.6,0.08,d); },
@@ -5184,10 +5195,10 @@ async function sampSave(id){ const rec=await sdbDo('readonly',st=>st.get(id)); c
 const NOTE_OPTS=(()=>{ let h=''; for(let n=24;n<=96;n++) h+=`<option value="${n}">${noteName(n,state.middleC===3)} (${n})</option>`; return h; })();
 function renderPreview(){
   const kitSel=$('pskit'); if(!kitSel) return;
-  kitSel.innerHTML='<option value="auto">Auto: '+KITS[autoKit()].name+' (for this genre)</option>'+Object.keys(KITS).map(k=>`<option value="${k}">${KITS[k].name}</option>`).join('');
+  kitSel.innerHTML='<option value="auto">Auto: '+KITS[autoKit()].name+' (for this genre)</option>'+Object.keys(KITS).sort((a,b)=>KITS[a].name.localeCompare(KITS[b].name,undefined,{numeric:true})).map(k=>`<option value="${k}">${KITS[k].name}</option>`).join('');
   kitSel.value=PV.kit;
-  const groups=[...new Set(PATCH_LIST.map(p=>p[2]))];
-  const pOpts=groups.map(gp=>`<optgroup label="${gp}">${PATCH_LIST.filter(p=>p[2]===gp).map(p=>`<option value="${p[0]}">${p[1]}</option>`).join('')}</optgroup>`).join('');
+  const groups=[...new Set(PATCH_LIST.map(p=>p[2]))].sort((a,b)=>a.localeCompare(b));
+  const pOpts=groups.map(gp=>`<optgroup label="${gp}">${PATCH_LIST.filter(p=>p[2]===gp).sort((a,b)=>a[1].localeCompare(b[1],undefined,{numeric:true})).map(p=>`<option value="${p[0]}">${p[1]}</option>`).join('')}</optgroup>`).join('');
   $('pspatch').innerHTML=['bass','stab','arp','lead'].map(r=>`<div class="field"><label>${r[0].toUpperCase()+r.slice(1)}</label><select data-pp="${r}"><option value="auto">Auto: ${(PATCH_LIST.find(p=>p[0]===autoPatch(r))||['','?'])[1]}</option>${pOpts}</select><button class="mini ghost" data-hear="${r}">Hear</button></div>`).join('');
   $('pspatch').querySelectorAll('select').forEach(s=>{ s.value=PV.patch[s.dataset.pp]||'auto'; });
   const L=SMETA.size?[...SMETA.values()]:[];
@@ -5243,7 +5254,7 @@ function meterPaint(){
   });
 }
 function sfx(f,key,pan,lvl){ const keep=master; try{ if(lvl===0) return; if(key&&ac&&masterReal) master=busFor(key,pan,lvl); f(); }catch(e){ SFX_ERR++; SFX_LAST=String(e&&e.message||e); if(SFX_ERR<=3){ try{ const m=$('recmsg'); if(m&&!REC.on) m.textContent='A sound could not play on this browser ('+(e&&e.message?e.message:'error')+'; instruments: '+['bass','stab','arp','lead'].map(patchId).join(', ')+'). Playback carries on without it.'; }catch(_){} } }finally{ master=keep; } }
-let SFX_ERR=0, SFX_LAST='', TICKN=0; const BUILD='b1615';
+let SFX_ERR=0, SFX_LAST='', TICKN=0; const BUILD='b1625';
 function schedule(step,time){
   const preview=cfg.target!=='midi'||!midi.out, send=canSend();
   if(preview){
@@ -5985,9 +5996,9 @@ $('tcolall').addEventListener('click',()=>{
   document.querySelectorAll('#tracks .track, #voxbox').forEach(a=>{ const k=a.id==='voxbox'?'vox':(a.dataset.kind==='s'?'s'+a.dataset.i:'d'+a.dataset.di), c=TCOL.has(k), b=a.querySelector('[data-tcol]'); a.classList.toggle('col',c); if(b){ b.setAttribute('aria-expanded',String(!c)); b.innerHTML=c?'&#9656;':'&#9662;'; } });
   tcolAllLabel(); rollDraw();
 });
-document.querySelectorAll('[data-dice]').forEach(b=>b.addEventListener('click',e=>{ e.preventDefault(); e.stopPropagation(); const k=b.dataset.dice; if(k==='eng') $('engsurp').click(); else if(k==='gen'){ NOSURP.v=true; try{ $('gsurp').click(); }finally{ NOSURP.v=false; } } else if(k==='inst') $('pssurp').click(); else if(k==='chg'){ const ids=['vary','fill','tweak'], el=$(ids[Math.floor(Math.random()*ids.length)]); if(el) el.click(); }
+document.querySelectorAll('[data-dice]').forEach(b=>b.addEventListener('click',e=>{ e.preventDefault(); e.stopPropagation(); const k=b.dataset.dice; if(k==='eng') $('engsurp').click(); else if(k==='gen'){ NOSURP.v=true; try{ $('gsurp').click(); }finally{ NOSURP.v=false; } } else if(k==='inst') $('pssurp').click(); else if(k==='chg'){ const el=$(bagPick('chg',['vary','fill','tweak'])); if(el) el.click(); }
     else if(k==='solo') soloDice();
-    else if(k==='auto') $('auto').click(); else if(k==='song') songDice(); else if(k==='sec'){ const ids=['allt','intro','bld','drop','chorus','brk','bridge','half','outro'], id=ids[Math.floor(Math.random()*ids.length)], el=$(id); if(el) el.click(); } else if(k==='fx') fxDice(); else if(k==='cc'){ $('mrand').click(); flashCur('cccur','Randomised'); } }));
+    else if(k==='auto') $('auto').click(); else if(k==='song') songDice(); else if(k==='sec'){ const ids=['allt','intro','bld','drop','chorus','brk','bridge','half','outro'], id=bagPick('sec',ids), el=$(id); if(el) el.click(); } else if(k==='fx') fxDice(); else if(k==='cc'){ $('mrand').click(); flashCur('cccur','Randomised'); } }));
 function songDice(){
   if(SONG.on) return; const mid=['bld','drop','chorus','brk','bridge','half','allt'].filter(x=>SONG_FN[x]), n=3+Math.floor(Math.random()*3), seq=['intro'];
   for(let k=0;k<n;k++) seq.push(mid[Math.floor(Math.random()*mid.length)]); seq.push('outro');
@@ -6007,7 +6018,7 @@ $('surpinst').checked=SURP.inst; $('surpeng').checked=SURP.eng;
 $('surpinst').addEventListener('change',e=>{ SURP.inst=e.target.checked; saveSurp(); });
 $('surpeng').addEventListener('change',e=>{ SURP.eng=e.target.checked; saveSurp(); });
 $('pssurp').addEventListener('click',()=>{ surpriseSounds(); });
-$('engsurp').addEventListener('click',()=>{ const b=document.querySelector('#engines [data-eng]:not([aria-pressed="true"])'); const pool=[...document.querySelectorAll('#engines [data-eng]')].filter(x=>x.dataset.eng!==state.engine); if(pool.length) pool[Math.floor(Math.random()*pool.length)].click(); });
+$('engsurp').addEventListener('click',()=>{ const b=document.querySelector('#engines [data-eng]:not([aria-pressed="true"])'); const pool=[...document.querySelectorAll('#engines [data-eng]')].filter(x=>x.dataset.eng!==state.engine); if(pool.length) bagPick('eng',pool,x=>x.dataset.eng).click(); });
 /* ---------- Light / dark switch ---------- */
 (function(){
   const root=document.documentElement, btn=document.getElementById('themebtn'); if(!btn) return;
@@ -6514,10 +6525,10 @@ function padLightTest(){
 }
 function padShowBank(n){ if(PADS.bank===n) return; PADS.bank=n; padGrid(); padPaint(); }
 const PAD_KN=['Volume','Swing','Tempo','Section','Lead sound','Kit','Bass sound','Stab sound'];
-function padKitList(){ return ['auto'].concat(Object.keys(KITS)); }
+function padKitList(){ return ['auto'].concat(Object.keys(KITS).sort((a,b)=>KITS[a].name.localeCompare(KITS[b].name,undefined,{numeric:true}))); }
 // What a knob does, and where it sits (0 to 1), so the on-screen knob can follow the real one.
 const PAD_PGROUPS={bass:['Bass'],lead:['Leads'],stab:['Stabs and chords','Keys and organs','Pads'],arp:['Plucks and bells','Keys and organs','Leads','World']};
-function padPatchList(role){ return ['auto'].concat(PATCH_LIST.filter(p=>PAD_PGROUPS[role].includes(p[2])).map(p=>p[0])); }
+function padPatchList(role){ return ['auto'].concat(PATCH_LIST.filter(p=>PAD_PGROUPS[role].includes(p[2])).sort((a,b)=>a[1].localeCompare(b[1],undefined,{numeric:true})).map(p=>p[0])); }
 function padPatchName(id){ const p=PATCH_LIST.find(x=>x[0]===id); return p?p[1]:id; }
 function padSecIds(){ return SECTION_IDS.filter(x=>x!=='allt'); }
 // Knob 7 = Track 1, knob 8 = Track 2, knob 5 = Track 3: each sets the sound of whatever role that track has in the current genre (Track 3 is an Arp in most genres, a Lead in a few).
@@ -6918,7 +6929,7 @@ function lvFlash(txt){ LV.flash=txt; LV.flashT=Date.now()+2800; lvPaint(); clear
 function lvDice(k,btn){
   btn.classList.remove('hit'); void btn.offsetWidth; btn.classList.add('hit'); setTimeout(()=>btn.classList.remove('hit'),700);
   const main=document.querySelector('[data-dice="'+k+'"]');
-  const pick=a=>a[Math.floor(Math.random()*a.length)];
+  const pick=a=>bagPick('lv-'+k,a,x=>Array.isArray(x)?x[0]:x);
   if(k==='fx'){ lvFxDice(); return; }
   if(k==='sec'&&playing&&!SONG.on){ const ids=SECTION_IDS.filter(id=>id!=='allt'&&id!==state.section&&id!==LV.next); LV.next=pick(ids); lvSecs(); lvPaint(); return; }
   if(k==='chg'){ const o=pick([['vary','Vary'],['fill','Fill'],['tweak','Tweak']]); const el=$(o[0]); if(el) el.click(); lvFlash('Change: '+o[1]); lvRender(); return; }
