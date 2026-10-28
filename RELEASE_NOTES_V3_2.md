@@ -11,3 +11,10 @@
 
 ## Not yet tested
 - A real SMC-PAD (the note and controller numbers come from a community profile), and Bluetooth MIDI.
+
+
+## Pad mode update
+- Two banks like the real pad (A drums, B chosen function); the old C and D screens are gone.
+- `<` `>` change track everywhere; a track strip shows every track, with the chosen one enlarged in the middle; pads take the track colour.
+- New Notes bank: play and record melodic tracks from the pads.
+- Knob bank B: genre, engine, key, scale, bars, arp sound, track pan and level (learn wizard for the knob numbers).
