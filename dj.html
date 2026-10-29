@@ -97,7 +97,10 @@ body.nolbl .bt{display:none}
 .mvr{display:flex;align-items:center;justify-content:center;gap:10px}
 .recb{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 12px;border-radius:12px;font-weight:700;font-variant-numeric:tabular-nums}
 .rdot{width:12px;height:12px;border-radius:50%;background:#ef4a4a;display:inline-block}
-.recb.on{border-color:#ef4a4a;color:#ffb3b3}.recb.on .rdot{animation:recp 1s ease-in-out infinite}
+.recb.arm{border-color:#e0a030}.recb.arm .rdot{background:#e0a030;animation:recp 1.6s ease-in-out infinite}
+.recb.on{border-color:#ef4a4a;color:#ffb3b3}
+#recpop{position:fixed;inset:0;z-index:40;background:#000a;display:flex;align-items:center;justify-content:center;padding:16px}#recpop[hidden]{display:none}
+.rpbox{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px;max-width:440px;width:100%;display:flex;flex-direction:column;gap:10px;max-height:100%;overflow:auto}.rpbox h2{margin:0;font-size:18px}.rpbox p{margin:0;color:var(--muted);font-size:14px;word-break:break-word}.rpbox audio{width:100%}.rpbtns{display:flex;gap:8px;flex-wrap:wrap}.rpbtns button{flex:1 1 90px}.rpnote{font-size:13px}.recb.on .rdot{animation:recp 1s ease-in-out infinite}
 @keyframes recp{50%{opacity:.25}}
 @media(prefers-reduced-motion:reduce){.recb.on .rdot{animation:none}}
 .learning{outline:3px solid #ffd54a;outline-offset:2px;animation:pulse 1s ease-in-out infinite}
@@ -671,7 +674,7 @@ function autoTick(){
     c.filt=-Math.round(88*sm(seg(p,0.1,0.95))); c.eq={l:Math.round(-70*seg(p,0.4,1)),m:0,h:0}; c.vol=Math.round(85*(1-sm(seg(p,0.55,1))));
     if(p>=0.6&&!AU.fourth){ AU.fourth=true; fxHit(c,'Echo',barMs/2); }
     applyMix(); autoSay('Finishing the set on Deck '+c.id+' \u00b7 '+Math.round(p*100)+'%','Now: outro, echo and filter closing');
-    if(p>=1){ setPlay(c,false); c.vol=0; applyMix(); setTimeout(()=>{ c.eq={l:0,m:0,h:0}; c.filt=0; c.vol=85; applyMix(); },2500); const k=AU.tr, mins=Math.round((Date.now()-AU.tStart)/60000); alog('finish','Set finished after '+k+' tracks ('+stamp(Date.now()-AU.tStart)+')'); AU.phase='finished'; autoOn(false); autoSay('Auto DJ: set finished after '+k+' tracks ('+mins+' min).','The report is in Setup.'); }
+    if(p>=1){ setPlay(c,false); c.vol=0; applyMix(); setTimeout(()=>{ c.eq={l:0,m:0,h:0}; c.filt=0; c.vol=85; applyMix(); },2500); const k=AU.tr, mins=Math.round((Date.now()-AU.tStart)/60000); alog('finish','Set finished after '+k+' tracks ('+stamp(Date.now()-AU.tStart)+')'); AU.phase='finished'; if(window.__recStopSoon) window.__recStopSoon(); autoOn(false); autoSay('Auto DJ: set finished after '+k+' tracks ('+mins+' min).','The report is in Setup.'); }
   }
 }
 function bend(d,dir,on){ if(on){ if(d.bendSave==null){ d.bendSave=getBpm(d); setBpm(d,d.bendSave*(1+dir*0.04)); } } else if(d.bendSave!=null){ setBpm(d,d.bendSave); d.bendSave=null; } }
@@ -892,31 +895,51 @@ function wireUI(){
     window.__fixTop=fixTop; fixTop(); addEventListener('resize',()=>{ clearTimeout(fixT); fixT=setTimeout(fixTop,150); });
   }
   { // record the master mix (both decks) to an audio file
-    let RC=null, mr=null, chunks=[], t0=0, tm=null, url=null, file=null, mime='';
+    let RC=null, mr=null, chunks=[], t0=0, tm=null, url=null, file=null, mime='', armT=null, armed=false, endT=null, secsLast=0;
     const fmt=n=>{ const m=Math.floor(n/60), s=n%60; return (m>=60?Math.floor(m/60)+':'+String(m%60).padStart(2,'0'):m)+':'+String(s).padStart(2,'0'); };
     const msg=t=>{ $('recmsg').textContent=t; };
-    const stop=()=>{ if(mr&&mr.state!=='inactive') mr.stop(); };
+    const btn=(cls,txt)=>{ const r=$('rec'); r.classList.toggle('on',cls==='on'); r.classList.toggle('arm',cls==='arm'); r.setAttribute('aria-pressed',cls?'true':'false'); $('rect').textContent=txt; };
+    const anyPlaying=()=>decks.some(d=>playing(d));
+    const recording=()=>mr&&mr.state==='recording';
+    function popup(){
+      let dlg=$('recpop'); if(!dlg){ dlg=document.createElement('div'); dlg.id='recpop'; dlg.setAttribute('role','dialog'); dlg.setAttribute('aria-modal','true'); dlg.setAttribute('aria-label','Recording saved'); document.body.appendChild(dlg); }
+      dlg.innerHTML='<div class="rpbox"><h2>Your recording is ready</h2><p id="rpinfo"></p><audio id="rpaudio" controls></audio><p class="rpnote">It is only kept until you close this page, so save it now.</p><div class="rpbtns"><button id="rpshare" hidden>Share</button><button id="rpdl">Download</button><button id="rpclose">Close</button></div></div>';
+      $('rpinfo').textContent=fmt(secsLast)+' long, '+(file.size/1048576).toFixed(1)+' MB ('+file.name+')'; $('rpaudio').src=url;
+      $('rpshare').hidden=!(navigator.canShare&&navigator.canShare({files:[file]}));
+      $('rpdl').onclick=dl; $('rpshare').onclick=share; $('rpclose').onclick=()=>{ $('rpaudio').pause(); dlg.remove(); };
+      dlg.hidden=false; $('rpdl').focus();
+    }
+    function dl(){ if(!url) return; const a=document.createElement('a'); a.href=url; a.download=file.name; document.body.appendChild(a); a.click(); a.remove(); }
+    async function share(){ if(file){ try{ await navigator.share({files:[file],title:'Eight Bells DJ set'}); }catch(e){} } }
+    function disarm(){ clearInterval(armT); armed=false; }
+    function stop(){ clearTimeout(endT); disarm(); if(mr&&mr.state!=='inactive') mr.stop(); else btn('', 'Rec'); }
     async function start(){
-      const AC=window.AudioContext||window.webkitAudioContext; if(!AC||typeof MediaRecorder==='undefined'){ msg('This browser cannot record audio.'); return; }
-      const taps=decks.map(d=>d.win&&d.win.__dj&&d.win.__dj.rec).filter(Boolean); if(!taps.length){ msg('Audio is not ready yet.'); return; }
-      try{ RC=RC||new AC(); await RC.resume(); }catch(e){ msg('Could not start recording.'); return; }
+      const AC=window.AudioContext||window.webkitAudioContext; if(!AC||typeof MediaRecorder==='undefined'){ msg('This browser cannot record audio.'); btn('','Rec'); return; }
+      const taps=decks.map(d=>d.win&&d.win.__dj&&d.win.__dj.rec).filter(Boolean); if(!taps.length){ msg('Audio is not ready yet.'); btn('','Rec'); return; }
+      try{ RC=RC||new AC(); await RC.resume(); }catch(e){ msg('Could not start recording.'); btn('','Rec'); return; }
       const dest=RC.createMediaStreamDestination(), mix=RC.createGain(); mix.connect(dest);
       taps.forEach(t=>{ RC.createMediaStreamSource(t.stream).connect(mix); });
       mime=['audio/mp4','audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus'].find(m=>MediaRecorder.isTypeSupported(m))||'';
-      try{ mr=new MediaRecorder(dest.stream,mime?{mimeType:mime}:undefined); }catch(e){ msg('Could not start recording.'); return; }
+      try{ mr=new MediaRecorder(dest.stream,mime?{mimeType:mime}:undefined); }catch(e){ msg('Could not start recording.'); btn('','Rec'); return; }
       chunks=[]; mr.ondataavailable=e=>{ if(e.data&&e.data.size) chunks.push(e.data); };
-      mr.onstop=()=>{ clearInterval(tm); const secs=Math.round((Date.now()-t0)/1000), type=(mr.mimeType||mime||'audio/webm').split(';')[0], ext=/mp4/.test(type)?'m4a':(/ogg/.test(type)?'ogg':'webm');
+      mr.onstop=()=>{ clearInterval(tm); secsLast=Math.round((Date.now()-t0)/1000); const type=(mr.mimeType||mime||'audio/webm').split(';')[0], ext=/mp4/.test(type)?'m4a':(/ogg/.test(type)?'ogg':'webm');
         if(url) URL.revokeObjectURL(url); const blob=new Blob(chunks,{type}); chunks=[]; url=URL.createObjectURL(blob);
         const dt=new Date(), p=n=>String(n).padStart(2,'0'); file=new File([blob],'eight-bells-dj-set-'+dt.getFullYear()+'-'+p(dt.getMonth()+1)+'-'+p(dt.getDate())+'-'+p(dt.getHours())+p(dt.getMinutes())+'.'+ext,{type});
-        try{ mix.disconnect(); }catch(e){} $('rec').classList.remove('on'); $('rec').setAttribute('aria-pressed','false'); $('rect').textContent='Rec';
-        msg('Recorded '+fmt(secs)+' ('+(blob.size/1048576).toFixed(1)+' MB). Share or download it:'); $('recdl').hidden=false; $('recshare').hidden=!(navigator.canShare&&navigator.canShare({files:[file]})); if(AU.on) alog('record','Recording stopped after '+fmt(secs)); };
-      mr.start(1000); t0=Date.now(); $('rec').classList.add('on'); $('rec').setAttribute('aria-pressed','true'); $('recdl').hidden=true; $('recshare').hidden=true;
-      const tick=()=>{ $('rect').textContent=fmt(Math.round((Date.now()-t0)/1000)); }; tick(); tm=setInterval(tick,500); msg('Recording the mix...'); if(AU.on) alog('record','Recording started');
+        try{ mix.disconnect(); }catch(e){} btn('','Rec');
+        msg('Recorded '+fmt(secsLast)+' ('+(blob.size/1048576).toFixed(1)+' MB). Share or download it:'); $('recdl').hidden=false; $('recshare').hidden=!(navigator.canShare&&navigator.canShare({files:[file]})); if(AU.on) alog('record','Recording stopped after '+fmt(secsLast));
+        popup(); };
+      mr.start(1000); t0=Date.now(); $('recdl').hidden=true; $('recshare').hidden=true;
+      const tick=()=>btn('on',fmt(Math.round((Date.now()-t0)/1000))); tick(); tm=setInterval(tick,500); msg('Recording the mix...'); if(AU.on) alog('record','Recording started');
     }
-    $('rec').addEventListener('click',()=>{ if(mr&&mr.state==='recording') stop(); else start(); });
-    $('recdl').addEventListener('click',()=>{ if(!url) return; const a=document.createElement('a'); a.href=url; a.download=file.name; document.body.appendChild(a); a.click(); a.remove(); });
-    $('recshare').addEventListener('click',async()=>{ if(file){ try{ await navigator.share({files:[file],title:'Eight Bells DJ set'}); }catch(e){} } });
-    window.__recTest={start,stop,state:()=>mr&&mr.state};
+    function arm(){ // nothing is playing yet: wait for the first track, then record
+      if(anyPlaying()){ start(); return; }
+      armed=true; btn('arm','Waiting'); msg('Waiting for the first track. Recording starts when music starts.');
+      clearInterval(armT); armT=setInterval(()=>{ if(anyPlaying()){ disarm(); start(); } },100);
+    }
+    $('rec').addEventListener('click',()=>{ if(recording()) stop(); else if(armed){ disarm(); btn('','Rec'); msg('Press Rec by the master volume to record the mix.'); } else arm(); });
+    $('recdl').addEventListener('click',dl); $('recshare').addEventListener('click',share);
+    window.__recStopSoon=()=>{ if(recording()||armed){ clearTimeout(endT); endT=setTimeout(stop,2600); } }; // let the final fade-out and tail be captured
+    window.__recTest={start,stop,arm,state:()=>mr&&mr.state,armed:()=>armed};
   }
   document.addEventListener('dblclick',e=>{ const k=e.target.closest&&e.target.closest('.kd'); if(!k) return; const inp=k.querySelector('input'); if(inp.dataset.eq||inp.dataset.f){ inp.value=0; inp.dispatchEvent(new Event('input',{bubbles:true})); } });
   $('gfx').addEventListener('click',()=>setGfx(GFXI+1)); { let on=true; try{ on=localStorage.getItem('ebdj.lbl')!=='0'; }catch(e){} setLbl(on); $('padlbl').addEventListener('change',e=>setLbl(e.target.checked)); } $('gfx').innerHTML='<span class="dp">Deck: </span>'+GFX[GFXI][0];
