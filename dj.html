@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Eight Bells DJ (prototype)</title>
 <style>
-:root{--bg:#0b0e15;--panel:#141a25;--panel2:#1d2535;--line:#2c374c;--ink:#eef2fa;--muted:#94a1ba;--a:#4c8dff;--b:#f59e3d;--ok:#46c48a;--bad:#ef6a6a}
+:root{--bg:#0b0e15;--panel:#141a25;--panel2:#1d2535;--line:#2c374c;--ink:#eef2fa;--muted:#94a1ba;--a:#3a93ab;--b:#e0b04a;--ok:#46c48a;--bad:#ef6a6a}
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.35 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-text-size-adjust:100%}
 body{padding:max(10px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(80px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
@@ -184,6 +184,7 @@ body.nolbl .bt{display:none}
     <div class="row"><button id="wiz">Guided setup</button><button id="learn">Learn one control</button><button id="teachA">Teach knob bank A</button><button id="teachB">Teach knob bank B</button><button id="clearmap">Clear mappings</button></div>
     <label class="row chip" style="cursor:pointer"><input type="checkbox" id="padlbl" checked> Show pad labels (A3, B5 and so on) next to the knobs and faders</label>
     <div class="chip" id="padnote"></div>
+    <div class="row"><b class="chip">Deck outline colours</b><label class="chip">A <select id="colA" aria-label="Deck A outline colour"></select><input type="color" id="colAc" aria-label="Deck A custom colour"></label><label class="chip">B <select id="colB" aria-label="Deck B outline colour"></select><input type="color" id="colBc" aria-label="Deck B custom colour"></label></div>
     <div class="row"><b class="chip">Long status text</b><select id="sttext" aria-label="What the status line does when its text is too long"><option value="ticker" selected>Scrolling ticker</option><option value="shrink">Shrink to fit</option><option value="still">Cut off</option></select></div>
     <div class="row"><b class="chip">Vocals and samples</b><select id="voxuse" aria-label="Vocals and samples Auto DJ may use"><option value="off">Off</option><option value="voices" selected>Built-in voices</option><option value="all">Built-in voices + my samples</option></select><select id="voxoften" aria-label="How often Auto DJ uses vocals and samples"><option value="rare">Only at big moments</option><option value="some">Now and then</option><option value="often" selected>Often</option></select></div>
     <div class="row"><b class="chip">Set report</b><button id="rptcopy">Copy</button><button id="rptshare">Share</button><button id="rptdl">Download</button></div>
@@ -809,6 +810,14 @@ function wireUI(){
   document.addEventListener('pointerup',pup); document.addEventListener('pointercancel',pup);
   document.addEventListener('dblclick',e=>{ const k=e.target.closest&&e.target.closest('.kd'); if(!k) return; const inp=k.querySelector('input'); if(inp.dataset.eq||inp.dataset.f){ inp.value=0; inp.dispatchEvent(new Event('input',{bubbles:true})); } });
   $('gfx').addEventListener('click',()=>setGfx(GFXI+1)); { let on=true; try{ on=localStorage.getItem('ebdj.lbl')!=='0'; }catch(e){} setLbl(on); $('padlbl').addEventListener('change',e=>setLbl(e.target.checked)); } $('gfx').innerHTML='<span class="dp">Deck: </span>'+GFX[GFXI][0];
+  { const PAL=[['Logo teal','#3a93ab'],['Logo gold','#e0b04a'],['Blue','#4c8dff'],['Orange','#f59e3d'],['Green','#46c48a'],['Lime','#b6e03a'],['Yellow','#ffd54a'],['Red','#ef6a6a'],['Pink','#ff6fb5'],['Purple','#a77bff'],['Cyan','#3fe0e0'],['White','#eef2fa']];
+    const DEF={A:'#3a93ab',B:'#e0b04a'};
+    ['A','B'].forEach(k=>{ const sel=$('col'+k), pk=$('col'+k+'c'); sel.innerHTML=PAL.map(p=>'<option value="'+p[1]+'">'+p[0]+'</option>').join('')+'<option value="custom">Custom…</option>';
+      const apply=v=>{ document.documentElement.style.setProperty('--'+k.toLowerCase(),v); pk.value=v; sel.value=PAL.some(p=>p[1]===v)?v:'custom'; try{ localStorage.setItem('ebdj.col'+k,v); }catch(e){} };
+      let v=DEF[k]; try{ const q=localStorage.getItem('ebdj.col'+k); if(/^#[0-9a-f]{6}$/i.test(q||'')) v=q; }catch(e){}
+      apply(v);
+      sel.addEventListener('change',()=>{ if(sel.value==='custom') pk.click(); else apply(sel.value); });
+      pk.addEventListener('input',()=>apply(pk.value)); }); }
   try{ const v=localStorage.getItem('ebdj.sttext'); if(v&&[...$('sttext').options].some(o=>o.value===v)) $('sttext').value=v; }catch(e){}
   const stApply=()=>{ const m=$('sttext').value; const st=$('autost'); st.classList.remove('st-ticker','st-shrink','st-still'); st.classList.add('st-'+m); ['auton','autonx'].forEach(id=>{ const sp=$(id); sp._sc=1; sp.classList.remove('mq','clip'); sp.firstChild.style.fontSize=''; sp.style.removeProperty('--mq'); sp.firstChild.children[1].textContent=''; mqFit(sp,sp.firstChild.children[0].textContent); }); };
   stApply(); $('sttext').addEventListener('change',()=>{ try{ localStorage.setItem('ebdj.sttext',$('sttext').value); }catch(e){} stApply(); });
