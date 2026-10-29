@@ -157,6 +157,7 @@ body.nolbl .bt{display:none}
   .strips{flex:1 1 0;min-height:0;gap:5px}
   .strip{padding:4px 2px;gap:1px 0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto auto minmax(0,1fr);align-items:center;justify-items:center;min-height:0;border-top-width:3px}
   .strip>b{grid-column:1/3}
+  body.knobcol .strip{display:flex;flex-direction:column;gap:2px;align-items:center;overflow:hidden}body.knobcol .strip>b{grid-column:auto}body.knobcol .console{--k:clamp(18px,4.6vh,56px)}body.knobcol .chv{flex:1 1 0;height:auto;min-height:50px}
   .kd{width:var(--k);height:var(--k)}
   .kn .kl{font-size:clamp(9px,1.3vh,13px)}.kn .kv{font-size:clamp(9px,1.3vh,13px);min-height:10px}.bt{font-size:clamp(8px,1.1vh,11px)}
   .chv{grid-column:1/3;min-height:0;height:100%}.chv .vf{height:100%;min-height:22px;flex:1 1 0}.chv .kl,.chv .kv{font-size:9px}
@@ -201,6 +202,7 @@ body.nolbl .bt{display:none}
     <div class="row"><b class="chip">Deck outline colours</b><label class="chip">A <select id="colA" aria-label="Deck A outline colour"></select><input type="color" id="colAc" aria-label="Deck A custom colour"></label><label class="chip">B <select id="colB" aria-label="Deck B outline colour"></select><input type="color" id="colBc" aria-label="Deck B custom colour"></label></div>
     <div class="row"><b class="chip">Orientation</b><select id="orient" aria-label="Lock screen rotation"><option value="free">Free (rotate normally)</option><option value="landscape">Lock to landscape</option><option value="portrait">Lock to portrait</option></select><span id="orientmsg" class="chip"></span></div>
     <div class="row"><b class="chip">Deck bar shows</b><select id="barmode" aria-label="What the bar under each deck display shows"><option value="auto" selected>Track in Auto DJ, loop by hand</option><option value="track">Whole track</option><option value="loop">This loop</option></select></div>
+    <div class="row"><b class="chip">Mixer knobs</b><select id="knobmode" aria-label="Layout of the mixer knobs"><option value="grid" selected>Compact grid (as now)</option><option value="col">Single column (for desktop)</option></select></div>
     <div class="row"><b class="chip">Screen</b><select id="theme" aria-label="Day or night screen"><option value="night">Night</option><option value="day">Day</option><option value="auto">Match my device</option></select></div>
     <div class="row"><b class="chip">Long status text</b><select id="sttext" aria-label="What the status line does when its text is too long"><option value="ticker" selected>Scrolling ticker</option><option value="shrink">Shrink to fit</option><option value="still">Cut off</option></select></div>
     <div class="row"><b class="chip">Vocals and samples</b><select id="voxuse" aria-label="Vocals and samples Auto DJ may use"><option value="off">Off</option><option value="voices" selected>Built-in voices</option><option value="all">Built-in voices + my samples</option></select><select id="voxoften" aria-label="How often Auto DJ uses vocals and samples"><option value="rare">Rarely</option><option value="some">Now and then</option><option value="often" selected>Often (every 6-10 bars)</option><option value="lots">Very often (every 3-6 bars)</option><option value="max">Non-stop (every 2-4 bars)</option></select><label class="chip"><input type="checkbox" id="voxrep" checked> Repeat favourite phrases</label></div>
@@ -879,6 +881,7 @@ function wireUI(){
   const pup=e=>{ const p=e.target.closest&&e.target.closest('.plat'); if(p) p._drag=false; };
   document.addEventListener('pointerup',pup); document.addEventListener('pointercancel',pup);
   try{ const v=localStorage.getItem('ebdj.barmode'); if(v&&[...$('barmode').options].some(o=>o.value===v)) $('barmode').value=v; }catch(e){} $('barmode').addEventListener('change',()=>{ try{ localStorage.setItem('ebdj.barmode',$('barmode').value); }catch(e){} });
+  { const km=$('knobmode'); try{ const v=localStorage.getItem('ebdj.knobmode'); if(v&&[...km.options].some(o=>o.value===v)) km.value=v; }catch(e){} const pk=()=>document.body.classList.toggle('knobcol',km.value==='col'); pk(); km.addEventListener('change',()=>{ try{ localStorage.setItem('ebdj.knobmode',km.value); }catch(e){} pk(); }); }
   { const mq=window.matchMedia&&matchMedia('(prefers-color-scheme: light)'); const sel=$('theme');
     const paint=()=>{ const v=sel.value, day=v==='day'||(v==='auto'&&mq&&mq.matches); document.documentElement.setAttribute('data-theme',day?'day':'night'); };
     try{ const v=localStorage.getItem('ebdj.theme'); if(v&&[...sel.options].some(o=>o.value===v)) sel.value=v; }catch(e){}
