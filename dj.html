@@ -99,6 +99,8 @@ body.nolbl .bt{display:none}
 .rdot{width:12px;height:12px;border-radius:50%;background:#ef4a4a;display:inline-block}
 .recb.arm{border-color:#e0a030}.recb.arm .rdot{background:#e0a030;animation:recp 1.6s ease-in-out infinite}
 .recb.on{border-color:#ef4a4a;color:#ffb3b3}
+#imged{position:fixed;inset:0;z-index:40;background:#000a;display:flex;align-items:center;justify-content:center;padding:16px}#imged canvas{width:min(100%,56vh,360px);aspect-ratio:1/1;align-self:center;border-radius:10px;cursor:grab}#imged .rpbox{align-items:stretch}
+@media (max-height:560px){#imged .rpbox{max-width:700px;display:grid;grid-template-columns:min(72vh,320px) 1fr;column-gap:14px;row-gap:8px;align-content:center}#imged .rpbox h2,#imged .rpbox p,#imged .rpbox label,#imged .rpbtns{grid-column:2}#imged canvas{grid-column:1;grid-row:1/7;width:min(72vh,320px);align-self:center}}
 #recpop{position:fixed;inset:0;z-index:40;background:#000a;display:flex;align-items:center;justify-content:center;padding:16px}#recpop[hidden]{display:none}
 .rpbox{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px;max-width:440px;width:100%;display:flex;flex-direction:column;gap:10px;max-height:100%;overflow:auto}.rpbox h2{margin:0;font-size:18px}.rpbox p{margin:0;color:var(--muted);font-size:14px;word-break:break-word}.rpbox audio{width:100%}.rpbtns{display:flex;gap:8px;flex-wrap:wrap}.rpbtns button{flex:1 1 90px}.rpnote{font-size:13px}.recb.on .rdot{animation:recp 1s ease-in-out infinite}
 @keyframes recp{50%{opacity:.25}}
@@ -911,8 +913,36 @@ function wireUI(){
     function fit(img){ const N=420, c=document.createElement('canvas'); c.width=c.height=N; const x=c.getContext('2d'), w=img.naturalWidth||img.width, h=img.naturalHeight||img.height, sc=Math.max(N/w,N/h);
       x.drawImage(img,(N-w*sc)/2,(N-h*sc)/2,w*sc,h*sc); let u=c.toDataURL('image/png'); if(u.length>450000){ const d=document.createElement('canvas'); d.width=d.height=N; const y=d.getContext('2d'); y.fillStyle='#0b0f17'; y.fillRect(0,0,N,N); y.drawImage(c,0,0); u=d.toDataURL('image/jpeg',.86); } return u; }
     $('imgpick').addEventListener('click',()=>$('imgfile').click());
+    function editor(img,done){ // resize and position the picture under the round deck window before it is applied
+      const w0=img.naturalWidth||img.width, h0=img.naturalHeight||img.height;
+      let dlg=$('imged'); if(dlg) dlg.remove(); dlg=document.createElement('div'); dlg.id='imged'; dlg.setAttribute('role','dialog'); dlg.setAttribute('aria-modal','true'); dlg.setAttribute('aria-label','Position your image');
+      dlg.innerHTML='<div class="rpbox"><h2>Position your image</h2><p>Drag to move it and use the slider to resize. Only what is inside the circle shows on the deck.</p><canvas id="imgcv" width="640" height="640"></canvas><label class="chip">Size <input type="range" id="imgzoom" min="0" max="1000" value="0" aria-label="Resize the picture" style="flex:1"></label><div class="rpbtns"><button id="imgfill">Fill circle</button><button id="imgfitb">Fit whole picture</button></div><div class="rpbtns"><button id="imgok">Use this</button><button id="imgno">Cancel</button></div></div>';
+      document.body.appendChild(dlg);
+      const cv=$('imgcv'), P=cv.width, R=P/2*0.95, ctx=cv.getContext('2d'), z=$('imgzoom');
+      const sFill=2*R/Math.min(w0,h0), sFit=2*R/Math.max(w0,h0), sMin=sFit*0.6, sMax=Math.max(sFill*5,sMin*2);
+      let sc=sFill, cx=w0/2, cy=h0/2;
+      const toZ=v=>Math.round(1000*Math.log(v/sMin)/Math.log(sMax/sMin)), fromZ=t=>sMin*Math.pow(sMax/sMin,t/1000);
+      function draw(){ ctx.clearRect(0,0,P,P); ctx.fillStyle='#0b0f17'; ctx.fillRect(0,0,P,P); ctx.drawImage(img,P/2-cx*sc,P/2-cy*sc,w0*sc,h0*sc);
+        ctx.save(); ctx.beginPath(); ctx.rect(0,0,P,P); ctx.arc(P/2,P/2,R,0,Math.PI*2,true); ctx.fillStyle='rgba(0,0,0,.62)'; ctx.fill('evenodd'); ctx.restore();
+        ctx.beginPath(); ctx.arc(P/2,P/2,R,0,Math.PI*2); ctx.lineWidth=4; ctx.strokeStyle='#e0b04a'; ctx.stroke(); z.value=toZ(sc); }
+      const setS=v=>{ sc=Math.max(sMin,Math.min(sMax,v)); draw(); };
+      z.addEventListener('input',()=>setS(fromZ(+z.value)));
+      $('imgfill').onclick=()=>{ cx=w0/2; cy=h0/2; setS(sFill); }; $('imgfitb').onclick=()=>{ cx=w0/2; cy=h0/2; setS(sFit); };
+      const pts=new Map(); let lastD=0;
+      cv.style.touchAction='none';
+      cv.addEventListener('pointerdown',e=>{ cv.setPointerCapture(e.pointerId); pts.set(e.pointerId,[e.clientX,e.clientY]); lastD=0; });
+      cv.addEventListener('pointermove',e=>{ if(!pts.has(e.pointerId)) return; const k=P/cv.getBoundingClientRect().width, o=pts.get(e.pointerId); pts.set(e.pointerId,[e.clientX,e.clientY]);
+        if(pts.size===1){ cx-=(e.clientX-o[0])*k/sc; cy-=(e.clientY-o[1])*k/sc; draw(); }
+        else if(pts.size===2){ const [a,b]=[...pts.values()], d=Math.hypot(a[0]-b[0],a[1]-b[1]); if(lastD) setS(sc*d/lastD); lastD=d; } });
+      const up=e=>{ pts.delete(e.pointerId); lastD=0; }; cv.addEventListener('pointerup',up); cv.addEventListener('pointercancel',up);
+      cv.addEventListener('wheel',e=>{ e.preventDefault(); setS(sc*(e.deltaY<0?1.08:1/1.08)); },{passive:false});
+      $('imgno').onclick=()=>dlg.remove();
+      $('imgok').onclick=()=>{ const N=420, c=document.createElement('canvas'); c.width=c.height=N; const x=c.getContext('2d'), k=N/(2*R); // the circle window maps onto the whole square (the deck crops it round)
+        x.drawImage(img,N/2-cx*sc*k,N/2-cy*sc*k,w0*sc*k,h0*sc*k); let u=c.toDataURL('image/png'); if(u.length>450000){ const d=document.createElement('canvas'); d.width=d.height=N; const y=d.getContext('2d'); y.fillStyle='#0b0f17'; y.fillRect(0,0,N,N); y.drawImage(c,0,0); u=d.toDataURL('image/jpeg',.86); } dlg.remove(); done(u); };
+      draw(); $('imgok').focus();
+    }
     $('imgfile').addEventListener('change',e=>{ const f=e.target.files&&e.target.files[0]; e.target.value=''; if(!f) return; if(!/^image\//.test(f.type)){ msg('That is not an image file.'); return; }
-      const url=URL.createObjectURL(f), img=new Image(); img.onload=()=>{ try{ const u=fit(img); tgt().forEach(k=>save(k,u)); paint(); msg('Image set on '+(tgt().length>1?'both decks':'Deck '+tgt()[0])+'.'); }catch(err){ msg('Could not use that image.'); } URL.revokeObjectURL(url); }; img.onerror=()=>{ msg('Could not read that image.'); URL.revokeObjectURL(url); }; img.src=url; });
+      const url=URL.createObjectURL(f), img=new Image(); img.onload=()=>{ editor(img,u=>{ tgt().forEach(k=>save(k,u)); paint(); msg('Image set on '+(tgt().length>1?'both decks':'Deck '+tgt()[0])+'.'); URL.revokeObjectURL(url); }); }; img.onerror=()=>{ msg('Could not read that image.'); URL.revokeObjectURL(url); }; img.src=url; });
     $('imgclear').addEventListener('click',()=>{ tgt().forEach(k=>save(k,null)); paint(); msg('Back to the built-in design on '+(tgt().length>1?'both decks':'Deck '+tgt()[0])+'.'); });
     window.__imgTest={paint,CUSTOM};
   }
