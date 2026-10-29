@@ -455,15 +455,27 @@ function trkPush(d,P,style){ TRK.push({i:AU.tr,deck:d.id,genre:ev(d,'genreObj().
 function lastTrack(c){ if(AU.max&&AU.tr>=AU.max) return true; return !!(AU.endAt&&AU.endAt-Date.now()<48*240000/getBpm(c)); } // out of tracks, or less than a track's worth of time left
 function autoOn(on){
   AU.on=on; clearInterval(AU.timer); const b=$('auto'); b.textContent='Auto DJ: '+(on?'on':'off'); b.classList.toggle('on',on); b.setAttribute('aria-pressed',on?'true':'false');
-  if(!on){ voxOffAll(); if(AU.phase!=='finished'&&AU.tStart) alog('stop','Auto DJ switched off'); AU.phase='idle'; AU.endAt=0; wakeOn(false); autoSay(''); refreshReport(); return; }
+  if(!on){ clearInterval(AU.clrT); clearInterval(AU.upT); if(AU.phase==='clear') decks.forEach(d=>{ d.vol=85; d.filt=0; applyMix(); }); voxOffAll(); if(AU.phase!=='finished'&&AU.tStart) alog('stop','Auto DJ switched off'); AU.phase='idle'; AU.endAt=0; wakeOn(false); autoSay(''); refreshReport(); return; }
   AU.len=+$('autolen').value||64; AU.fade=Math.min(32,Math.floor(AU.len/2)); rollFade(); { const v=($('autoset')&&$('autoset').value)||'0'; AU.max=/^m/.test(v)?0:(+v||0); AU.endAt=/^m/.test(v)?Date.now()+(+v.slice(1))*60000:0; wakeOn(true); } AU.tStart=Date.now(); LOG.length=0; TRK.length=0; AU.slow=false; AU.nslow=false; AU.built=false; AU.tr=1; AU.shape=['ramp','wave','story'][Math.floor(Math.random()*3)]; AU.e=energyAt(1); AU.chorus=false; AU.chQ=false; AU.fourth=false;
   VOXOK=null; voxPrep(); voxOffAll();
-  const pa=playing(decks[0]), pb=playing(decks[1]);
-  AU.cur=pb&&!pa?'B':'A'; const c=D(AU.cur), n=D(AU.cur==='A'?'B':'A');
-  if(playing(n)) setPlay(n,false);
-  S.xf=AU.cur==='A'?0:100; applyMix();
-  if(!playing(c)) setPlay(c,true);
-  AU.g0=playing(c)?gstepOf(c):0; AU.lastBar=0; AU.flairAt=6; queueSec(c,rndSec(['intro','bld','drop'],'')); AU.phase='play'; AU.timer=setInterval(autoTick,120); autoSay('Auto DJ starting with Deck '+AU.cur+' ('+AU.shape+' set)...'); planNext(c); AU.setInfo='Track length '+AU.len+' bars, '+($('autoset').selectedOptions[0].text)+', energy shape '+AU.shape+', fade up to '+AU.fade+' bars'; alog('start','Auto DJ started: '+AU.setInfo); trkPush(c,null,'');
+  const pa=playing(decks[0]), pb=playing(decks[1]); const first=pb&&!pa?'B':'A';
+  const begin=()=>{ // the new set starts from silence: the chosen deck fades up on its own, so nothing jumps
+    if(!AU.on) return;
+    AU.cur=first; const c=D(AU.cur), n=D(AU.cur==='A'?'B':'A');
+    decks.forEach(d=>{ d.eq={l:0,m:0,h:0}; d.filt=0; d.vol=85; }); c.vol=0;
+    S.xf=AU.cur==='A'?0:100; applyMix();
+    setPlay(c,true);
+    AU.g0=playing(c)?gstepOf(c):0; AU.lastBar=0; AU.flairAt=6; queueSec(c,rndSec(['intro','intro','bld','drop'],'')); AU.phase='play'; AU.timer=setInterval(autoTick,120); autoSay('Auto DJ starting with Deck '+AU.cur+' ('+AU.shape+' set)...'); planNext(c); AU.setInfo='Track length '+AU.len+' bars, '+($('autoset').selectedOptions[0].text)+', energy shape '+AU.shape+', fade up to '+AU.fade+' bars'; alog('start','Auto DJ started: '+AU.setInfo); trkPush(c,null,'');
+    const t0=Date.now(); clearInterval(AU.upT); AU.upT=setInterval(()=>{ const k=Math.min(1,(Date.now()-t0)/1800); if(!AU.on||AU.phase==='end'||AU.phase==='mix'){ clearInterval(AU.upT); return; } c.vol=Math.round(85*Math.sin(k*Math.PI/2)); applyMix(); if(k>=1) clearInterval(AU.upT); },50);
+  };
+  const live=decks.filter(playing);
+  if(!live.length){ decks.forEach(d=>{ clearTimeout(d.syncT); d.syncing=false; }); begin(); return; }
+  AU.phase='clear'; autoSay('Clearing the decks, then starting the set...'); alog('clear','Faded out what was playing before starting');
+  const f0=live.map(d=>[d,d.vol,d.filt]), t0=Date.now(); clearInterval(AU.clrT);
+  decks.forEach(d=>{ clearTimeout(d.syncT); d.syncing=false; });
+  AU.clrT=setInterval(()=>{ const k=Math.min(1,(Date.now()-t0)/1500); if(!AU.on){ clearInterval(AU.clrT); return; }
+    f0.forEach(([d,v,f])=>{ d.vol=Math.round(v*(1-k)*(1-k)); d.filt=Math.round(f-70*k); }); applyMix();
+    if(k>=1){ clearInterval(AU.clrT); live.forEach(d=>{ setPlay(d,false); voxOff(d); }); voxOffAll(); setTimeout(begin,350); } },50);
 }
 const MIDSEC=['bld','drop','chorus','brk','bridge','half'];
 const SHAPES={ramp:[.4,.5,.6,.75,.9,1],wave:[.4,.9,.5,1,.55,.85],story:[.35,.5,.7,1,.6,.4]}; // energy arcs for a set
@@ -844,7 +856,7 @@ $('go').addEventListener('click',()=>{
 });
 boot();
 // for tests
-window.__djTest={autoSay:autoSay,voxFire:voxFire,voxLoopEnd:voxLoopEnd,voxOff:voxOff,voxPrep:voxPrep,VOXG:VOXG,VOXS:()=>VOXS,planNext:planNext,LOG:LOG,TRK:TRK,buildReport:buildReport,markSet:markSet,makePlan:makePlan,nowText:nowText,nextText:nextText,warp:warp,rollFade:rollFade,fadeBars:fadeBars,EUPH:EUPH,CLUB:CLUB,bigBuild:bigBuild,lastTrack:lastTrack,matchKey:matchKey,barsOf:barsOf,gstepOf:gstepOf,pickGenre:pickGenre,energyAt:energyAt,SHAPES:SHAPES,GFX:GFX,setGfx:setGfx,startSwell:startSwell,swellTick:swellTick,freshDeck:freshDeck,swapSound:swapSound,autoFlair:autoFlair,autoStepSecs:autoStepSecs,autoMix:autoMix,STYLES:STYLES,AU:AU,autoOn:autoOn,timing:timing,barTime:barTime,PC:PC,stepGenre:stepGenre,decks:decks,S:S,knob:knob,knobB:knobB,onMidi:onMidi,onNote:onNote,applyMix:applyMix,cross:cross,MAP:()=>MAP};
+window.__djTest={setPlay:setPlay,autoOn:autoOn,autoSay:autoSay,voxFire:voxFire,voxLoopEnd:voxLoopEnd,voxOff:voxOff,voxPrep:voxPrep,VOXG:VOXG,VOXS:()=>VOXS,planNext:planNext,LOG:LOG,TRK:TRK,buildReport:buildReport,markSet:markSet,makePlan:makePlan,nowText:nowText,nextText:nextText,warp:warp,rollFade:rollFade,fadeBars:fadeBars,EUPH:EUPH,CLUB:CLUB,bigBuild:bigBuild,lastTrack:lastTrack,matchKey:matchKey,barsOf:barsOf,gstepOf:gstepOf,pickGenre:pickGenre,energyAt:energyAt,SHAPES:SHAPES,GFX:GFX,setGfx:setGfx,startSwell:startSwell,swellTick:swellTick,freshDeck:freshDeck,swapSound:swapSound,autoFlair:autoFlair,autoStepSecs:autoStepSecs,autoMix:autoMix,STYLES:STYLES,AU:AU,autoOn:autoOn,timing:timing,barTime:barTime,PC:PC,stepGenre:stepGenre,decks:decks,S:S,knob:knob,knobB:knobB,onMidi:onMidi,onNote:onNote,applyMix:applyMix,cross:cross,MAP:()=>MAP};
 })();
 </script>
 </body>
