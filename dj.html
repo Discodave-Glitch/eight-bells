@@ -459,14 +459,27 @@ function autoOn(on){
   AU.len=+$('autolen').value||64; AU.fade=Math.min(32,Math.floor(AU.len/2)); rollFade(); { const v=($('autoset')&&$('autoset').value)||'0'; AU.max=/^m/.test(v)?0:(+v||0); AU.endAt=/^m/.test(v)?Date.now()+(+v.slice(1))*60000:0; wakeOn(true); } AU.tStart=Date.now(); LOG.length=0; TRK.length=0; AU.slow=false; AU.nslow=false; AU.built=false; AU.tr=1; AU.shape=['ramp','wave','story'][Math.floor(Math.random()*3)]; AU.e=energyAt(1); AU.chorus=false; AU.chQ=false; AU.fourth=false;
   VOXOK=null; voxPrep(); voxOffAll();
   const pa=playing(decks[0]), pb=playing(decks[1]); const first=pb&&!pa?'B':'A';
-  const begin=()=>{ // the new set starts from silence: the chosen deck fades up on its own, so nothing jumps
+  const OPEN=[['fade','soft fade-in','intro'],['filter','filter sweep opening','intro'],['bassless','no-bass intro, bass drops in','intro'],['build','riser into a drop','bld'],['drop','straight in on the drop','drop']];
+  const begin=()=>{ // the new set starts from silence, with a randomly chosen opening scene so it is not the same every time
     if(!AU.on) return;
     AU.cur=first; const c=D(AU.cur), n=D(AU.cur==='A'?'B':'A');
     decks.forEach(d=>{ d.eq={l:0,m:0,h:0}; d.filt=0; d.vol=85; }); c.vol=0;
     S.xf=AU.cur==='A'?0:100; applyMix();
-    setPlay(c,true);
-    AU.g0=playing(c)?gstepOf(c):0; AU.lastBar=0; AU.flairAt=6; queueSec(c,rndSec(['intro','intro','bld','drop'],'')); AU.phase='play'; AU.timer=setInterval(autoTick,120); autoSay('Auto DJ starting with Deck '+AU.cur+' ('+AU.shape+' set)...'); planNext(c); AU.setInfo='Track length '+AU.len+' bars, '+($('autoset').selectedOptions[0].text)+', energy shape '+AU.shape+', fade up to '+AU.fade+' bars'; alog('start','Auto DJ started: '+AU.setInfo); trkPush(c,null,'');
-    const t0=Date.now(); clearInterval(AU.upT); AU.upT=setInterval(()=>{ const k=Math.min(1,(Date.now()-t0)/1800); if(!AU.on||AU.phase==='end'||AU.phase==='mix'){ clearInterval(AU.upT); return; } c.vol=Math.round(85*Math.sin(k*Math.PI/2)); applyMix(); if(k>=1) clearInterval(AU.upT); },50);
+    const sc=OPEN[Math.floor(Math.random()*OPEN.length)];
+    if(Math.random()<.7) randGenre(c); // fresh opening tune most of the time
+    const gname=ev(c,'genreObj().name'), bpm=getBpm(c);
+    AU.open=sc[0]; autoSay('Choosing the opening: '+sc[1]+' on Deck '+AU.cur+' ('+gname+', '+bpm+' BPM)...');
+    setTimeout(()=>{ if(!AU.on) return;
+      setPlay(c,true);
+      AU.g0=playing(c)?gstepOf(c):0; AU.lastBar=0; AU.flairAt=6; queueSec(c,sc[2]); AU.phase='play'; AU.timer=setInterval(autoTick,120); autoSay('Auto DJ starting with Deck '+AU.cur+' ('+AU.shape+' set, '+sc[1]+')...'); planNext(c); AU.setInfo='Track length '+AU.len+' bars, '+($('autoset').selectedOptions[0].text)+', energy shape '+AU.shape+', fade up to '+AU.fade+' bars, opening: '+sc[1]; alog('start','Auto DJ started: '+AU.setInfo); trkPush(c,null,'');
+      const t0=Date.now(), bar=240000/getBpm(c), ramp={fade:1800,filter:700,bassless:900,build:700,drop:500}[sc[0]]; clearInterval(AU.upT);
+      AU.upT=setInterval(()=>{ const t=Date.now()-t0; if(!AU.on||AU.phase==='end'||AU.phase==='mix'){ clearInterval(AU.upT); return; }
+        c.vol=Math.round(85*Math.sin(Math.min(1,t/ramp)*Math.PI/2));
+        if(sc[0]==='filter') c.filt=-Math.round(88*(1-sm(seg(t,0,4*bar))));
+        if(sc[0]==='bassless') c.eq.l=-Math.round(100*(1-sm(seg(t,4*bar,5*bar))));
+        applyMix();
+        const end=sc[0]==='filter'?4*bar:(sc[0]==='bassless'?5*bar:ramp); if(t>=end){ c.vol=85; c.filt=0; c.eq.l=0; applyMix(); clearInterval(AU.upT); } },50);
+    },1300);
   };
   const live=decks.filter(playing);
   if(!live.length){ decks.forEach(d=>{ clearTimeout(d.syncT); d.syncing=false; }); begin(); return; }
