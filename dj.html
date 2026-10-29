@@ -5,7 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Eight Bells DJ (prototype)</title>
 <style>
-:root{--bg:#0b0e15;--panel:#141a25;--panel2:#1d2535;--line:#2c374c;--ink:#eef2fa;--muted:#94a1ba;--a:#3a93ab;--b:#e0b04a;--ok:#46c48a;--bad:#ef6a6a}
+:root{--bg:#0b0e15;--panel:#141a25;--panel2:#1d2535;--line:#2c374c;--ink:#eef2fa;--muted:#94a1ba;--a:#3a93ab;--b:#e0b04a;--ok:#46c48a;--bad:#ef6a6a;--disp:#070a10;--kbg:#0b0f17;color-scheme:dark}
+:root[data-theme="day"]{--bg:#eef1f6;--panel:#ffffff;--panel2:#e4e9f1;--line:#c3ccdb;--ink:#141a2a;--muted:#55617a;--ok:#1f9d63;--bad:#d64545;--disp:#f4f6fa;--kbg:#f4f6fa;color-scheme:light}
+:root[data-theme="day"] .recb.on{color:var(--bad)}
+:root[data-theme="day"] .shadow{box-shadow:none}
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.35 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-text-size-adjust:100%}
 body{padding:max(10px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(80px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
@@ -14,7 +17,7 @@ button,select{font:inherit;color:var(--ink);background:var(--panel2);border:1px 
 button:active{filter:brightness(1.3)}
 button.on{background:var(--ink);color:var(--bg)}
 select{max-width:100%}
-.top .row{align-items:center}.top button,.top select{height:40px;box-sizing:border-box}
+.top .row{align-items:center}.top button,.top select{height:40px;box-sizing:border-box;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 input[type=range]{width:100%;accent-color:var(--ink);min-height:28px;margin:0}
 .hid{position:fixed;left:-3000px;top:0;width:1000px;height:760px;border:0;opacity:0;pointer-events:none}
 #start{position:fixed;inset:0;z-index:20;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:24px}
@@ -33,7 +36,7 @@ input[type=range]{width:100%;accent-color:var(--ink);min-height:28px;margin:0}
 .dh b{font-size:17px;color:var(--c)}
 .dh select{flex:1 1 140px;min-width:0}
 .dh button{min-height:36px;padding:0 9px;font-size:13px}
-.screen{background:#070a10;border:1px solid var(--line);border-radius:12px;padding:8px 10px;display:grid;grid-template-columns:auto 1fr;gap:2px 12px;align-items:center}
+.screen{background:var(--disp);border:1px solid var(--line);border-radius:12px;padding:8px 10px;display:grid;grid-template-columns:auto 1fr;gap:2px 12px;align-items:center}
 .bpmn{font:700 34px/1 ui-monospace,Menlo,Consolas,monospace;color:var(--c);grid-row:1/3}
 .bpmn small{font-size:11px;color:var(--muted);margin-left:3px;font-weight:500}
 .stat{font-size:12px;color:var(--muted);min-height:1.3em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -74,7 +77,7 @@ input[type=range]{width:100%;accent-color:var(--ink);min-height:28px;margin:0}
 .kn .kl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
 .kn .kl{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;line-height:1.15;text-align:center;white-space:nowrap}.kn .kl .bt{margin:1px 0 2px}
 body.nolbl .bt{display:none}
-.bt{font-style:normal;font-size:9px;color:#07090e;background:var(--ink);border-radius:5px;padding:0 3px;margin-left:2px;letter-spacing:0}
+.bt{font-style:normal;font-size:9px;color:var(--bg);background:var(--ink);border-radius:5px;padding:0 3px;margin-left:2px;letter-spacing:0}
 .pitch .bt{display:block;margin:0 auto}
 .deck.focus{box-shadow:0 0 0 3px var(--c)}
 .pbtn{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.pbtn button{min-height:40px;padding:0 2px;font-size:12px;white-space:nowrap}
@@ -83,7 +86,7 @@ body.nolbl .bt{display:none}
 .kd:focus-within{outline:2px solid var(--ink)}
 .kd svg{width:100%;height:100%;display:block}
 .kd input{position:absolute;inset:0;width:100%;height:100%;opacity:0;pointer-events:none}
-.kb{fill:#0b0f17;stroke:var(--c);stroke-width:3}.ki{stroke:var(--ink);stroke-width:4;stroke-linecap:round}
+.kb{fill:var(--kbg);stroke:var(--c);stroke-width:3}.ki{stroke:var(--ink);stroke-width:4;stroke-linecap:round}
 .kd .dial{transform-box:view-box;transform-origin:30px 30px;transform:rotate(var(--rot,0deg))}
 .chv{display:flex;flex-direction:column;align-items:center;gap:2px;width:100%}
 .chv .vf{height:140px;min-height:140px;flex:none;accent-color:var(--c)}
@@ -133,7 +136,8 @@ body.nolbl .bt{display:none}
   .top{flex:none;flex-wrap:nowrap;margin-bottom:4px;gap:6px}
   .top h1{font-size:clamp(15px,2.2vh,24px);white-space:nowrap}.top h1 small{display:none}
   .top .row{flex-wrap:nowrap;gap:5px;align-items:center}.top button,.top select{height:clamp(30px,4vh,46px);min-height:clamp(30px,4vh,46px);box-sizing:border-box;font-size:clamp(12px,1.6vh,17px);padding:0 10px}
-  @media (max-width:720px){ #gfx .dp{display:none} #gfx{padding:0 3px!important;font-size:11px} .top button,.top select{padding:0 5px} .top .row{gap:2px} #mkgood,#mkbad{min-width:32px;padding:0 4px} }
+  @media (max-width:900px){ #gfx .dp{display:none} #gfx{padding:0 3px!important;font-size:11px} .top button,.top select{padding:0 5px} .top .row{gap:2px} #mkgood,#mkbad{min-width:32px;padding:0 4px} }
+  @media (max-width:720px){ .top h1{font-size:13px} .top button,.top select{padding:0 3px;font-size:11px} .top .row{gap:1px} #mkgood,#mkbad{min-width:28px;padding:0 2px} .top{gap:4px} }
   #autost{flex:none;margin:0 0 4px!important;min-height:14px!important;font-size:11px;white-space:nowrap;overflow:hidden;flex-wrap:nowrap}#autost span{min-width:0;overflow:hidden;white-space:nowrap}#autost{gap:0 16px}#autost #auton{flex:1 1 0;width:calc(50% - 8px)}#autost #autonx{flex:1 1 0;width:calc(50% - 8px);text-align:left;margin-left:0}
   .console{flex:1 1 auto;min-height:0;grid-template-columns:minmax(0,1fr) clamp(190px,26vw,420px) minmax(0,1fr);gap:clamp(6px,1vh,14px);--k:clamp(22px,6.6vh,72px);--gb:clamp(28px,4.4vh,60px)}
   .deck{padding:clamp(6px,1vh,14px);gap:clamp(5px,.8vh,12px);min-height:0;overflow:hidden;border-width:2px;border-radius:14px}
@@ -173,6 +177,7 @@ body.nolbl .bt{display:none}
   .pbw{display:none}
 }
 </style>
+<script>try{var t=localStorage.getItem('ebdj.theme');document.documentElement.setAttribute('data-theme',t==='day'||(t==='auto'&&matchMedia('(prefers-color-scheme: light)').matches)?'day':'night')}catch(e){}</script>
 </head>
 <body>
 <div id="start">
@@ -185,12 +190,13 @@ body.nolbl .bt{display:none}
 <div id="app" hidden>
   <div class="top">
     <h1>Eight Bells DJ<small>prototype, separate from the main app</small></h1>
-    <div class="row"><button id="gfx" title="Change the deck graphic"><span class="dp">Deck: </span>Bell</button><button id="auto" data-ctl="auto" data-kind="btn" aria-pressed="false">Auto DJ: off</button><button id="mkgood" data-ctl="markgood" data-kind="btn" aria-label="Mark this moment as good" title="That was good">👍</button><button id="mkbad" data-ctl="markbad" data-kind="btn" aria-label="Mark this moment as bad" title="That was bad">👎</button><select id="autolen" aria-label="Auto DJ length of each track"><option value="16">Track 16 bars</option><option value="32">Track 32 bars</option><option value="64" selected>Track 64 bars</option></select><select id="autoset" aria-label="Auto DJ set length: endless or stop after a number of tracks"><option value="0" selected>Endless set</option><option value="4">4-track set</option><option value="6">6-track set</option><option value="10">10-track set</option><option value="m30">30 minute set</option><option value="m60">1 hour set</option><option value="m120">2 hour set</option><option value="m240">4 hour set</option></select><button id="bothplay">Play both</button><button id="bothstop">Stop both</button><details class="ctlp" id="ctlp"><summary>Setup</summary><div class="ctlbody">
+    <div class="row"><button id="gfx" title="Change the deck graphic"><span class="dp">Deck: </span>Bell</button><button id="auto" data-ctl="auto" data-kind="btn" aria-pressed="false">Auto DJ: off</button><button id="mkgood" data-ctl="markgood" data-kind="btn" aria-label="Mark this moment as good" title="That was good">👍</button><button id="mkbad" data-ctl="markbad" data-kind="btn" aria-label="Mark this moment as bad" title="That was bad">👎</button><select id="autolen" aria-label="Auto DJ length of each track"><option value="16">16 bars</option><option value="32">32 bars</option><option value="64" selected>64 bars</option></select><select id="autoset" aria-label="Auto DJ set length: endless or stop after a number of tracks"><option value="0" selected>Endless</option><option value="4">4 tracks</option><option value="6">6 tracks</option><option value="10">10 tracks</option><option value="m30">30 min</option><option value="m60">1 hour</option><option value="m120">2 hours</option><option value="m240">4 hours</option></select><button id="bothplay">Play both</button><button id="bothstop">Stop both</button><details class="ctlp" id="ctlp"><summary>Setup</summary><div class="ctlbody">
     <div class="row"><span id="midimsg" class="chip"></span></div>
     <div class="row"><button id="wiz">Guided setup</button><button id="learn">Learn one control</button><button id="teachA">Teach knob bank A</button><button id="teachB">Teach knob bank B</button><button id="clearmap">Clear mappings</button></div>
     <label class="row chip" style="cursor:pointer"><input type="checkbox" id="padlbl" checked> Show pad labels (A3, B5 and so on) next to the knobs and faders</label>
     <div class="chip" id="padnote"></div>
     <div class="row"><b class="chip">Deck outline colours</b><label class="chip">A <select id="colA" aria-label="Deck A outline colour"></select><input type="color" id="colAc" aria-label="Deck A custom colour"></label><label class="chip">B <select id="colB" aria-label="Deck B outline colour"></select><input type="color" id="colBc" aria-label="Deck B custom colour"></label></div>
+    <div class="row"><b class="chip">Screen</b><select id="theme" aria-label="Day or night screen"><option value="night">Night</option><option value="day">Day</option><option value="auto">Match my device</option></select></div>
     <div class="row"><b class="chip">Long status text</b><select id="sttext" aria-label="What the status line does when its text is too long"><option value="ticker" selected>Scrolling ticker</option><option value="shrink">Shrink to fit</option><option value="still">Cut off</option></select></div>
     <div class="row"><b class="chip">Vocals and samples</b><select id="voxuse" aria-label="Vocals and samples Auto DJ may use"><option value="off">Off</option><option value="voices" selected>Built-in voices</option><option value="all">Built-in voices + my samples</option></select><select id="voxoften" aria-label="How often Auto DJ uses vocals and samples"><option value="rare">Rarely</option><option value="some">Now and then</option><option value="often" selected>Often (every 6-10 bars)</option><option value="lots">Very often (every 3-6 bars)</option><option value="max">Non-stop (every 2-4 bars)</option></select><label class="chip"><input type="checkbox" id="voxrep" checked> Repeat favourite phrases</label></div>
     <div class="row"><b class="chip">Recording</b><span id="recmsg" class="chip">Press Rec by the master volume to record the mix.</span><button id="recshare" hidden>Share</button><button id="recdl" hidden>Download</button></div>
@@ -857,6 +863,10 @@ function wireUI(){
   document.addEventListener('pointermove',e=>{ const p=e.target.closest&&e.target.closest('.plat'); if(!p||!p._drag) return; const a=Math.atan2(e.clientY-p._cy,e.clientX-p._cx); let da=(a-p._a)*180/Math.PI; if(da>180) da-=360; if(da<-180) da+=360; p._a=a; if(da) jog(D(p.dataset.d),da*0.25); });
   const pup=e=>{ const p=e.target.closest&&e.target.closest('.plat'); if(p) p._drag=false; };
   document.addEventListener('pointerup',pup); document.addEventListener('pointercancel',pup);
+  { const mq=window.matchMedia&&matchMedia('(prefers-color-scheme: light)'); const sel=$('theme');
+    const paint=()=>{ const v=sel.value, day=v==='day'||(v==='auto'&&mq&&mq.matches); document.documentElement.setAttribute('data-theme',day?'day':'night'); };
+    try{ const v=localStorage.getItem('ebdj.theme'); if(v&&[...sel.options].some(o=>o.value===v)) sel.value=v; }catch(e){}
+    paint(); sel.addEventListener('change',()=>{ try{ localStorage.setItem('ebdj.theme',sel.value); }catch(e){} paint(); }); if(mq&&mq.addEventListener) mq.addEventListener('change',paint); }
   { // keep the top row still: every control is as wide as its widest choice, so changing the deck graphic or a menu never shifts the others
     const top=document.querySelector('.top'); let fixT=0;
     const fixTop=()=>{ const els=[$('gfx'),$('auto'),$('autolen'),$('autoset')]; els.forEach(e=>{ if(e){ e.style.width=''; e.style.minWidth=''; } });
