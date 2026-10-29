@@ -200,6 +200,7 @@ body.nolbl .bt{display:none}
     <div class="chip" id="padnote"></div>
     <div class="row"><b class="chip">Deck outline colours</b><label class="chip">A <select id="colA" aria-label="Deck A outline colour"></select><input type="color" id="colAc" aria-label="Deck A custom colour"></label><label class="chip">B <select id="colB" aria-label="Deck B outline colour"></select><input type="color" id="colBc" aria-label="Deck B custom colour"></label></div>
     <div class="row"><b class="chip">Orientation</b><select id="orient" aria-label="Lock screen rotation"><option value="free">Free (rotate normally)</option><option value="landscape">Lock to landscape</option><option value="portrait">Lock to portrait</option></select><span id="orientmsg" class="chip"></span></div>
+    <div class="row"><b class="chip">Deck bar shows</b><select id="barmode" aria-label="What the bar under each deck display shows"><option value="auto" selected>Track in Auto DJ, loop by hand</option><option value="track">Whole track</option><option value="loop">This loop</option></select></div>
     <div class="row"><b class="chip">Screen</b><select id="theme" aria-label="Day or night screen"><option value="night">Night</option><option value="day">Day</option><option value="auto">Match my device</option></select></div>
     <div class="row"><b class="chip">Long status text</b><select id="sttext" aria-label="What the status line does when its text is too long"><option value="ticker" selected>Scrolling ticker</option><option value="shrink">Shrink to fit</option><option value="still">Cut off</option></select></div>
     <div class="row"><b class="chip">Vocals and samples</b><select id="voxuse" aria-label="Vocals and samples Auto DJ may use"><option value="off">Off</option><option value="voices" selected>Built-in voices</option><option value="all">Built-in voices + my samples</option></select><select id="voxoften" aria-label="How often Auto DJ uses vocals and samples"><option value="rare">Rarely</option><option value="some">Now and then</option><option value="often" selected>Often (every 6-10 bars)</option><option value="lots">Very often (every 3-6 bars)</option><option value="max">Non-stop (every 2-4 bars)</option></select><label class="chip"><input type="checkbox" id="voxrep" checked> Repeat favourite phrases</label></div>
@@ -731,7 +732,9 @@ function paint(){
     $('st'+d.id).textContent=st.g+' · '+(st.s?sn[st.s]:'full pattern')+(st.n?' · next: '+sn[st.n]:'')+' · '+(st.p?'playing':'stopped');
     $('bp'+d.id).textContent=st.b;
     const sl=$('deck'+d.id).querySelector('[data-t]'); if(document.activeElement!==sl) sl.value=st.b;
-    $('pos'+d.id).style.width=(st.pos<0?0:Math.round(st.pos*100))+'%';
+    { const bm=($('barmode')&&$('barmode').value)||'auto', track=bm==='track'||(bm==='auto'&&AU.on);
+      let pos=st.pos; if(track){ if(!st.p) pos=-1; else { const len=AU.on?(AU.slow&&d.id===AU.cur?AU.len/2:AU.len):(+$('autolen').value||64), bars=(AU.on&&d.id!==AU.cur)?gstepOf(d)/16:(AU.on?barsOf(d):gstepOf(d)/16); pos=Math.max(0,Math.min(1,bars/len)); } }
+      $('pos'+d.id).style.width=(pos<0?0:Math.round(pos*100))+'%'; $('pos'+d.id).parentNode.title=track?'Progress through the whole track':'Progress through this loop'; }
     $('pl'+d.id).textContent=st.p?'PAUSE':'PLAY'; $('pl'+d.id).classList.toggle('on',st.p);
     $('deck'+d.id).classList.toggle('playing',st.p);
     if(d.spinBpm!==st.b){ d.spinBpm=st.b; const sec=(240/st.b).toFixed(2)+'s'; $('deck'+d.id).style.setProperty('--spin',sec); }
@@ -867,6 +870,7 @@ function wireUI(){
   document.addEventListener('pointermove',e=>{ const p=e.target.closest&&e.target.closest('.plat'); if(!p||!p._drag) return; const a=Math.atan2(e.clientY-p._cy,e.clientX-p._cx); let da=(a-p._a)*180/Math.PI; if(da>180) da-=360; if(da<-180) da+=360; p._a=a; if(da) jog(D(p.dataset.d),da*0.25); });
   const pup=e=>{ const p=e.target.closest&&e.target.closest('.plat'); if(p) p._drag=false; };
   document.addEventListener('pointerup',pup); document.addEventListener('pointercancel',pup);
+  try{ const v=localStorage.getItem('ebdj.barmode'); if(v&&[...$('barmode').options].some(o=>o.value===v)) $('barmode').value=v; }catch(e){} $('barmode').addEventListener('change',()=>{ try{ localStorage.setItem('ebdj.barmode',$('barmode').value); }catch(e){} });
   { const mq=window.matchMedia&&matchMedia('(prefers-color-scheme: light)'); const sel=$('theme');
     const paint=()=>{ const v=sel.value, day=v==='day'||(v==='auto'&&mq&&mq.matches); document.documentElement.setAttribute('data-theme',day?'day':'night'); };
     try{ const v=localStorage.getItem('ebdj.theme'); if(v&&[...sel.options].some(o=>o.value===v)) sel.value=v; }catch(e){}
