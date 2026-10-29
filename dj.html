@@ -14,6 +14,7 @@ button,select{font:inherit;color:var(--ink);background:var(--panel2);border:1px 
 button:active{filter:brightness(1.3)}
 button.on{background:var(--ink);color:var(--bg)}
 select{max-width:100%}
+.top .row{align-items:center}.top button,.top select{height:40px;box-sizing:border-box}
 input[type=range]{width:100%;accent-color:var(--ink);min-height:28px;margin:0}
 .hid{position:fixed;left:-3000px;top:0;width:1000px;height:760px;border:0;opacity:0;pointer-events:none}
 #start{position:fixed;inset:0;z-index:20;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:24px}
@@ -131,9 +132,9 @@ body.nolbl .bt{display:none}
   #app{display:flex;flex-direction:column;height:calc(100dvh - max(8px,env(safe-area-inset-top)) - max(10px,env(safe-area-inset-bottom)))}
   .top{flex:none;flex-wrap:nowrap;margin-bottom:4px;gap:6px}
   .top h1{font-size:clamp(15px,2.2vh,24px);white-space:nowrap}.top h1 small{display:none}
-  .top .row{flex-wrap:nowrap;gap:5px}.top button,.top select{min-height:clamp(30px,4vh,46px);font-size:clamp(12px,1.6vh,17px);padding:0 10px}
+  .top .row{flex-wrap:nowrap;gap:5px;align-items:center}.top button,.top select{height:clamp(30px,4vh,46px);min-height:clamp(30px,4vh,46px);box-sizing:border-box;font-size:clamp(12px,1.6vh,17px);padding:0 10px}
   @media (max-width:720px){ #gfx .dp{display:none} #gfx{padding:0 3px!important;font-size:11px} .top button,.top select{padding:0 5px} .top .row{gap:2px} #mkgood,#mkbad{min-width:32px;padding:0 4px} }
-  #autost{flex:none;margin:0 0 4px!important;min-height:14px!important;font-size:11px;white-space:nowrap;overflow:hidden;flex-wrap:nowrap}#autost span{min-width:0;overflow:hidden;white-space:nowrap}#autost #auton{flex:1 1 52%}#autost #autonx{flex:1 1 48%}
+  #autost{flex:none;margin:0 0 4px!important;min-height:14px!important;font-size:11px;white-space:nowrap;overflow:hidden;flex-wrap:nowrap}#autost span{min-width:0;overflow:hidden;white-space:nowrap}#autost{gap:0 16px}#autost #auton{flex:1 1 0;width:calc(50% - 8px)}#autost #autonx{flex:1 1 0;width:calc(50% - 8px);text-align:left;margin-left:0}
   .console{flex:1 1 auto;min-height:0;grid-template-columns:minmax(0,1fr) clamp(190px,26vw,420px) minmax(0,1fr);gap:clamp(6px,1vh,14px);--k:clamp(22px,6.6vh,72px);--gb:clamp(28px,4.4vh,60px)}
   .deck{padding:clamp(6px,1vh,14px);gap:clamp(5px,.8vh,12px);min-height:0;overflow:hidden;border-width:2px;border-radius:14px}
   .dh{flex:none;gap:5px}.dh b{font-size:clamp(14px,2vh,22px)}.dh select{min-height:clamp(30px,4vh,48px);font-size:clamp(13px,1.7vh,18px)}
@@ -856,6 +857,15 @@ function wireUI(){
   document.addEventListener('pointermove',e=>{ const p=e.target.closest&&e.target.closest('.plat'); if(!p||!p._drag) return; const a=Math.atan2(e.clientY-p._cy,e.clientX-p._cx); let da=(a-p._a)*180/Math.PI; if(da>180) da-=360; if(da<-180) da+=360; p._a=a; if(da) jog(D(p.dataset.d),da*0.25); });
   const pup=e=>{ const p=e.target.closest&&e.target.closest('.plat'); if(p) p._drag=false; };
   document.addEventListener('pointerup',pup); document.addEventListener('pointercancel',pup);
+  { // keep the top row still: every control is as wide as its widest choice, so changing the deck graphic or a menu never shifts the others
+    const top=document.querySelector('.top'); let fixT=0;
+    const fixTop=()=>{ const els=[$('gfx'),$('auto'),$('autolen'),$('autoset')]; els.forEach(e=>{ if(e){ e.style.width=''; e.style.minWidth=''; } });
+      const w=(e,vals,set,get)=>{ const keep=get(); let mx=0; vals.forEach(v=>{ set(v); mx=Math.max(mx,e.getBoundingClientRect().width); }); set(keep); e.style.width=Math.ceil(mx)+'px'; e.style.minWidth=e.style.width; };
+      const g=$('gfx'), gi=GFXI; w(g,GFX.map(x=>x[0]),v=>{ g.innerHTML='<span class="dp">Deck: </span>'+v; },()=>GFX[gi][0]);
+      const a=$('auto'); w(a,['Auto DJ: off','Auto DJ: on'],v=>{ a.textContent=v; },()=>AU.on?'Auto DJ: on':'Auto DJ: off');
+      ['autolen','autoset'].forEach(id=>{ const e=$(id); w(e,[...e.options].map(o=>o.value),v=>{ e.value=v; },()=>e.value); }); };
+    window.__fixTop=fixTop; fixTop(); addEventListener('resize',()=>{ clearTimeout(fixT); fixT=setTimeout(fixTop,150); });
+  }
   { // record the master mix (both decks) to an audio file
     let RC=null, mr=null, chunks=[], t0=0, tm=null, url=null, file=null, mime='';
     const fmt=n=>{ const m=Math.floor(n/60), s=n%60; return (m>=60?Math.floor(m/60)+':'+String(m%60).padStart(2,'0'):m)+':'+String(s).padStart(2,'0'); };
