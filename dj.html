@@ -196,6 +196,7 @@ body.nolbl .bt{display:none}
     <label class="row chip" style="cursor:pointer"><input type="checkbox" id="padlbl" checked> Show pad labels (A3, B5 and so on) next to the knobs and faders</label>
     <div class="chip" id="padnote"></div>
     <div class="row"><b class="chip">Deck outline colours</b><label class="chip">A <select id="colA" aria-label="Deck A outline colour"></select><input type="color" id="colAc" aria-label="Deck A custom colour"></label><label class="chip">B <select id="colB" aria-label="Deck B outline colour"></select><input type="color" id="colBc" aria-label="Deck B custom colour"></label></div>
+    <div class="row"><b class="chip">Orientation</b><select id="orient" aria-label="Lock screen rotation"><option value="free">Free (rotate normally)</option><option value="landscape">Lock to landscape</option><option value="portrait">Lock to portrait</option></select><span id="orientmsg" class="chip"></span></div>
     <div class="row"><b class="chip">Screen</b><select id="theme" aria-label="Day or night screen"><option value="night">Night</option><option value="day">Day</option><option value="auto">Match my device</option></select></div>
     <div class="row"><b class="chip">Long status text</b><select id="sttext" aria-label="What the status line does when its text is too long"><option value="ticker" selected>Scrolling ticker</option><option value="shrink">Shrink to fit</option><option value="still">Cut off</option></select></div>
     <div class="row"><b class="chip">Vocals and samples</b><select id="voxuse" aria-label="Vocals and samples Auto DJ may use"><option value="off">Off</option><option value="voices" selected>Built-in voices</option><option value="all">Built-in voices + my samples</option></select><select id="voxoften" aria-label="How often Auto DJ uses vocals and samples"><option value="rare">Rarely</option><option value="some">Now and then</option><option value="often" selected>Often (every 6-10 bars)</option><option value="lots">Very often (every 3-6 bars)</option><option value="max">Non-stop (every 2-4 bars)</option></select><label class="chip"><input type="checkbox" id="voxrep" checked> Repeat favourite phrases</label></div>
@@ -867,6 +868,20 @@ function wireUI(){
     const paint=()=>{ const v=sel.value, day=v==='day'||(v==='auto'&&mq&&mq.matches); document.documentElement.setAttribute('data-theme',day?'day':'night'); };
     try{ const v=localStorage.getItem('ebdj.theme'); if(v&&[...sel.options].some(o=>o.value===v)) sel.value=v; }catch(e){}
     paint(); sel.addEventListener('change',()=>{ try{ localStorage.setItem('ebdj.theme',sel.value); }catch(e){} paint(); }); if(mq&&mq.addEventListener) mq.addEventListener('change',paint); }
+  { const sel=$('orient'), msg=t=>{ $('orientmsg').textContent=t; };
+    async function apply(v,fromTap){
+      const so=screen.orientation;
+      if(v==='free'){ try{ if(so&&so.unlock) so.unlock(); }catch(e){} try{ if(document.fullscreenElement&&document.exitFullscreen) await document.exitFullscreen(); }catch(e){} msg(''); return; }
+      if(!so||!so.lock){ msg('This browser cannot lock rotation. On iPhone or iPad use the rotation lock in Control Centre.'); return; }
+      try{ if(!document.fullscreenElement&&document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen(); }catch(e){}
+      try{ await so.lock(v); msg('Locked to '+v+(document.fullscreenElement?' (full screen).':'.')); }
+      catch(e){ msg(fromTap?'Could not lock rotation here. On iPhone or iPad use the rotation lock in Control Centre.':'Tap the menu again to lock rotation.'); }
+    }
+    try{ const v=localStorage.getItem('ebdj.orient'); if(v&&[...sel.options].some(o=>o.value===v)) sel.value=v; }catch(e){}
+    sel.addEventListener('change',()=>{ try{ localStorage.setItem('ebdj.orient',sel.value); }catch(e){} apply(sel.value,true); });
+    if(sel.value!=='free') apply(sel.value,false);
+    window.__orient={apply};
+  }
   { // keep the top row still: every control is as wide as its widest choice, so changing the deck graphic or a menu never shifts the others
     const top=document.querySelector('.top'); let fixT=0;
     const fixTop=()=>{ const els=[$('gfx'),$('auto'),$('autolen'),$('autoset')]; els.forEach(e=>{ if(e){ e.style.width=''; e.style.minWidth=''; } });
