@@ -219,7 +219,7 @@ body.nolbl .bt{display:none}
     <div class="row"><b class="chip">Screen</b><select id="theme" aria-label="Day or night screen"><option value="night">Night</option><option value="day">Day</option><option value="auto">Match my device</option></select></div>
     <div class="row"><b class="chip">Long status text</b><select id="sttext" aria-label="What the status line does when its text is too long"><option value="ticker" selected>Scrolling ticker</option><option value="shrink">Shrink to fit</option><option value="still">Cut off</option></select></div>
     <div class="row"><b class="chip">Vocals and samples</b><select id="voxuse" aria-label="Vocals and samples Auto DJ may use"><option value="off">Off</option><option value="voices">Built-in voices</option><option value="all" selected>Built-in voices + samples (starter pack and mine)</option><option value="samples">Samples only (starter pack and mine, no built-in voices)</option></select><select id="voxoften" aria-label="How often Auto DJ uses vocals and samples"><option value="rare">Rarely</option><option value="some">Now and then</option><option value="often" selected>Often (every 6-10 bars)</option><option value="lots">Very often (every 3-6 bars)</option><option value="max">Non-stop (every 2-4 bars)</option></select><label class="chip"><input type="checkbox" id="voxrep" checked> Repeat favourite phrases</label></div>
-    <div class="row"><b class="chip">Sampler</b><select id="smpq" aria-label="When sampler pads start"><option value="off">Start straight away</option><option value="beat" selected>Snap to the beat</option><option value="bar">Snap to the bar</option></select><label class="chip" style="cursor:pointer"><input type="checkbox" id="smploop"> Loop while held</label><label class="chip" style="cursor:pointer"><input type="checkbox" id="smpkeys" checked> Keyboard keys</label><label class="chip" style="cursor:pointer"><input type="checkbox" id="smpmatch" checked> Tune and time sounds to the deck</label><button id="smpfill">Surprise me</button><button id="smprst">Empty all</button></div>
+    <div class="row"><b class="chip">Sampler</b><select id="smpq" aria-label="When sampler pads start"><option value="off">Start straight away</option><option value="beat" selected>Snap to the beat</option><option value="bar">Snap to the bar</option><option value="dj">DJ's choice (random each time)</option></select><label class="chip" style="cursor:pointer"><input type="checkbox" id="smploop"> Loop while held</label><label class="chip" style="cursor:pointer"><input type="checkbox" id="smpkeys" checked> Keyboard keys</label><label class="chip" style="cursor:pointer"><input type="checkbox" id="smpmatch" checked> Tune and time sounds to the deck</label><button id="smpfill">Surprise me</button><button id="smprst">Empty all</button></div>
     <div class="chip">Each deck has 8 sample pads (the Samples tab when the screen is short). Deck A: keys 1 to 8. Deck B: Q W E R T Y U I. They play through that deck's volume and EQ. Learn one control works on them too.</div>
     <div class="row"><b class="chip">Music made by</b><select id="musicsrc" aria-label="What Auto DJ plays"><option value="eb">Eight Bells sounds (synth tunes)</option><option value="songs">Sample songs (built from the sample library)</option><option value="both" selected>Both (takes turns: sample songs, then Eight Bells tunes)</option></select><select id="sglen" aria-label="How long each sample song is"><option value="short">Short songs (about 1 to 1.5 min)</option><option value="medium" selected>Medium songs (about 2 to 3 min)</option><option value="long">Long songs (about 3 to 4 min)</option><option value="test" hidden>Test (20 s)</option></select><label class="chip">Hook words <input id="sghook" type="text" value="EIGHT BELLS DJ" maxlength="40" size="16" aria-label="Words said in the choruses of sample songs, leave empty for none"></label><select id="sgvox" aria-label="Vocals in sample songs"><option value="mix" selected>Vocals: mixed (sung samples, Speak &amp; Spell, or none)</option><option value="sung">Vocals: sung samples only</option><option value="ss">Vocals: Speak &amp; Spell hook only</option><option value="none">Vocals: none</option></select><label class="chip"><input type="checkbox" id="sgmine" checked> Use my samples too</label><button id="sgskip" type="button" disabled>Next song</button></div>
     <div class="chip">Sample songs: every song picks a genre, a tempo and key that fit together, real drum kits playing that genre's rhythm, a sub bass tuned to the key, chord loops from the library, and the hook words in the choruses. Songs hand over into each other and the tempo wanders slowly. Choose "Sample songs", then press Auto DJ.</div>
@@ -704,7 +704,7 @@ function smBuild(){
 const SKEYS={A:['Digit1','Digit2','Digit3','Digit4','Digit5','Digit6','Digit7','Digit8'],B:['KeyQ','KeyW','KeyE','KeyR','KeyT','KeyY','KeyU','KeyI']};
 let SLOTS=null; const KDOWN={};
 const slotSave=()=>{ try{ localStorage.setItem('ebdj.slots',JSON.stringify(SLOTS)); }catch(e){} };
-const smpQ=()=>($('smpq')&&$('smpq').value)||'beat', slotIdx=(d,k)=>(d.id==='A'?0:8)+k, smpEl=(d,k)=>document.querySelector('[data-ctl="smp:'+d.id+':'+k+'"]');
+const smpQ=()=>{ const v=($('smpq')&&$('smpq').value)||'beat'; if(v!=='dj') return v; const r=Math.random(); return r<.45?'beat':(r<.85?'bar':'off'); },  slotIdx=(d,k)=>(d.id==='A'?0:8)+k, smpEl=(d,k)=>document.querySelector('[data-ctl="smp:'+d.id+':'+k+'"]');
 const GSH={acap:'Acapella',sing:'Singing',loop:'Loop vox',spoken:'Spoken',ssw:'S&S word',sss:'S&S line',ssl:'S&S letter',ssn:'S&S number'}, gshort=g=>GSH[g.id]||g.s||g.name;
 const slotShort=s=>(s&&s.t!=='none')?s.name:'Empty';
 function smpPaint(){ decks.forEach(d=>{ const g=$('smps'+d.id); if(!g) return; g.querySelectorAll('.sp').forEach(b=>{ const sl=SLOTS&&SLOTS[slotIdx(d,+b.dataset.k)], nm=slotShort(sl); b.querySelector('.smn').textContent=nm; b.classList.toggle('empty',!sl||sl.t==='none'); b.title=nm; }); }); }
@@ -714,21 +714,35 @@ async function smpInit(){
   if(!SLOTS){ const m=await pkMan(); let vl=[]; try{ vl=ev(decks[0],'VOX_LIST')||[]; }catch(e){}
     const G=id=>{ const g=m&&m.groups.find(x=>x.id===id); return g?{t:'grp',g:id,name:gshort(g)}:{t:'none'}; }, V=id=>{ const v=vl.find(x=>x[0]===id); return v?{t:'vox',id:id,name:v[1]}:{t:'none'}; };
     SLOTS=['dk','ds','dc','dh','do','dt','dp','fxs'].map(G).concat(['acap','sing','ssw','sss','gtr','keys'].map(G),[V('hey'),V('yeah')]); slotSave(); }
+  try{ await smpDedupe(); }catch(e){}
   smpPaint(); setTimeout(smpPrefetch,3000);
 }
+async function smpDedupe(){ // no two pads (on either deck) may hold the same sound: swap repeats for unused ones
+  const m=await pkMan(); let vl=[]; try{ vl=ev(decks[0],'VOX_LIST')||[]; }catch(e){}
+  const keyOf=s=>!s||s.t==='none'?null:(s.t==='vox'?'v:'+String(s.name||s.id).toLowerCase():(s.t==='grp'?'g:'+s.g:s.t+':'+s.id)), seen=new Set(); let changed=false;
+  SLOTS.forEach(s=>{ const k=keyOf(s); if(k) seen.add(k); }); const first=new Set();
+  const spare=()=>{ for(const id of ['dk','ds','dc','dh','do','dt','dp','fxs','acap','sing','ssw','sss','gtr','keys','fxe','stb','vcs']){ const g=m&&m.groups.find(x=>x.id===id); if(g&&!seen.has('g:'+id)){ seen.add('g:'+id); return {t:'grp',g:id,name:gshort(g)}; } }
+    for(const v of vl){ const k='v:'+String(v[1]).toLowerCase(); if(!seen.has(k)){ seen.add(k); return {t:'vox',id:v[0],name:v[1]}; } } return null; };
+  SLOTS.forEach((s,i)=>{ const k=keyOf(s); if(!k) return; if(first.has(k)){ const n=spare(); if(n){ SLOTS[i]=n; changed=true; } } else first.add(k); });
+  if(changed) slotSave();
+}
+const SMPR=[]; // clips the pads played lately, shared by both decks so the same sound does not come round twice in a row
+const smpNote=id=>{ SMPR.push(id); while(SMPR.length>24) SMPR.shift(); };
+function smpDistinct(g,n,avoid){ const a=g.clips.filter(c=>!avoid.has(c.id)); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a.slice(0,n); }
 async function smpPrefetch(){ // get a few sounds ready so the first press is instant
   try{ const m=await pkMan(); if(!m) return; const seen=new Set();
     for(const s of SLOTS){ if(!s) continue;
       if(s.t==='pk'){ PK.keep.add(s.id); const c=pkFind(s.id); if(c&&!PK.ready.has(c.id)) await pkLoad(c).catch(()=>{}); }
       else if(s.t==='my'){ decks.forEach(d=>{ try{ ev(d,"sampBuf('"+s.id+"')"); }catch(e){} }); }
-      else if(s.t==='grp'&&!seen.has(s.g)){ seen.add(s.g); const g=m.groups.find(x=>x.id===s.g); if(!g) continue; for(let i=0;i<3;i++){ const c=g.clips[Math.floor(Math.random()*g.clips.length)]; if(PK.ready.has(c.id)) continue; PK.keep.add(c.id); await pkLoad(c).catch(()=>{}); } } }
+      else if(s.t==='grp'&&!seen.has(s.g)){ seen.add(s.g); const g=m.groups.find(x=>x.id===s.g); if(!g) continue; const have=new Set([...PK.keep]); for(const c of smpDistinct(g,3,have)){ if(PK.ready.has(c.id)) continue; PK.keep.add(c.id); await pkLoad(c).catch(()=>{}); } } }
     pkSync(); }catch(e){}
 }
 async function smpResolve(d,s){
   if(s.t==='grp'){ const m=await pkMan(), g=m&&m.groups.find(x=>x.id===s.g); if(!g) return null;
-    const pool=g.clips.filter(c=>PK.ready.has(c.id)&&PK.keep.has(c.id)); let c;
-    if(pool.length>=2||(pool.length&&Math.random()<.7)) c=pool[Math.floor(Math.random()*pool.length)]; else { c=g.clips[Math.floor(Math.random()*g.clips.length)]; PK.keep.add(c.id); try{ await pkLoad(c); }catch(e){ return null; } }
-    if(pool.length<6){ const c2=g.clips[Math.floor(Math.random()*g.clips.length)]; if(!PK.ready.has(c2.id)&&!PK.pend.has(c2.id)){ PK.keep.add(c2.id); PK.pend.add(c2.id); pkLoad(c2).catch(()=>{}).then(()=>PK.pend.delete(c2.id)); } }
+    const all=g.clips.filter(c=>PK.ready.has(c.id)&&PK.keep.has(c.id)), pool=all.filter(c=>SMPR.indexOf(c.id)<0); let c; const rec=new Set(SMPR);
+    if(pool.length>=2||(pool.length&&Math.random()<.7)) c=pool[Math.floor(Math.random()*pool.length)]; else { const fr=smpDistinct(g,1,rec); c=fr[0]||g.clips[Math.floor(Math.random()*g.clips.length)]; PK.keep.add(c.id); try{ await pkLoad(c); }catch(e){ return null; } }
+    smpNote(c.id);
+    if(pool.length<6){ const c2=smpDistinct(g,1,new Set([...PK.keep,...rec]))[0]||c; if(!PK.ready.has(c2.id)&&!PK.pend.has(c2.id)){ PK.keep.add(c2.id); PK.pend.add(c2.id); pkLoad(c2).catch(()=>{}).then(()=>PK.pend.delete(c2.id)); } }
     return {k:'buf',id:c.id}; }
   if(s.t==='pk'){ PK.keep.add(s.id); if(!PK.ready.has(s.id)){ const c=pkFind(s.id); if(!c) return null; try{ await pkLoad(c); }catch(e){ return null; } } return {k:'buf',id:s.id}; }
   if(s.t==='my'){ if(!ev(d,"SBUF.has('"+s.id+"')")){ try{ await ev(d,"sampBuf('"+s.id+"')"); }catch(e){ return null; } } return ev(d,"SBUF.has('"+s.id+"')")?{k:'buf',id:s.id}:null; }
@@ -1487,7 +1501,7 @@ function sgSteps(def,base){ let st=[], f=def.fixed; if(f&&f.length&&Array.isArra
   if(def.k){ const k=Math.round(sgRnd(def.k[0],def.k[1])), r=(!def.rot||def.rot==='any')?Math.floor(Math.random()*base):sgPick(def.rot); if(k>0) sgEuclid(Math.min(k,base),base,r).forEach(x=>st.push(x)); }
   return Array.from(new Set(st.filter(x=>x>=0&&x<base))).sort((a,b)=>a-b); }
 async function sgBuf(c){ if(c.my){ try{ await ev(decks[0],"sampBuf('"+c.id+"')"); }catch(e){} const b=decks[0].win.eval("SBUF.get('"+c.id+"')"); if(!b) throw new Error('sample not ready'); return b; } if(SG.bufs.has(c.id)) return SG.bufs.get(c.id); const r=await fetch(PKBASE+c.f); if(!r.ok) throw new Error('missing '+c.f); const b=await pkCtx().decodeAudioData(await r.arrayBuffer()); SG.bufs.set(c.id,b); if(SG.bufs.size>160) SG.bufs.delete(SG.bufs.keys().next().value); return b; }
-const sgBase=(man,id)=>(man.groups.find(g=>g.id===id)||{clips:[]}).clips;
+const sgBase=(man,id)=>{ const l=(man.groups.find(g=>g.id===id)||{clips:[]}).clips; return SG.only?l.filter(c=>SG.only.has(c.id)):l; }; // SG.only: used by tests and demos to build songs from a chosen set of clips
 SG.used=[]; SG.lastGrps=[]; SG.lastFam=''; SG.lastHook='';
 const sgFresh=list=>{ const f=list.filter(c=>SG.used.indexOf(c.id)<0); return f.length>=Math.min(3,list.length)?f:list; };
 function sgNote(ids){ ids.forEach(id=>{ if(id) SG.used.push(id); }); while(SG.used.length>150) SG.used.shift(); }
@@ -1550,6 +1564,10 @@ async function sgHookClips(man){ const txt=(($('sghook')&&$('sghook').value)||''
       if(c==='done') continue; }
     if(c) out.push({c:c,spell:false}); else for(const ch of tok){ const l=ssl.find(x=>x.name.toUpperCase()==='LETTER '+ch); if(l) out.push({c:l,spell:true}); } }
   return out; }
+function sgChooseLoop(man,gid,T,minBars,pred){ const out=[];
+  sgGroup(man,gid).forEach(c=>{ if(!c.b||!c.bars||c.bars<minBars||(pred&&!pred(c))) return; [1,2,.5].forEach(m=>{ const r=T/(c.b*m); if(r<.9||r>1.1) return; // the loop is played a little faster or slower, or at double or half speed
+      out.push({c:c,mult:m,rate:(c.d/(c.bars*(240/T)))*(m===1?1:1),bars:c.bars,sc:-Math.abs(r-1)*6+Math.random()*2-(SG.used.indexOf(c.id)>=0?4:0)-(m===1?0:1.5)}); }); });
+  if(!out.length) return null; out.sort((a,b)=>b.sc-a.sc); return sgPick(out.slice(0,5)); }
 function sgPickKit(man,fam,cat){ const all=sgGroup(man,cat), rx=SGKIT[fam], pool=all.filter(c=>rx.test(c.name)||c.my); return sgPick(sgFresh(pool.length>=3?pool:all)); }
 // Decide everything about the next song
 async function sgPlan(prev,forceId){
@@ -1578,9 +1596,13 @@ async function sgPlan(prev,forceId){
   const crash=sgPickKit(man,fam,'do'), fxs=sgFresh(sgGroup(man,'fxs').filter(c=>c.d>=3)), fill=sgPickKit(man,fam,'dt'), perc2=sgPick(sgFresh(sgGroup(man,'dp').filter(c=>c.d<1.2))), hitsPool=sgFresh(sgGroup(man,'fxe').concat(sgGroup(man,'fxr')).filter(c=>c.d<=3.5));
   const flair={pump:/Trance|House|Bass|Hip-hop/.test(g.group||'')?Math.random()<.8:Math.random()<.25, fills:Math.random()<.85, glitch:Math.random()<.5, perc2:Math.random()<.6, hits:hitsPool.length?1+Math.floor(Math.random()*3):0};
   const hits=[]; for(let i=0;i<flair.hits;i++) hits.push(sgPick(hitsPool));
+  const scr=sgFresh(sgGroup(man,'bks').filter(c=>c.d<=3.5)); if(scr.length&&Math.random()<.5) hits.push(sgPick(scr));
+  const b16=(g.base||16)===16, brk=b16&&Math.random()<.4?sgChooseLoop(man,'brk',T,1):null, bkp=b16&&Math.random()<.55?sgChooseLoop(man,'bkp',T,1):null;
+  const fills=sgFresh(sgGroup(man,'bkf').filter(c=>c.d>=.4&&c.d<=3.2)), fillB=fills.length&&Math.random()<.5?sgPick(fills):null; if(fillB) flair.fills=true;
+  sgNote([brk&&brk.c.id,bkp&&bkp.c.id,fillB&&fillB.id]);
   const ambPool=sgFresh(sgGroup(man,'fxa').filter(c=>c.d>=3.5)), texPool=sgFresh(sgGroup(man,'fxr').concat(sgGroup(man,'fxe')).filter(c=>c.d>=3&&c.d<=7.7)), ambs=[]; if(ambPool.length&&Math.random()<.9) ambs.push(sgPick(ambPool)); if(texPool.length&&Math.random()<.55) ambs.push(sgPick(texPool)); sgNote(ambs.map(x=>x.id));
-  SG.lastFam=fam; sgNote([bed.c.id,bed2&&bed2.c.id,sub&&sub.id,crash&&crash.id,fxs.length&&0].concat(drums.map(d=>d.c.id),vocals.map(v=>v.c.id),hits.map(h=>h.id),[fill&&fill.id,flair.perc2&&perc2&&perc2.id]));
-  return {g:g,fam:fam,T:T,stepSec:stepSec,barSec:barSec,base:base,key:bed.key,minor:bed.minor,bed:bed,bed2:bed2,secs:secs,total:total2,drums:drums,bassSteps:bassSteps,sub:sub,amb:ambs,hook:hook,vocals:vocals,vkind:vkind,flair:flair,fill:fill,perc2:perc2,hits:hits,crash:crash,fx:fxs.length?sgPick(fxs):null,ovBars:ovBars,name:String(g.name).replace(/&amp;/g,'&')+', '+Math.round(T)+' BPM, '+SGNOTE[bed.key]+(bed.minor?' minor':' major')}; }
+  SG.lastFam=fam; sgNote([bed.c.id,bed2&&bed2.c.id,sub&&sub.id,crash&&crash.id,fxs.length&&0].concat(drums.map(d=>d.c.id),vocals.map(v=>v.c.id),hits.map(h=>h&&h.id),[fill&&fill.id,flair.perc2&&perc2&&perc2.id]));
+  return {g:g,fam:fam,T:T,stepSec:stepSec,barSec:barSec,base:base,key:bed.key,minor:bed.minor,bed:bed,bed2:bed2,secs:secs,total:total2,drums:drums,bassSteps:bassSteps,sub:sub,amb:ambs,hook:hook,vocals:vocals,vkind:vkind,flair:flair,fill:fill,perc2:perc2,hits:hits,brk:brk,bkp:bkp,fillB:fillB,crash:crash,fx:fxs.length?sgPick(fxs):null,ovBars:ovBars,name:String(g.name).replace(/&amp;/g,'&')+', '+Math.round(T)+' BPM, '+SGNOTE[bed.key]+(bed.minor?' minor':' major')}; }
 // Draw the whole song into one array of samples (mixed in plain code, which is much faster than building thousands of audio nodes)
 const SGSR=44100;
 function sgMix(dst,src,t0,g,rate,o){ o=o||{}; const d=src.getChannelData(0), re=rate*src.sampleRate/SGSR; let n=Math.floor(d.length/re); if(o.dur) n=Math.min(n,Math.floor(o.dur*SGSR)); const s0=Math.floor(t0*SGSR); if(s0<0||s0>=dst.length||n<=0) return; n=Math.min(n,dst.length-s0);
@@ -1594,7 +1616,7 @@ function sgLowpass(x,s0,s1,fc0,fc1,st){ const chunk=Math.floor(SGSR*.2);
 const sgYield=()=>new Promise(r=>setTimeout(r,0));
 async function sgRender(p){
   const N=Math.ceil((p.total*p.barSec+3)*SGSR), music=new Float32Array(N), bedA=new Float32Array(N), bedB=new Float32Array(N), voice=new Float32Array(N), duck=new Float32Array(N).fill(1), at=b=>b*p.barSec;
-  const need=new Map(); const want=c=>{ if(c&&!need.has(c.id)) need.set(c.id,sgBuf(c)); }; p.drums.forEach(d=>want(d.c)); want(p.bed.c); want(p.bed2&&p.bed2.c); want(p.sub); want(p.crash); want(p.fx); p.hook.forEach(h=>want(h.c)); (p.vocals||[]).forEach(v=>want(v.c)); (p.hits||[]).forEach(h=>want(h)); want(p.fill); want(p.perc2); (p.amb||[]).forEach(want);
+  const need=new Map(); const want=c=>{ if(c&&!need.has(c.id)) need.set(c.id,sgBuf(c)); }; p.drums.forEach(d=>want(d.c)); want(p.bed.c); want(p.bed2&&p.bed2.c); want(p.sub); want(p.crash); want(p.fx); p.hook.forEach(h=>want(h.c)); (p.vocals||[]).forEach(v=>want(v.c)); (p.hits||[]).forEach(h=>want(h)); want(p.fill); want(p.perc2); (p.amb||[]).forEach(want); if(p.brk) want(p.brk.c); if(p.bkp) want(p.bkp.c); if(p.fillB) want(p.fillB);
   const B={}; for(const [id,pr] of need) B[id]=await pr; const st=sc=>SGSTAT[sc.type]||SGSTAT.verse;
   const tile=(dst,c,rate,Nb,s0,s1,g)=>{ const L=Nb*p.barSec; for(let t=s0;t<s1-.01;t+=L) sgMix(dst,B[c.id],t,g,rate,{dur:Math.min(L,s1-t),fi:.012,fo:.02}); };
   const rate1=Math.pow(2,p.bed.s/12), rate2=p.bed2?p.bed2.rate:1;
@@ -1622,10 +1644,13 @@ async function sgRender(p){
   await sgYield();
   const base=p.base, vel=()=>.78+Math.random()*.22;
   p.secs.forEach(sc=>{ const a=st(sc); for(let b=sc.b0;b<sc.b1;b++){ const barT=at(b), lastTwo=sc.type==='build'&&b>=sc.b1-2, lastBar=sc.type==='build'&&b===sc.b1-1;
-    p.drums.forEach(d=>{ const lv=a[d.role]||0; if(!lv) return; if(lastBar&&d.role==='kick') return; const bf=B[d.c.id]; if(!bf) return;
+    p.drums.forEach(d=>{ let lv=a[d.role]||0; if(p.brk&&/snare|hat|open|clap|perc/.test(d.role)) lv*=.35; if(!lv) return; if(lastBar&&d.role==='kick') return; const bf=B[d.c.id]; if(!bf) return;
       d.steps.forEach(stp=>{ const g=(d.role==='kick'?.95:(d.role==='snare'?.8:(d.role==='hat'?.4:(d.role==='open'?.3:.4))))*lv*vel(); sgMix(music,bf,barT+stp*p.stepSec,g,1); }); });
     if(lastTwo){ const sn=p.drums.find(d=>d.role==='snare'); if(sn&&B[sn.c.id]){ const n=b===sc.b1-1?base:base/2; for(let k=0;k<n;k++) sgMix(music,B[sn.c.id],barT+k*(base/n)*p.stepSec,.35+.5*(k/n)+(b===sc.b1-1?.1:0),1); } } }
     if(a.crash&&p.crash&&B[p.crash.id]) sgMix(music,B[p.crash.id],at(sc.b0),.5,1); });
+  const tileLoop=(o,lv,pred)=>{ if(!o||!B[o.c.id]) return; p.secs.forEach(sc=>{ const a=st(sc); const l=pred(a); if(!l) return; const L=o.bars*p.barSec; for(let t=at(sc.b0);t<at(sc.b1)-.01;t+=L) sgMix(music,B[o.c.id],t,lv*l,o.rate,{dur:Math.min(L,at(sc.b1)-t),fi:.004,fo:.01}); }); };
+  tileLoop(p.brk,.6,a=>a.kick?a.kick:0); tileLoop(p.bkp,.4,a=>a.open?a.open:(a.perc>.5?a.perc*.5:0));
+  if(p.fillB&&B[p.fillB.id]) p.secs.forEach(sc=>{ if(!/verse|chorus|drop/.test(sc.type)||sc.bars<4) return; for(let b=sc.b0+7;b<sc.b1;b+=8){ const bf=B[p.fillB.id], len=Math.min(bf.duration,p.barSec); sgMix(music,bf,at(b+1)-len,.55,1,{dur:len,fo:.03}); } });
   if(p.flair&&p.flair.fills&&p.fill&&B[p.fill.id]) p.secs.forEach(sc=>{ if(!/verse|chorus|drop/.test(sc.type)||sc.bars<4) return; for(let b=sc.b0+3;b<sc.b1;b+=4){ if(b===sc.b1-1&&sc.type==='verse'&&false) continue; const t0=at(b)+p.barSec*.5; for(let k=0;k<8;k++) sgMix(music,B[p.fill.id],t0+k*p.barSec/16,.5+.03*k,1.25-.06*k); } });
   if(p.flair&&p.flair.perc2&&p.perc2&&B[p.perc2.id]){ const stp=sgEuclid(sgPick([5,7,9]),p.base,Math.floor(Math.random()*p.base)); p.secs.forEach(sc=>{ if(!st(sc).open) return; for(let b=sc.b0;b<sc.b1;b++) stp.forEach(x=>sgMix(music,B[p.perc2.id],at(b)+x*p.stepSec,.3*(.8+Math.random()*.2),1)); }); }
   (p.hits||[]).forEach(h=>{ if(!B[h.id]) return; const cand=p.secs.filter(sc=>/chorus|drop|bridge|break/.test(sc.type)); if(!cand.length) return; const sc=sgPick(cand); sgMix(music,B[h.id],at(sc.b0+(Math.random()<.5?0:Math.min(sc.bars-1,2))),.45,1,{dur:Math.min(B[h.id].duration,3),fo:.05}); });
@@ -1661,7 +1686,7 @@ async function sgStartFirst(){
   SG.cur={deck:d,start:t,s:s,n:1}; sgLog('track','Song 1 on Deck A: '+s.plan.name+sgDetail(s.plan)); try{ window.__recMark&&window.__recMark('in',d); }catch(e){}
   sgSay('Song 1: '+s.plan.name); sgSchedule();
 }
-const sgDetail=p=>' | loop "'+p.bed.c.name+'"'+(p.bed2?' + "'+p.bed2.c.name+'"':'')+' | '+p.drums.map(d=>d.c.name).slice(0,4).join(', ')+(p.sub?' | sub from "'+p.sub.name+'"':'')+(p.hook.length?' | hook "'+$('sghook').value.trim()+'"':'')+(p.vocals&&p.vocals.length?' | vocals "'+p.vocals.map(v=>v.c.name+(v.s?' ('+(v.s>0?'+':'')+v.s+')':'')).join('" and "')+'"':'')+(p.flair?' | flair: '+['pump','fills','glitch','perc2'].filter(k=>p.flair[k]).join(', ')+(p.hits&&p.hits.length?', '+p.hits.length+' fx hit(s)':''):'');
+const sgDetail=p=>' | loop "'+p.bed.c.name+'"'+(p.bed2?' + "'+p.bed2.c.name+'"':'')+' | '+p.drums.map(d=>d.c.name).slice(0,4).join(', ')+(p.sub?' | sub from "'+p.sub.name+'"':'')+(p.hook.length?' | hook "'+$('sghook').value.trim()+'"':'')+(p.vocals&&p.vocals.length?' | vocals "'+p.vocals.map(v=>v.c.name+(v.s?' ('+(v.s>0?'+':'')+v.s+')':'')).join('" and "')+'"':'')+(p.brk?' | break "'+p.brk.c.name+'"':'')+(p.bkp?' | loop "'+p.bkp.c.name+'"':'')+(p.flair?' | flair: '+['pump','fills','glitch','perc2'].filter(k=>p.flair[k]).join(', ')+(p.hits&&p.hits.length?', '+p.hits.length+' fx hit(s)':''):'');
 async function sgSchedule(){ // while this song plays, make the next one, then start it on the other deck on a bar line
   const cur=SG.cur; if(!cur||!SG.on) return; SG.busy=true; const nxt=await sgMake(cur.s.plan); SG.busy=false; if(!SG.on||SG.cur!==cur) return;
   if(!nxt){ sgSay('Could not make the next song; letting this one finish.'); return; }
