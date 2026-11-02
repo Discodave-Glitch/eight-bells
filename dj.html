@@ -104,6 +104,7 @@ body.nolbl .bt{display:none}
 .recb.on{border-color:#ef4a4a;color:#ffb3b3}
 #imged{position:fixed;inset:0;z-index:40;background:#000a;display:flex;align-items:center;justify-content:center;padding:16px}#imged canvas{width:min(100%,56vh,360px);aspect-ratio:1/1;align-self:center;border-radius:10px;cursor:grab}#imged .rpbox{align-items:stretch}
 @media (max-height:560px){#imged .rpbox{max-width:700px;display:grid;grid-template-columns:min(72vh,320px) 1fr;column-gap:14px;row-gap:8px;align-content:center}#imged .rpbox h2,#imged .rpbox p,#imged .rpbox label,#imged .rpbtns{grid-column:2}#imged canvas{grid-column:1;grid-row:1/7;width:min(72vh,320px);align-self:center}}
+#pkrows{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0}.pkg{display:flex;align-items:center;gap:6px;cursor:pointer}.pkg button{min-height:28px;padding:0 8px}
 .tfam{margin:4px 0}.tfam summary{cursor:pointer;display:inline-block;padding:6px 10px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);font-size:13px}#famrows{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}#famrows label{font-size:12px;display:flex;gap:4px;align-items:center}
 #tagbar{position:fixed;left:50%;transform:translateX(-50%);bottom:6px;z-index:30;display:flex;gap:6px;align-items:center;padding:6px 8px;border:1px solid var(--line);border-radius:12px;background:var(--panel2);box-shadow:0 4px 18px #0008;font-size:13px}#tagbar[hidden]{display:none}#tagbar button{min-height:34px;padding:0 10px}
 #recpop{position:fixed;inset:0;z-index:40;background:#000a;display:flex;align-items:center;justify-content:center;padding:16px}#recpop[hidden]{display:none}
@@ -213,7 +214,10 @@ body.nolbl .bt{display:none}
     <div class="row"><b class="chip">Custom deck image</b><select id="imgtarget" aria-label="Which deck gets the image"><option value="AB">Both decks</option><option value="A">Deck A</option><option value="B">Deck B</option></select><button id="imgpick">Choose image...</button><button id="imgclear">Remove</button><input type="file" id="imgfile" accept="image/*" hidden><span id="imgmsg" class="chip"></span></div>
     <div class="row"><b class="chip">Screen</b><select id="theme" aria-label="Day or night screen"><option value="night">Night</option><option value="day">Day</option><option value="auto">Match my device</option></select></div>
     <div class="row"><b class="chip">Long status text</b><select id="sttext" aria-label="What the status line does when its text is too long"><option value="ticker" selected>Scrolling ticker</option><option value="shrink">Shrink to fit</option><option value="still">Cut off</option></select></div>
-    <div class="row"><b class="chip">Vocals and samples</b><select id="voxuse" aria-label="Vocals and samples Auto DJ may use"><option value="off">Off</option><option value="voices" selected>Built-in voices</option><option value="all">Built-in voices + my samples</option></select><select id="voxoften" aria-label="How often Auto DJ uses vocals and samples"><option value="rare">Rarely</option><option value="some">Now and then</option><option value="often" selected>Often (every 6-10 bars)</option><option value="lots">Very often (every 3-6 bars)</option><option value="max">Non-stop (every 2-4 bars)</option></select><label class="chip"><input type="checkbox" id="voxrep" checked> Repeat favourite phrases</label></div>
+    <div class="row"><b class="chip">Vocals and samples</b><select id="voxuse" aria-label="Vocals and samples Auto DJ may use"><option value="off">Off</option><option value="voices" selected>Built-in voices</option><option value="all">Built-in voices + samples (starter pack and mine)</option></select><select id="voxoften" aria-label="How often Auto DJ uses vocals and samples"><option value="rare">Rarely</option><option value="some">Now and then</option><option value="often" selected>Often (every 6-10 bars)</option><option value="lots">Very often (every 3-6 bars)</option><option value="max">Non-stop (every 2-4 bars)</option></select><label class="chip"><input type="checkbox" id="voxrep" checked> Repeat favourite phrases</label></div>
+    <div class="row"><b class="chip">Starter pack</b><span class="chip" id="pkinfo">Sounds that come with the app. They play when Vocals and samples is set to "voices + samples". Tick what you want; the arrow plays one.</span></div>
+    <div id="pkrows"></div>
+    <details class="tfam" id="pkcred"><summary>Starter pack credits and licences</summary><div class="chip" id="pkcredt" style="white-space:normal;margin-top:6px"></div></details>
     <div class="row"><b class="chip">Taste</b><select id="taste" aria-label="How strongly Auto DJ follows what you have marked"><option value="off">Ignore my marks</option><option value="gentle">Gentle</option><option value="normal" selected>Normal</option><option value="strong">Strong</option></select><button id="tasteimp">Learn from a report...</button><button id="tasteexp">Save my taste</button><button id="tastein">Load taste...</button><button id="tasterst">Reset</button><input type="file" id="tasterep" accept=".md,.txt,text/*" multiple hidden><input type="file" id="tastefile" accept=".json,application/json" hidden></div>
     <div class="chip" id="tastesum">Tap thumbs up or down while Auto DJ plays and it learns what you like.</div>
     <details class="tfam" id="fam"><summary>Genre families: more or less of each</summary><div id="famrows"></div></details>
@@ -513,6 +517,39 @@ function famBuild(force){
     sel.addEventListener('change',()=>{ if(!TASTE.man) TASTE.man={}; if(+sel.value) TASTE.man[g]=+sel.value; else delete TASTE.man[g]; tasteSave(); });
     l.appendChild(document.createTextNode(g+' ')); l.appendChild(sel); box.appendChild(l); });
 }
+// ---- Starter pack: small sounds that ship with the app (kept in the samples folder), loaded a few at a time
+const PK={man:null,loading:null,on:null,ready:new Map(),order:[],pend:new Set(),cap:28}, PKBASE='samples/pack/';
+function pkOn(){ if(!PK.on){ let o=null; try{ o=JSON.parse(localStorage.getItem('ebdj.pack')||'null'); }catch(e){} PK.on=o||{}; } return PK.on; }
+const pkGroupOn=g=>{ const o=pkOn(); return o[g.id]===undefined?!!g.on:!!o[g.id]; };
+function pkMan(){ if(!PK.loading) PK.loading=fetch(PKBASE+'manifest.json').then(r=>r.ok?r.json():null).then(m=>{ PK.man=m; return m; }).catch(()=>null); return PK.loading; }
+let PAC=null; const pkCtx=()=>{ if(!PAC){ const AC=window.AudioContext||window.webkitAudioContext; PAC=new AC(); } return PAC; };
+async function pkLoad(c){ // fetch and decode one clip, then give each deck its own copy
+  if(PK.ready.has(c.id)) return true;
+  const r=await fetch(PKBASE+c.f); if(!r.ok) return false; const b=await pkCtx().decodeAudioData(await r.arrayBuffer()), ch=b.getChannelData(0).slice(0);
+  for(const d of decks){ const fn=d.win.eval("(function(id,name,data,sr){ ensureAudio(); var b=ac.createBuffer(1,data.length,sr); b.copyToChannel(data,0); SBUF.set(id,b); SMETA.set(id,{id:id,name:name,root:60,mode:'oneshot',size:0}); })"); fn(c.id,c.name,ch,b.sampleRate); }
+  PK.ready.set(c.id,c); PK.order.push(c.id); return true;
+}
+function pkDrop(id){ PK.ready.delete(id); PK.order=PK.order.filter(x=>x!==id); decks.forEach(d=>{ try{ d.win.eval("SBUF.delete('"+id+"'); SMETA.delete('"+id+"');"); }catch(e){} }); }
+function pkClear(){ PK.order.slice().forEach(pkDrop); }
+function pkSync(){ VOXS=VOXS.filter(a=>!/^sp_/.test(a[0])); PK.order.forEach(id=>{ const c=PK.ready.get(id); if(c&&c.d<=8.1) VOXS.push([id,c.name]); }); }
+async function pkPrep(first){ // keep a rotating handful of clips from the ticked groups ready
+  if(voxMode()!=='all') return; const m=await pkMan(); if(!m) return; const gs=m.groups.filter(pkGroupOn);
+  PK.order.slice().forEach(id=>{ if(!gs.some(g=>g.clips.some(c=>c.id===id))) pkDrop(id); });
+  let n=0, guard=0; const want=first?10:5;
+  while(gs.length&&n<want&&guard++<60){ const g=gs[Math.floor(Math.random()*gs.length)], c=g.clips[Math.floor(Math.random()*g.clips.length)]; if(PK.ready.has(c.id)||PK.pend.has(c.id)) continue; PK.pend.add(c.id); try{ if(await pkLoad(c)) n++; }catch(e){} PK.pend.delete(c.id); }
+  while(PK.order.length>PK.cap) pkDrop(PK.order[0]);
+  pkSync();
+}
+async function pkPreview(g){ try{ const c=g.clips[Math.floor(Math.random()*g.clips.length)], ctx=pkCtx(); if(ctx.state==='suspended') await ctx.resume(); const r=await fetch(PKBASE+c.f), b=await ctx.decodeAudioData(await r.arrayBuffer()), src=ctx.createBufferSource(), gn=ctx.createGain(); gn.gain.value=.8; src.buffer=b; src.connect(gn); gn.connect(ctx.destination); src.start(); const e=$('pkinfo'); if(e) e.textContent='Playing: '+c.name; }catch(e){} }
+async function pkBuild(){
+  const box=$('pkrows'); if(!box||box.children.length) return; const m=await pkMan();
+  if(!m){ $('pkinfo').textContent='The starter pack was not found. It needs the samples folder next to this page.'; return; }
+  m.groups.forEach(g=>{ const l=document.createElement('label'); l.className='chip pkg'; const cb=document.createElement('input'); cb.type='checkbox'; cb.checked=pkGroupOn(g);
+    cb.addEventListener('change',()=>{ const o=pkOn(); o[g.id]=cb.checked?1:0; try{ localStorage.setItem('ebdj.pack',JSON.stringify(o)); }catch(e){} pkPrep(false).catch(()=>{}); });
+    const pv=document.createElement('button'); pv.type='button'; pv.textContent='▶'; pv.title='Hear one'; pv.setAttribute('aria-label','Hear one from '+g.name); pv.addEventListener('click',e=>{ e.preventDefault(); e.stopPropagation(); pkPreview(g); });
+    l.appendChild(cb); l.appendChild(document.createTextNode(g.name+' ('+g.clips.length+')')); l.appendChild(pv); box.appendChild(l); });
+  $('pkcredt').innerHTML='Acapella phrases: Andres Franco and Snowflake (Emily Richards), from ccMixter, licensed CC BY 3.0 (creativecommons.org/licenses/by/3.0/us/). They were shortened into phrases and converted to small mono files. Speak and Spell groups: Texas Instruments Speak &amp; Spell (1978) sample library produced by Motion Laboratories. Singing, loops and spoken word: SampleSwap vocal sampler (NASA recordings are public domain).';
+}
 function pickGenre(bpm,not){
   if(!AU.gen) AU.gen=decks[0].win.eval('GENRES.map(function(g){return [g.id,g.bpm[0],g.bpm[1]]})');
   let c=AU.gen.filter(g=>not.indexOf(g[0])<0&&g[1]<=bpm+5&&g[2]>=bpm-5); // beginners' tip: stay within about 5 BPM
@@ -624,11 +661,12 @@ const VOXG={ riser:['breath','whisper','gasp','siren','oohup','sigh'], shout:['a
 const VOXSPEC={ riser:{k:4,r:0,mode:'fixed',hold:2,level:.5,space:45,loops:1}, shout:{k:1,r:0,mode:'fixed',hold:1,level:.72,space:30,loops:1}, vowel:{k:2,r:0,mode:'sing',hold:8,level:.5,space:70,loops:2}, scat:{k:7,r:0,mode:'walk',hold:1,level:.55,space:30,loops:1}, sample:{k:1,r:0,mode:'fixed',hold:0,level:.62,space:35,loops:1} };
 let VOXOK=null, VOXS=[], voxT={A:null,B:null};
 const voxMode=()=>($('voxuse')&&$('voxuse').value)||'off', voxFreq=()=>(({rare:.25,some:.55,often:1,lots:1.7,max:2.6})[($('voxoften')&&$('voxoften').value)||'often']||1)*Math.max(.4,Math.min(2.5,tw('vox','all')));
-function voxPrep(){ // which voices this build of Eight Bells has, and which of your samples are short enough to use
+function voxPrep(){ // which voices this build of Eight Bells has, which of your samples are short enough, and the starter pack
   try{ VOXOK=new Set(ev(decks[0],'Object.keys(VOXP)')); }catch(e){ VOXOK=new Set(); }
-  VOXS=[]; if(voxMode()!=='all') return;
-  try{ const all=ev(decks[0],'Array.from(SMETA.values()).map(function(m){return [m.id,m.name]})')||[]; all.slice(0,10).forEach(a=>{ decks.forEach(d=>ev(d,"sampBuf('"+a[0]+"')")); });
-    setTimeout(()=>{ VOXS=all.filter(a=>{ const dur=ev(decks[0],"(function(id){var b=SBUF.get(id);return b?b.duration:-1})('"+a[0]+"')"); return dur>0&&dur<=8; }); },1500); }catch(e){}
+  VOXS=[]; if(voxMode()!=='all'){ pkClear(); return; }
+  try{ const all=(ev(decks[0],'Array.from(SMETA.values()).map(function(m){return [m.id,m.name]})')||[]).filter(a=>!/^sp_/.test(a[0])); all.slice(0,40).forEach(a=>{ decks.forEach(d=>ev(d,"sampBuf('"+a[0]+"')")); });
+    setTimeout(()=>{ VOXS=all.filter(a=>{ const dur=ev(decks[0],"(function(id){var b=SBUF.get(id);return b?b.duration:-1})('"+a[0]+"')"); return dur>0&&dur<=8; }); pkSync(); },1500); }catch(e){}
+  pkPrep(true).catch(()=>{});
 }
 function voxOff(d){ clearTimeout(voxT[d.id]); voxT[d.id]=null; try{ ev(d,"VOX.on=false; if(typeof renderVox==='function') renderVox();"); }catch(e){} }
 function voxOffAll(){ decks.forEach(voxOff); }
@@ -650,7 +688,7 @@ function voxFire(d,kind,loopsOverride){ // set one lane on the Sample track, swi
   const n=+ev(d,'loopLen()')||16, stepMs=60000/getBpm(d)/4, ms=(loopsOverride||sp.loops)*n*stepMs;
   ev(d,"(function(L,sp){ VOX.eng='synth'; VOX.lanes=[Object.assign({},LANE0,L)]; VOX.sel=0; VOX.space=sp; VOX.mute=false; VOX.on=true; try{ voxWarm(); if(VB) VB.wet.gain.value=sp/100*1.1; }catch(e){} if(typeof renderVox==='function') renderVox(); })("+JSON.stringify(lane)+","+sp.space+")");
   voxT[d.id]=setTimeout(()=>voxOff(d),ms+60); AU.voxUntil=Date.now()+ms;
-  AU.voxNow={text:(kind==='sample'?'your sample "':'"')+nm+'"'+(p.again?' again':''),t:Date.now(),kind:kind}; alog('voice','Deck '+d.id+': '+(kind==='sample'?'your sample ':'voice ')+'"'+nm+'" ('+kind+(p.again?', repeated hook':'')+')'); return true;
+  AU.voxNow={text:(kind==='sample'?(/^sp_/.test(p[0])?'starter pack sound "':'your sample "'):'"')+nm+'"'+(p.again?' again':''),t:Date.now(),kind:kind}; alog('voice','Deck '+d.id+': '+(kind==='sample'?(/^sp_/.test(p[0])?'starter pack sound ':'your sample '):'voice ')+'"'+nm+'" ('+kind+(p.again?', repeated hook':'')+')'); return true;
 }
 function voxLoopEnd(d,kind){ // fire on the bar line: a moment before the next loop starts, so its first step lands on the beat
   if(voxMode()==='off') return; const ms=+ev(d,'(function(){var n=loopLen();return (n-(gstep%n))*stepMsOf(state.bpm)})()')||0;
@@ -705,7 +743,7 @@ function autoVox(c){ // vocals and samples on their own clock, so the "how often
   AU.voxAt=b+gap[0]+Math.floor(Math.random()*(gap[1]-gap[0]+1));
   if(Date.now()<(AU.voxUntil||0)) { AU.voxAt=b+1; return; }
   const pr=AU.slow||AU.e<.55?[['vowel',.75],['scat',.25]]:(AU.e>=.9?[['shout',.5],['scat',.3],['vowel',.2]]:[['shout',.4],['scat',.3],['vowel',.3]]), k=wpick(pr,q=>q[1]*tw('vox',q[0]))[0];
-  if(voxMode()==='all'&&VOXS.length&&Math.random()<.2) voxLoopEnd(c,'sample'); else voxLoopEnd(c,k);
+  if(voxMode()==='all'&&VOXS.length&&Math.random()<.22*Math.min(2.2,tw('vox','sample'))) voxLoopEnd(c,'sample'); else voxLoopEnd(c,k);
 }
 function autoStepSecs(c){ // wander through the patterns while a deck plays on its own
   const b=barsOf(c); if(b-AU.lastBar<AU.step) return;
@@ -769,7 +807,7 @@ function autoTick(){
     if(p>=0.5&&!AU.half){ AU.half=true; fxHit(c,'Echo',240000/getBpm(c)/2); queueSec(n,rndSec(AU.ne<.6?['half','bld','bridge']:['drop','chorus','half','bld'],'')); }
     if(p>=0.8&&!AU.third){ AU.third=true; const pk=rndSec(AU.ne<.6?['bridge','half','chorus']:(AU.ne>=.9?['drop','drop','chorus']:['drop','chorus','bridge']),''); queueSec(n,pk); if(pk==='drop'&&voxRoll(.8)) voxLoopEnd(n,'shout'); else if(voxRoll(.12)) voxLoopEnd(n,'shout'); if(pk==='drop'){ const bt=60000/getBpm(n); setTimeout(()=>{ if(AU.on) fxHit(n,'Loop 1/8',bt); },bt*2); } } // loops tighten into the drop // half-beat delay-style roll into the drop
     if(p>=0.85&&!AU.fourth){ AU.fourth=true; fxHit(c,'Echo',60000/getBpm(c)*4); } // echo out the old track
-    if(p>=1){ try{ window.__recMark&&window.__recMark('out',c); }catch(e){} setPlay(c,false); voxOff(c); c.eq={l:0,m:0,h:0}; c.filt=0; n.eq={l:0,m:0,h:0}; n.filt=0; applyMix(); AU.cur=n.id; AU.g0=0; AU.lastBar=Math.floor(barsOf(n)); AU.flairAt=Math.floor(barsOf(n))+6; AU.voxAt=Math.floor(barsOf(n))+4; AU.chorus=false; AU.chQ=false; AU.built=false; AU.slow=AU.nslow; AU.inStyle=AU.style; AU.adj=0; AU.tr++; AU.e=energyAt(AU.tr); AU.phase='play'; trkPush(n,AU.pend,AU.style); alog('mix','Deck '+n.id+' is now the main deck (track '+AU.tr+')'); planNext(n); }
+    if(p>=1){ try{ window.__recMark&&window.__recMark('out',c); }catch(e){} setPlay(c,false); voxOff(c); c.eq={l:0,m:0,h:0}; c.filt=0; n.eq={l:0,m:0,h:0}; n.filt=0; applyMix(); AU.cur=n.id; AU.g0=0; AU.lastBar=Math.floor(barsOf(n)); AU.flairAt=Math.floor(barsOf(n))+6; AU.voxAt=Math.floor(barsOf(n))+4; AU.chorus=false; AU.chQ=false; AU.built=false; AU.slow=AU.nslow; AU.inStyle=AU.style; AU.adj=0; pkPrep(false).catch(()=>{}); AU.tr++; AU.e=energyAt(AU.tr); AU.phase='play'; trkPush(n,AU.pend,AU.style); alog('mix','Deck '+n.id+' is now the main deck (track '+AU.tr+')'); planNext(n); }
   }
   else if(AU.phase==='end'){ // planned ending: outro, echo and a long filter close, then stop
     const barMs=240000/getBpm(c), p=Math.min(1,(Date.now()-AU.t0)/(AU.fadeMix*barMs));
@@ -1151,7 +1189,7 @@ function wireUI(){
   ['voxuse','voxoften'].forEach(id=>{ try{ const v=localStorage.getItem('ebdj.'+id); if(v&&[...$(id).options].some(o=>o.value===v)) $(id).value=v; }catch(e){} $(id).addEventListener('change',()=>{ try{ localStorage.setItem('ebdj.'+id,$(id).value); }catch(e){} if(id==='voxuse'){ VOXOK=null; voxPrep(); if(voxMode()==='off') voxOffAll(); } }); });
   try{ const v=localStorage.getItem('ebdj.taste.k'); if(v&&[...$('taste').options].some(o=>o.value===v)) $('taste').value=v; }catch(e){} $('taste').addEventListener('change',()=>{ try{ localStorage.setItem('ebdj.taste.k',$('taste').value); }catch(e){} });
   $('tagbar').addEventListener('click',e=>{ const b=e.target.closest('button'); if(b) tagPick(b.dataset.t); });
-  $('fam').addEventListener('toggle',()=>{ if($('fam').open) famBuild(); });
+  $('fam').addEventListener('toggle',()=>{ if($('fam').open) famBuild(); }); $('ctlp').addEventListener('toggle',()=>{ if($('ctlp').open) pkBuild(); });
   const tmsg=t=>{ $('tastesum').textContent=t; setTimeout(tasteSum,4000); };
   $('tasteimp').addEventListener('click',()=>$('tasterep').click());
   $('tasterep').addEventListener('change',async()=>{ const fs=[...$('tasterep').files]; $('tasterep').value=''; let n=0, dup=0; for(const f of fs){ try{ const r=tasteFromReport(await f.text()); if(r<0) dup++; else n+=r; }catch(e){} } tmsg(n?'Learned from '+n+' mark'+(n===1?'':'s')+' in your report'+(fs.length>1?'s':'')+'.':(dup?'That report was already counted.':'No thumbs found in that file.')); });
@@ -1184,7 +1222,7 @@ $('go').addEventListener('click',()=>{
 });
 boot();
 // for tests
-window.__djTest={TASTE:()=>TASTE,tasteFromReport:tasteFromReport,tasteLearn:tasteLearn,tagPick:tagPick,wpick:wpick,tw:tw,lenOf:lenOf,setPlay:setPlay,autoOn:autoOn,autoSay:autoSay,voxFire:voxFire,voxLoopEnd:voxLoopEnd,voxOff:voxOff,voxPrep:voxPrep,VOXG:VOXG,VOXS:()=>VOXS,planNext:planNext,LOG:LOG,TRK:TRK,buildReport:buildReport,markSet:markSet,makePlan:makePlan,nowText:nowText,nextText:nextText,warp:warp,rollFade:rollFade,fadeBars:fadeBars,EUPH:EUPH,CLUB:CLUB,bigBuild:bigBuild,lastTrack:lastTrack,matchKey:matchKey,barsOf:barsOf,gstepOf:gstepOf,pickGenre:pickGenre,energyAt:energyAt,SHAPES:SHAPES,GFX:GFX,setGfx:setGfx,startSwell:startSwell,swellTick:swellTick,freshDeck:freshDeck,swapSound:swapSound,autoFlair:autoFlair,autoStepSecs:autoStepSecs,autoMix:autoMix,STYLES:STYLES,AU:AU,autoOn:autoOn,timing:timing,barTime:barTime,PC:PC,stepGenre:stepGenre,decks:decks,S:S,knob:knob,knobB:knobB,onMidi:onMidi,onNote:onNote,applyMix:applyMix,cross:cross,MAP:()=>MAP};
+window.__djTest={PK:PK,pkPrep:pkPrep,TASTE:()=>TASTE,tasteFromReport:tasteFromReport,tasteLearn:tasteLearn,tagPick:tagPick,wpick:wpick,tw:tw,lenOf:lenOf,setPlay:setPlay,autoOn:autoOn,autoSay:autoSay,voxFire:voxFire,voxLoopEnd:voxLoopEnd,voxOff:voxOff,voxPrep:voxPrep,VOXG:VOXG,VOXS:()=>VOXS,planNext:planNext,LOG:LOG,TRK:TRK,buildReport:buildReport,markSet:markSet,makePlan:makePlan,nowText:nowText,nextText:nextText,warp:warp,rollFade:rollFade,fadeBars:fadeBars,EUPH:EUPH,CLUB:CLUB,bigBuild:bigBuild,lastTrack:lastTrack,matchKey:matchKey,barsOf:barsOf,gstepOf:gstepOf,pickGenre:pickGenre,energyAt:energyAt,SHAPES:SHAPES,GFX:GFX,setGfx:setGfx,startSwell:startSwell,swellTick:swellTick,freshDeck:freshDeck,swapSound:swapSound,autoFlair:autoFlair,autoStepSecs:autoStepSecs,autoMix:autoMix,STYLES:STYLES,AU:AU,autoOn:autoOn,timing:timing,barTime:barTime,PC:PC,stepGenre:stepGenre,decks:decks,S:S,knob:knob,knobB:knobB,onMidi:onMidi,onNote:onNote,applyMix:applyMix,cross:cross,MAP:()=>MAP};
 })();
 </script>
 </body>
