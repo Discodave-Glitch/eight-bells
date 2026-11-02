@@ -716,19 +716,23 @@ async function smpInit(){
     SLOTS=['dk','ds','dc','dh','do','dt','dp','fxs'].map(G).concat(['acap','sing','ssw','sss','gtr','keys'].map(G),[V('hey'),V('yeah')]); slotSave(); }
   smpPaint(); setTimeout(smpPrefetch,3000);
 }
+const SMPR=[]; // clips the pads played lately, shared by both decks so the same sound does not come round twice in a row
+const smpNote=id=>{ SMPR.push(id); while(SMPR.length>24) SMPR.shift(); };
+function smpDistinct(g,n,avoid){ const a=g.clips.filter(c=>!avoid.has(c.id)); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a.slice(0,n); }
 async function smpPrefetch(){ // get a few sounds ready so the first press is instant
   try{ const m=await pkMan(); if(!m) return; const seen=new Set();
     for(const s of SLOTS){ if(!s) continue;
       if(s.t==='pk'){ PK.keep.add(s.id); const c=pkFind(s.id); if(c&&!PK.ready.has(c.id)) await pkLoad(c).catch(()=>{}); }
       else if(s.t==='my'){ decks.forEach(d=>{ try{ ev(d,"sampBuf('"+s.id+"')"); }catch(e){} }); }
-      else if(s.t==='grp'&&!seen.has(s.g)){ seen.add(s.g); const g=m.groups.find(x=>x.id===s.g); if(!g) continue; for(let i=0;i<3;i++){ const c=g.clips[Math.floor(Math.random()*g.clips.length)]; if(PK.ready.has(c.id)) continue; PK.keep.add(c.id); await pkLoad(c).catch(()=>{}); } } }
+      else if(s.t==='grp'&&!seen.has(s.g)){ seen.add(s.g); const g=m.groups.find(x=>x.id===s.g); if(!g) continue; const have=new Set([...PK.keep]); for(const c of smpDistinct(g,3,have)){ if(PK.ready.has(c.id)) continue; PK.keep.add(c.id); await pkLoad(c).catch(()=>{}); } } }
     pkSync(); }catch(e){}
 }
 async function smpResolve(d,s){
   if(s.t==='grp'){ const m=await pkMan(), g=m&&m.groups.find(x=>x.id===s.g); if(!g) return null;
-    const pool=g.clips.filter(c=>PK.ready.has(c.id)&&PK.keep.has(c.id)); let c;
-    if(pool.length>=2||(pool.length&&Math.random()<.7)) c=pool[Math.floor(Math.random()*pool.length)]; else { c=g.clips[Math.floor(Math.random()*g.clips.length)]; PK.keep.add(c.id); try{ await pkLoad(c); }catch(e){ return null; } }
-    if(pool.length<6){ const c2=g.clips[Math.floor(Math.random()*g.clips.length)]; if(!PK.ready.has(c2.id)&&!PK.pend.has(c2.id)){ PK.keep.add(c2.id); PK.pend.add(c2.id); pkLoad(c2).catch(()=>{}).then(()=>PK.pend.delete(c2.id)); } }
+    const all=g.clips.filter(c=>PK.ready.has(c.id)&&PK.keep.has(c.id)), pool=all.filter(c=>SMPR.indexOf(c.id)<0); let c; const rec=new Set(SMPR);
+    if(pool.length>=2||(pool.length&&Math.random()<.7)) c=pool[Math.floor(Math.random()*pool.length)]; else { const fr=smpDistinct(g,1,rec); c=fr[0]||g.clips[Math.floor(Math.random()*g.clips.length)]; PK.keep.add(c.id); try{ await pkLoad(c); }catch(e){ return null; } }
+    smpNote(c.id);
+    if(pool.length<6){ const c2=smpDistinct(g,1,new Set([...PK.keep,...rec]))[0]||c; if(!PK.ready.has(c2.id)&&!PK.pend.has(c2.id)){ PK.keep.add(c2.id); PK.pend.add(c2.id); pkLoad(c2).catch(()=>{}).then(()=>PK.pend.delete(c2.id)); } }
     return {k:'buf',id:c.id}; }
   if(s.t==='pk'){ PK.keep.add(s.id); if(!PK.ready.has(s.id)){ const c=pkFind(s.id); if(!c) return null; try{ await pkLoad(c); }catch(e){ return null; } } return {k:'buf',id:s.id}; }
   if(s.t==='my'){ if(!ev(d,"SBUF.has('"+s.id+"')")){ try{ await ev(d,"sampBuf('"+s.id+"')"); }catch(e){ return null; } } return ev(d,"SBUF.has('"+s.id+"')")?{k:'buf',id:s.id}:null; }
