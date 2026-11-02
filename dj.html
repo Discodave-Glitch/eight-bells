@@ -213,7 +213,7 @@ body.nolbl .bt{display:none}
 <div id="app" hidden>
   <div class="top">
     <h1>Eight Bells DJ<small>prototype, separate from the main app</small><span id="clk" title="How long music has been playing (resets each time you press Auto DJ; click to reset)" style="margin-left:10px;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--muted);cursor:pointer">0:00</span></h1>
-    <div class="row"><button id="gfx" title="Change the deck graphic"><span class="dp">Deck: </span>Bell</button><button id="auto" data-ctl="auto" data-kind="btn" aria-pressed="false">Auto DJ: off</button><button id="mkgood" data-ctl="markgood" data-kind="btn" aria-label="Mark this moment as good" title="That was good">👍</button><button id="mkbad" data-ctl="markbad" data-kind="btn" aria-label="Mark this moment as bad" title="That was bad">👎</button><select id="autolen" aria-label="Auto DJ length of each track"><option value="8">8 bars</option><option value="16">16 bars</option><option value="24">24 bars</option><option value="32">32 bars</option><option value="40">40 bars</option><option value="48">48 bars</option><option value="56">56 bars</option><option value="64" selected>64 bars</option><option value="72">72 bars</option><option value="80">80 bars</option><option value="88">88 bars</option><option value="96">96 bars</option></select><select id="autoset" aria-label="Auto DJ set length: endless or stop after a number of tracks"><option value="0" selected>Endless</option><option value="4">4 tracks</option><option value="6">6 tracks</option><option value="10">10 tracks</option><option value="m30">30 min</option><option value="m60">1 hour</option><option value="m120">2 hours</option><option value="m240">4 hours</option></select><button id="bothplay">Play both</button><button id="bothstop">Stop both</button><details class="ctlp" id="ctlp"><summary>Setup</summary><div class="ctlbody">
+    <div class="row"><button id="gfx" title="Change the deck graphic"><span class="dp">Deck: </span>Bell</button><button id="auto" data-ctl="auto" data-kind="btn" aria-pressed="false">Auto DJ: off</button><button id="mkgood" data-ctl="markgood" data-kind="btn" aria-label="Mark this moment as good" title="That was good">👍</button><button id="mkbad" data-ctl="markbad" data-kind="btn" aria-label="Mark this moment as bad" title="That was bad">👎</button><select id="autolen" aria-label="Auto DJ length of each track"><option value="8">8 bars</option><option value="16">16 bars</option><option value="24">24 bars</option><option value="32">32 bars</option><option value="40">40 bars</option><option value="48">48 bars</option><option value="56">56 bars</option><option value="64" selected>64 bars</option><option value="72">72 bars</option><option value="80">80 bars</option><option value="88">88 bars</option><option value="96">96 bars</option></select><select id="autoset" aria-label="Auto DJ set length: endless or stop after a number of tracks"><option value="0" selected>Endless</option><option value="4">4 tracks</option><option value="6">6 tracks</option><option value="10">10 tracks</option><option value="r">Random stop (3-10 tracks)</option><option value="m30">30 min</option><option value="m60">1 hour</option><option value="m120">2 hours</option><option value="m240">4 hours</option></select><button id="bothplay">Play both</button><button id="bothstop">Stop both</button><details class="ctlp" id="ctlp"><summary>Setup</summary><div class="ctlbody">
 <div class="settabs" id="settabs" role="tablist"><button type="button" role="tab" data-sec="music">Music</button><button type="button" role="tab" data-sec="samples">Samples and pads</button><button type="button" role="tab" data-sec="look">Look and layout</button><button type="button" role="tab" data-sec="ctrl">Controller</button><button type="button" role="tab" data-sec="rec">Recording and report</button></div>
     <div class="setsec" data-sec="music"><p class="sechint">What Auto DJ plays and how it sounds.</p>
     <div class="row"><b class="chip">Intro music</b><label class="chip" style="cursor:pointer"><input type="checkbox" id="exauto" checked> Play the Eight Bells example song when the page opens (untick for silence at start)</label></div>
@@ -233,7 +233,7 @@ body.nolbl .bt{display:none}
     <div class="row"><b class="chip">Starter pack</b><span class="chip" id="pkinfo">Sounds that come with the app. They play when Vocals and samples is set to "voices + samples". Tick what you want; the arrow plays one.</span></div>
     <div id="pkrows"></div>
     <details class="tfam" id="pkcred"><summary>Starter pack credits and licences</summary><div class="chip" id="pkcredt" style="white-space:normal;margin-top:6px"></div></details>
-    <div class="row"><b class="chip">My samples</b><button id="smadd">Add sounds, a zip or a rar...</button><label class="chip" style="cursor:pointer"><input type="checkbox" id="smcut" checked> Cut long sounds into phrases</label><button id="smclr">Remove all</button><input type="file" id="smfile" accept="audio/*,.zip,.rar,application/zip,application/vnd.rar,application/x-rar-compressed,.mp3,.wav,.aif,.aiff,.m4a,.ogg,.flac,.opus,.aac" multiple hidden></div>
+    <div class="row"><b class="chip">My samples</b><button id="smadd">Add sounds, a zip, rar or iso...</button><label class="chip" style="cursor:pointer"><input type="checkbox" id="smcut" checked> Cut long sounds into phrases</label><button id="smclr">Remove all</button><input type="file" id="smfile" accept="audio/*,.zip,.rar,.iso,application/x-iso9660-image,application/zip,application/vnd.rar,application/x-rar-compressed,.mp3,.wav,.aif,.aiff,.m4a,.ogg,.flac,.opus,.aac" multiple hidden></div>
     <div class="chip" id="smmsg">Add your own audio files or a zip of them. They play when Vocals and samples is set to "voices + samples". Tick the ones you want.</div>
     <div id="smlist"></div>
     </div>
@@ -668,11 +668,12 @@ const AUD_RE=/\.(mp3|wav|wave|aif|aiff|m4a|aac|ogg|oga|opus|flac|webm|mp4)$/i;
 const smOff=()=>{ try{ return new Set(JSON.parse(localStorage.getItem('ebdj.smoff')||'[]')); }catch(e){ return new Set(); } };
 const smOffSave=o=>{ try{ localStorage.setItem('ebdj.smoff',JSON.stringify([...o])); }catch(e){} };
 const smDur=()=>{ try{ return JSON.parse(localStorage.getItem('ebdj.smdur')||'{}'); }catch(e){ return {}; } };
-const ARC_RE=/\.(zip|rar)$/i, ARC_MAX=1500*1048576, AUD_MAX=250*1048576, ENT_MAX=4000;
+const ARC_RE=/\.(zip|rar|iso)$/i, ARC_MAX=1500*1048576, AUD_MAX=250*1048576, ENT_MAX=4000;
 async function sniffArc(file){ // zip or rar by what is inside the file, not its name
   const h=new Uint8Array(await file.slice(0,8).arrayBuffer());
   if(h[0]===0x50&&h[1]===0x4b&&(h[2]===3||h[2]===5)) return 'zip';
   if(h[0]===0x52&&h[1]===0x61&&h[2]===0x72&&h[3]===0x21) return 'rar';
+  if(file.size>34000){ const c=new Uint8Array(await file.slice(32769,32774).arrayBuffer()); if(String.fromCharCode.apply(null,c)==='CD001') return 'iso'; }
   return '';
 }
 function unrarStream(file,onItem){ // opens a .rar in a worker (reads it in slices), calls onItem(name,blob) for each audio file or archive inside
@@ -696,12 +697,29 @@ async function unzipStream(file,onItem){ // reads a zip (stored or deflated, zip
     if(meth===0) blob=raw; else if(meth===8){ if(typeof DecompressionStream==='undefined') throw new Error('This browser cannot open zips. Unzip them first and add the files.'); blob=await new Response(raw.stream().pipeThrough(new DecompressionStream('deflate-raw'))).blob(); } else continue;
     await onItem(base,blob); }
 }
+async function isoStream(file,onItem){ // reads a disc image (.iso, ISO 9660 with Joliet long names) in slices; any size
+  const rd=async(o,n)=>new DataView(await file.slice(o,o+n).arrayBuffer());
+  let root=null, joliet=false;
+  for(let sec=16;sec<40;sec++){ const v=await rd(sec*2048,2048), t=v.getUint8(0); if(t===255) break; if(String.fromCharCode(v.getUint8(1),v.getUint8(2),v.getUint8(3),v.getUint8(4),v.getUint8(5))!=='CD001') break;
+    if(t===1&&!root) root={lba:v.getUint32(158,true),len:v.getUint32(166,true)};
+    if(t===2){ const e0=v.getUint8(88), e1=v.getUint8(89), e2=v.getUint8(90); if(e0===0x25&&e1===0x2f&&(e2===0x40||e2===0x43||e2===0x45)){ root={lba:v.getUint32(158,true),len:v.getUint32(166,true)}; joliet=true; } } }
+  if(!root) throw new Error('not a readable disc image');
+  const walk=async(lba,len,depth,path)=>{ if(depth>12) return; const dv=await rd(lba*2048,len), u=new Uint8Array(dv.buffer); let p=0;
+    while(p<len){ const rl=u[p]; if(!rl){ p=(Math.floor(p/2048)+1)*2048; continue; } const ext=dv.getUint32(p+2,true), sz=dv.getUint32(p+10,true), fl=u[p+25], nl=u[p+32]; let nm;
+      if(joliet){ nm=''; for(let i=0;i+1<nl;i+=2) nm+=String.fromCharCode(dv.getUint16(p+33+i,false)); } else nm=new TextDecoder().decode(u.subarray(p+33,p+33+nl));
+      const self=nl===1&&(u[p+33]===0||u[p+33]===1); p+=rl;
+      if(self) continue;
+      if(fl&2){ await walk(ext,sz,depth+1,path+nm+'/'); continue; }
+      nm=nm.replace(/;\d+$/,''); if(!(AUD_RE.test(nm)||ARC_RE.test(nm))||sz>(ARC_RE.test(nm)?ARC_MAX:AUD_MAX)) continue;
+      await onItem(nm,file.slice(ext*2048,ext*2048+sz)); } };
+  await walk(root.lba,root.len,0,'');
+}
 async function unpackAudio(file,onItem,depth,st){ // zips, rars, and archives inside archives (up to 4 deep); calls onItem(name,blob) for every audio file found
   depth=depth||0; st=st||{n:0};
   const each=async(name,blob)=>{ if(st.n>=ENT_MAX) return;
     if(ARC_RE.test(name)||(!AUD_RE.test(name))){ if(depth<4){ const kind=await sniffArc(blob); if(kind){ try{ await unpackAudio(new File([blob],name),onItem,depth+1,st); }catch(e){} return; } } if(!AUD_RE.test(name)) return; }
     st.n++; await onItem(name,blob); };
-  const kind=await sniffArc(file); if(kind==='rar') return unrarStream(file,each); if(kind==='zip') return unzipStream(file,each); throw new Error('not a zip or rar');
+  const kind=await sniffArc(file); if(kind==='rar') return unrarStream(file,each); if(kind==='zip') return unzipStream(file,each); if(kind==='iso') return isoStream(file,each); throw new Error('not a zip, rar or iso');
 }
 async function unzipAudio(file,depth){ const out=[]; await unpackAudio(file,async(name,blob)=>{ out.push({name:name,blob:blob}); },depth||0); return out; }
 function phrasesJS(x,sr,lo,hi){ // cut a long sound at its quiet gaps into pieces of about lo to hi seconds
@@ -739,7 +757,7 @@ async function smPick(files){
   const msg=t=>{ const e=$('smmsg'); if(e) e.textContent=t; }; let err='', batch=[], total=0, seen=0, added=0; const FLUSH=24;
   const flush=async()=>{ if(!batch.length) return; const b=batch; batch=[]; total+=b.length; added+=(await smAdd(b))||0; };
   for(const f of files){ try{
-      const kind=ARC_RE.test(f.name)||/zip|rar/.test(f.type)?await sniffArc(f):'';
+      const kind=ARC_RE.test(f.name)||/\.iso$/i.test(f.name)||/zip|rar/.test(f.type)?await sniffArc(f):'';
       if(kind){ msg('Opening '+f.name+'...'); await unpackAudio(f,async(name,blob)=>{ seen++; msg('Opening '+f.name+': found '+seen+' sound'+(seen===1?'':'s')+'...'); batch.push({name:name,blob:blob}); if(batch.length>=FLUSH) await flush(); }); }
       else if(AUD_RE.test(f.name)||/^audio\//.test(f.type)){ batch.push({name:f.name,blob:f}); if(batch.length>=FLUSH) await flush(); }
     }catch(e){ err=e&&e.message?e.message:'Could not open that file.'; } }
@@ -922,7 +940,7 @@ function lastTrack(c){ if(AU.max&&AU.tr>=AU.max) return true; return !!(AU.endAt
 function autoOn(on){
   AU.on=on; clearInterval(AU.timer); const b=$('auto'); b.textContent='Auto DJ: '+(on?'on':'off'); b.classList.toggle('on',on); b.setAttribute('aria-pressed',on?'true':'false');
   if(!on){ clearInterval(AU.clrT); clearInterval(AU.upT); if(AU.phase==='clear') decks.forEach(d=>{ d.vol=85; d.filt=0; applyMix(); }); voxOffAll(); if(AU.phase!=='finished'&&AU.tStart) alog('stop','Auto DJ switched off'); AU.phase='idle'; AU.endAt=0; wakeOn(false); autoSay(''); refreshReport(); return; }
-  AU.len=+$('autolen').value||64; AU.fade=Math.min(32,Math.floor(AU.len/2)); rollFade(); { const v=($('autoset')&&$('autoset').value)||'0'; AU.max=/^m/.test(v)?0:(+v||0); AU.endAt=/^m/.test(v)?Date.now()+(+v.slice(1))*60000:0; wakeOn(true); } AU.tStart=Date.now(); AU.adj=0; AU.inStyle=''; AU.open=''; LOG.length=0; TRK.length=0; AU.slow=false; AU.nslow=false; AU.built=false; AU.tr=1; AU.shape=['ramp','wave','story'][Math.floor(Math.random()*3)]; AU.e=energyAt(1); AU.chorus=false; AU.chQ=false; AU.fourth=false;
+  AU.len=+$('autolen').value||64; AU.fade=Math.min(32,Math.floor(AU.len/2)); rollFade(); { const v=($('autoset')&&$('autoset').value)||'0'; AU.max=/^m/.test(v)?0:(v==='r'?3+Math.floor(Math.random()*8):(+v||0)); AU.endAt=/^m/.test(v)?Date.now()+(+v.slice(1))*60000:0; wakeOn(true); } AU.tStart=Date.now(); AU.adj=0; AU.inStyle=''; AU.open=''; LOG.length=0; TRK.length=0; AU.slow=false; AU.nslow=false; AU.built=false; AU.tr=1; AU.shape=['ramp','wave','story'][Math.floor(Math.random()*3)]; AU.e=energyAt(1); AU.chorus=false; AU.chQ=false; AU.fourth=false;
   VOXOK=null; Object.keys(HOOK).forEach(k=>delete HOOK[k]); voxPrep(); voxOffAll();
   const pa=playing(decks[0]), pb=playing(decks[1]); const first=pb&&!pa?'B':'A';
   const OPEN=[['fade','soft fade-in','intro'],['filter','filter sweep opening','intro'],['bassless','no-bass intro, bass drops in','intro'],['build','riser into a drop','bld'],['drop','straight in on the drop','drop']];
