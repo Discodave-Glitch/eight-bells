@@ -729,7 +729,7 @@ function smBuild(){
 // ---- Sampler: 16 pads (8 on each deck) for playing sounds by hand
 const SKEYS={A:['Digit1','Digit2','Digit3','Digit4','Digit5','Digit6','Digit7','Digit8'],B:['KeyQ','KeyW','KeyE','KeyR','KeyT','KeyY','KeyU','KeyI']};
 let SLOTS=null; const KDOWN={};
-const slotSave=()=>{ try{ localStorage.setItem('ebdj.slots',JSON.stringify(SLOTS)); }catch(e){} };
+const slotSave=user=>{ try{ localStorage.setItem('ebdj.slots',JSON.stringify(SLOTS)); if(user===true) localStorage.setItem('ebdj.slotsuser','1'); }catch(e){} };
 const smpQ=()=>{ const v=($('smpq')&&$('smpq').value)||'beat'; if(v!=='dj') return v; const r=Math.random(); return r<.45?'beat':(r<.85?'bar':'off'); },  slotIdx=(d,k)=>(d.id==='A'?0:8)+k, smpEl=(d,k)=>document.querySelector('[data-ctl="smp:'+d.id+':'+k+'"]');
 const GSH={acap:'Acapella',sing:'Singing',loop:'Loop vox',spoken:'Spoken',ssw:'S&S word',sss:'S&S line',ssl:'S&S letter',ssn:'S&S number'}, gshort=g=>GSH[g.id]||g.s||g.name;
 const slotShort=s=>(s&&s.t!=='none')?s.name:'Empty';
@@ -737,9 +737,12 @@ function smpPaint(){ decks.forEach(d=>{ const g=$('smps'+d.id); if(!g) return; g
 function pkFind(id){ if(!PK.man) return null; for(const g of PK.man.groups){ const c=g.clips.find(x=>x.id===id); if(c) return c; } return null; }
 async function smpInit(){
   try{ const a=JSON.parse(localStorage.getItem('ebdj.slots')||'null'); if(Array.isArray(a)&&a.length===16) SLOTS=a; }catch(e){}
+  let userSet=false; try{ userSet=localStorage.getItem('ebdj.slotsuser')==='1'; }catch(e){}
+  // a layout made while the starter pack could not load is full of empty pads: rebuild it (unless you set the pads yourself)
+  if(SLOTS&&!userSet&&SLOTS.filter(x=>!x||x.t==='none').length>=4){ const m0=await pkMan(); if(m0) SLOTS=null; }
   if(!SLOTS){ const m=await pkMan(); let vl=[]; try{ vl=ev(decks[0],'VOX_LIST')||[]; }catch(e){}
-    const G=id=>{ const g=m&&m.groups.find(x=>x.id===id); return g?{t:'grp',g:id,name:gshort(g)}:{t:'none'}; }, V=id=>{ const v=vl.find(x=>x[0]===id); return v?{t:'vox',id:id,name:v[1]}:{t:'none'}; };
-    SLOTS=['dk','ds','dc','dh','do','dt','dp','fxs'].map(G).concat(['acap','sing','ssw','sss','gtr','keys'].map(G),[V('hey'),V('yeah')]); slotSave(); }
+    const G=id=>{ const g=m&&m.groups.find(x=>x.id===id); return g?{t:'grp',g:id,name:gshort(g)}:{t:'none'}; }, V=id=>{ const v=vl.find(x=>x[0]===id); return v?{t:'vox',id:id,name:v[1]}:{t:'none'}; }, R=(id,alt)=>{ const g=G(id); return g.t==='none'?V(alt):g; };
+    SLOTS=['dk','ds','dc','dh','do','dt','dp','fxs'].map(G).concat(['acap','sing','ssw','sss','gtr','keys'].map(G),[R('vcs','hey'),R('stb','yeah')]); if(m) slotSave(); }
   try{ await smpDedupe(); }catch(e){}
   smpPaint(); setTimeout(smpPrefetch,3000);
 }
@@ -811,16 +814,17 @@ function smpBuild(){ // Setup: one row per pad with a source and a sound
   for(let i=0;i<16;i++){ const dk=i<8?'A':'B', k=i%8, s=SLOTS[i]||{t:'none'}, row=document.createElement('div'); row.className='smpr';
     const lb=document.createElement('b'); lb.textContent=dk+(k+1); const a=document.createElement('select'), b=document.createElement('select'); a.setAttribute('aria-label','Source for pad '+dk+(k+1)); b.setAttribute('aria-label','Sound for pad '+dk+(k+1));
     SRC.forEach(x=>opt(a,x[0],x[1])); a.value=s.t; fill(b,s.t,s.id||s.g);
-    const set=()=>{ const src=a.value; if(src==='none'||!b.value) SLOTS[i]={t:'none'}; else SLOTS[i]=src==='grp'?{t:'grp',g:b.value,name:nameOf('grp',b.value)}:{t:src,id:b.value,name:nameOf(src,b.value)}; slotSave(); smpPaint(); smpPrefetch(); };
+    const set=()=>{ const src=a.value; if(src==='none'||!b.value) SLOTS[i]={t:'none'}; else SLOTS[i]=src==='grp'?{t:'grp',g:b.value,name:nameOf('grp',b.value)}:{t:src,id:b.value,name:nameOf(src,b.value)}; slotSave(true); smpPaint(); smpPrefetch(); };
     a.addEventListener('change',()=>{ fill(b,a.value); set(); }); b.addEventListener('change',set);
     const pv=document.createElement('button'); pv.type='button'; pv.textContent='▶'; pv.setAttribute('aria-label','Hear pad '+dk+(k+1)); pv.addEventListener('click',()=>{ const d=D(dk); smpHold(d,k,true); setTimeout(()=>smpHold(d,k,false),350); });
     row.appendChild(lb); row.appendChild(a); row.appendChild(b); row.appendChild(pv); box.appendChild(row); }
 }
 async function smpSurprise(){
   const m=await pkMan(); let vl=[]; try{ vl=ev(decks[0],'VOX_LIST')||[]; }catch(e){}
-  const vox=['hey','yeah','whoa','woo','oi','siren','yo','wow','chant'].filter(id=>vl.some(v=>v[0]===id)), pick=a=>a[Math.floor(Math.random()*a.length)];
-  SLOTS=SLOTS.map(()=>{ const r=Math.random(); if(m&&r<.55){ const g=pick(m.groups.filter(x=>x.clips.length>12||x.id==='sss')); return {t:'grp',g:g.id,name:gshort(g)}; } if(m&&r<.85){ const g=pick(m.groups), c=pick(g.clips); return {t:'pk',id:c.id,name:c.name}; } const vid=pick(vox), v=vl.find(x=>x[0]===vid); return v?{t:'vox',id:v[0],name:v[1]}:{t:'none'}; });
-  slotSave(); smpPaint(); smpBuild(); smpPrefetch();
+  let mine=[]; try{ mine=(ev(decks[0],'Array.from(SMETA.values()).map(function(m){return [m.id,m.name]})')||[]).filter(a=>!/^sp_/.test(a[0])&&!smOff().has(a[0])); }catch(e){}
+  const pick=a=>a[Math.floor(Math.random()*a.length)];
+  SLOTS=SLOTS.map(()=>{ const r=Math.random(); if(mine.length&&r<.25){ const x=pick(mine); return {t:'my',id:x[0],name:x[1]}; } if(m&&r<.65){ const g=pick(m.groups.filter(x=>x.clips.length>12||x.id==='sss')); return {t:'grp',g:g.id,name:gshort(g)}; } if(m){ const g=pick(m.groups), c=pick(g.clips); return {t:'pk',id:c.id,name:c.name}; } return {t:'none'}; });
+  slotSave(true); smpPaint(); smpBuild(); smpPrefetch();
 }
 function pickGenre(bpm,not){
   if(!AU.gen) AU.gen=decks[0].win.eval('GENRES.map(function(g){return [g.id,g.bpm[0],g.bpm[1]]})');
@@ -1525,7 +1529,7 @@ function wireUI(){
   [['smpq','v'],['smploop','c'],['smpkeys','c'],['smpmatch','c']].forEach(([id,k])=>{ const el=$(id); try{ const v=localStorage.getItem('ebdj.'+id); if(v!==null){ if(k==='c') el.checked=v==='1'; else if([...el.options].some(o=>o.value===v)) el.value=v; } }catch(e){} el.addEventListener('change',()=>{ try{ localStorage.setItem('ebdj.'+id,k==='c'?(el.checked?'1':'0'):el.value); }catch(e){} if(id==='smpkeys') document.body.classList.toggle('smpnokeys',!el.checked); }); }); document.body.classList.toggle('smpnokeys',!$('smpkeys').checked);
   $('smpset').addEventListener('toggle',async()=>{ if($('smpset').open){ await pkMan(); smpBuild(); } });
   $('smpfill').addEventListener('click',smpSurprise);
-  { let t=null; $('smprst').addEventListener('click',()=>{ const b=$('smprst'); if(!t){ b.textContent='Tap again to empty'; t=setTimeout(()=>{ t=null; b.textContent='Empty all'; },3500); return; } clearTimeout(t); t=null; b.textContent='Empty all'; SLOTS=SLOTS.map(()=>({t:'none'})); slotSave(); smpPaint(); smpBuild(); }); }
+  { let t=null; $('smprst').addEventListener('click',()=>{ const b=$('smprst'); if(!t){ b.textContent='Tap again to empty'; t=setTimeout(()=>{ t=null; b.textContent='Empty all'; },3500); return; } clearTimeout(t); t=null; b.textContent='Empty all'; SLOTS=SLOTS.map(()=>({t:'none'})); slotSave(true); smpPaint(); smpBuild(); }); }
   $('smadd').addEventListener('click',()=>$('smfile').click()); $('smfile').addEventListener('change',()=>{ const f=[...$('smfile').files]; $('smfile').value=''; if(f.length) smPick(f); });
   { let t=null; $('smclr').addEventListener('click',async()=>{ const b=$('smclr'); if(!t){ b.textContent='Tap again to remove all'; t=setTimeout(()=>{ t=null; b.textContent='Remove all'; },3500); return; } clearTimeout(t); t=null; b.textContent='Remove all'; const ids=(ev(decks[0],'Array.from(SMETA.keys())')||[]).filter(id=>!/^sp_/.test(id)); for(const id of ids) for(const dk of decks){ try{ await dk.win.eval("sampDel('"+id+"')"); }catch(e){} } smOffSave(new Set()); smBuild(); $('smmsg').textContent='Removed '+ids.length+' sound'+(ids.length===1?'':'s')+'.'; if(voxMode()==='all') voxPrep(); }); }
   const tmsg=t=>{ $('tastesum').textContent=t; setTimeout(tasteSum,4000); };
