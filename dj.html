@@ -218,7 +218,7 @@ body.nolbl .bt{display:none}
     <div class="row"><b class="chip">Custom deck image</b><select id="imgtarget" aria-label="Which deck gets the image"><option value="AB">Both decks</option><option value="A">Deck A</option><option value="B">Deck B</option></select><button id="imgpick">Choose image...</button><button id="imgclear">Remove</button><input type="file" id="imgfile" accept="image/*" hidden><span id="imgmsg" class="chip"></span></div>
     <div class="row"><b class="chip">Screen</b><select id="theme" aria-label="Day or night screen"><option value="night">Night</option><option value="day">Day</option><option value="auto">Match my device</option></select></div>
     <div class="row"><b class="chip">Long status text</b><select id="sttext" aria-label="What the status line does when its text is too long"><option value="ticker" selected>Scrolling ticker</option><option value="shrink">Shrink to fit</option><option value="still">Cut off</option></select></div>
-    <div class="row"><b class="chip">Vocals and samples</b><select id="voxuse" aria-label="Vocals and samples Auto DJ may use"><option value="off">Off</option><option value="voices" selected>Built-in voices</option><option value="all">Built-in voices + samples (starter pack and mine)</option></select><select id="voxoften" aria-label="How often Auto DJ uses vocals and samples"><option value="rare">Rarely</option><option value="some">Now and then</option><option value="often" selected>Often (every 6-10 bars)</option><option value="lots">Very often (every 3-6 bars)</option><option value="max">Non-stop (every 2-4 bars)</option></select><label class="chip"><input type="checkbox" id="voxrep" checked> Repeat favourite phrases</label></div>
+    <div class="row"><b class="chip">Vocals and samples</b><select id="voxuse" aria-label="Vocals and samples Auto DJ may use"><option value="off">Off</option><option value="voices" selected>Built-in voices</option><option value="all">Built-in voices + samples (starter pack and mine)</option><option value="samples">Samples only (starter pack and mine, no built-in voices)</option></select><select id="voxoften" aria-label="How often Auto DJ uses vocals and samples"><option value="rare">Rarely</option><option value="some">Now and then</option><option value="often" selected>Often (every 6-10 bars)</option><option value="lots">Very often (every 3-6 bars)</option><option value="max">Non-stop (every 2-4 bars)</option></select><label class="chip"><input type="checkbox" id="voxrep" checked> Repeat favourite phrases</label></div>
     <div class="row"><b class="chip">Sampler</b><select id="smpq" aria-label="When sampler pads start"><option value="off">Start straight away</option><option value="beat" selected>Snap to the beat</option><option value="bar">Snap to the bar</option></select><label class="chip" style="cursor:pointer"><input type="checkbox" id="smploop"> Loop while held</label><label class="chip" style="cursor:pointer"><input type="checkbox" id="smpkeys" checked> Keyboard keys</label><label class="chip" style="cursor:pointer"><input type="checkbox" id="smpmatch" checked> Tune and time sounds to the deck</label><button id="smpfill">Surprise me</button><button id="smprst">Empty all</button></div>
     <div class="chip">Each deck has 8 sample pads (the Samples tab when the screen is short). Deck A: keys 1 to 8. Deck B: Q W E R T Y U I. They play through that deck's volume and EQ. Learn one control works on them too.</div>
     <details class="tfam" id="smpset"><summary>Choose each pad's sound</summary><div id="smprows"></div></details>
@@ -542,24 +542,24 @@ async function pkLoad(c){ // fetch and decode one clip, then give each deck its 
 }
 function pkDrop(id){ if(PK.keep.has(id)) return; PK.ready.delete(id); PK.order=PK.order.filter(x=>x!==id); decks.forEach(d=>{ try{ d.win.eval("SBUF.delete('"+id+"'); SMETA.delete('"+id+"');"); }catch(e){} }); }
 function pkClear(){ PK.order.slice().forEach(pkDrop); }
-function pkSync(){ VOXS=VOXS.filter(a=>!/^sp_/.test(a[0])); const on=new Set(PK.man?PK.man.groups.filter(pkGroupOn).map(g=>g.id):[]); PK.order.forEach(id=>{ const c=PK.ready.get(id); if(c&&c.d<=8.1&&on.has(c.g)) VOXS.push([id,c.name]); }); }
+function pkSync(){ VOXS=VOXS.filter(a=>!/^sp_/.test(a[0])); const on=new Set(PK.man?PK.man.groups.filter(g=>pkGroupOn(g)&&!g.so).map(g=>g.id):[]); PK.order.forEach(id=>{ const c=PK.ready.get(id); if(c&&c.d<=8.1&&on.has(c.g)) VOXS.push([id,c.name]); }); }
 async function pkPrep(first){ // keep a rotating handful of clips from the ticked groups ready
-  if(voxMode()!=='all') return; const m=await pkMan(); if(!m) return; const gs=m.groups.filter(pkGroupOn);
+  if(voxMode()!=='all') return; const m=await pkMan(); if(!m) return; const gs=m.groups.filter(g=>pkGroupOn(g)&&!g.so);
   PK.order.slice().forEach(id=>{ if(!gs.some(g=>g.clips.some(c=>c.id===id))) pkDrop(id); });
   let n=0, guard=0; const want=first?10:5;
   while(gs.length&&n<want&&guard++<60){ const g=gs[Math.floor(Math.random()*gs.length)], c=g.clips[Math.floor(Math.random()*g.clips.length)]; if(PK.ready.has(c.id)||PK.pend.has(c.id)) continue; PK.pend.add(c.id); try{ if(await pkLoad(c)) n++; }catch(e){} PK.pend.delete(c.id); }
-  { const cand=PK.order.filter(id=>!PK.keep.has(id)); while(PK.order.length>PK.cap&&cand.length) pkDrop(cand.shift()); }
+  { const cand=PK.order.filter(id=>!PK.keep.has(id)); while(cand.length>PK.cap) pkDrop(cand.shift()); } // the cap is for Auto DJ's rotating clips; the sampler's own pad sounds are kept on top
   pkSync();
 }
 async function pkPreview(g){ try{ const c=g.clips[Math.floor(Math.random()*g.clips.length)], ctx=pkCtx(); if(ctx.state==='suspended') await ctx.resume(); const r=await fetch(PKBASE+c.f), b=await ctx.decodeAudioData(await r.arrayBuffer()), src=ctx.createBufferSource(), gn=ctx.createGain(); gn.gain.value=.8; src.buffer=b; src.connect(gn); gn.connect(ctx.destination); src.start(); const e=$('pkinfo'); if(e) e.textContent='Playing: '+c.name; }catch(e){} }
 async function pkBuild(){
   const box=$('pkrows'); if(!box||box.children.length) return; const m=await pkMan();
   if(!m){ $('pkinfo').textContent='The starter pack was not found. It needs the samples folder next to this page.'; return; }
-  m.groups.forEach(g=>{ const l=document.createElement('label'); l.className='chip pkg'; const cb=document.createElement('input'); cb.type='checkbox'; cb.checked=pkGroupOn(g);
+  m.groups.forEach(g=>{ const l=document.createElement('label'); l.className='chip pkg'; const cb=document.createElement('input'); cb.type='checkbox'; cb.checked=g.so?true:pkGroupOn(g); if(g.so){ cb.disabled=true; cb.title='Drum kits are for the sampler pads, not Auto DJ'; }
     cb.addEventListener('change',()=>{ const o=pkOn(); o[g.id]=cb.checked?1:0; try{ localStorage.setItem('ebdj.pack',JSON.stringify(o)); }catch(e){} pkPrep(false).catch(()=>{}); });
     const pv=document.createElement('button'); pv.type='button'; pv.textContent='▶'; pv.title='Hear one'; pv.setAttribute('aria-label','Hear one from '+g.name); pv.addEventListener('click',e=>{ e.preventDefault(); e.stopPropagation(); pkPreview(g); });
-    l.appendChild(cb); l.appendChild(document.createTextNode(g.name+' ('+g.clips.length+')')); l.appendChild(pv); box.appendChild(l); });
-  $('pkcredt').innerHTML='Acapella phrases: Andres Franco and Snowflake (Emily Richards), from ccMixter, licensed CC BY 3.0 (creativecommons.org/licenses/by/3.0/us/). They were shortened into phrases and converted to small mono files. Speak and Spell groups: Texas Instruments Speak &amp; Spell (1978) sample library produced by Motion Laboratories. Singing, loops and spoken word: SampleSwap vocal sampler (NASA recordings are public domain).';
+    l.appendChild(cb); l.appendChild(document.createTextNode(g.name+' ('+g.clips.length+')'+(g.so?' pads only':''))); l.appendChild(pv); box.appendChild(l); });
+  $('pkcredt').innerHTML='Acapella phrases: Andres Franco and Snowflake (Emily Richards), from ccMixter, licensed CC BY 3.0 (creativecommons.org/licenses/by/3.0/us/). They were shortened into phrases and converted to small mono files. Speak and Spell groups: Texas Instruments Speak &amp; Spell (1978) sample library produced by Motion Laboratories. Singing, loops and spoken word: SampleSwap vocal sampler (NASA recordings are public domain). Instruments (guitars, keys, synths, bass, flute, horns, orchestral, world), drum machine, kit and percussion samples and sound effects were supplied by the app owner as royalty free; the files carried few or no licence notes, so check before you publish a recording that uses them.';
 }
 // ---- Sample analysis: what each sound is (hit, word, phrase, sung, loop), how bright and busy it is, its pitch and, for loops, tempo
 function anaFFT(re,im){ const n=re.length; for(let i=1,j=0;i<n;i++){ let b=n>>1; for(;j&b;b>>=1) j^=b; j^=b; if(i<j){ let t=re[i]; re[i]=re[j]; re[j]=t; t=im[i]; im[i]=im[j]; im[j]=t; } }
@@ -690,7 +690,7 @@ const SKEYS={A:['Digit1','Digit2','Digit3','Digit4','Digit5','Digit6','Digit7','
 let SLOTS=null; const KDOWN={};
 const slotSave=()=>{ try{ localStorage.setItem('ebdj.slots',JSON.stringify(SLOTS)); }catch(e){} };
 const smpQ=()=>($('smpq')&&$('smpq').value)||'beat', slotIdx=(d,k)=>(d.id==='A'?0:8)+k, smpEl=(d,k)=>document.querySelector('[data-ctl="smp:'+d.id+':'+k+'"]');
-const GSH={acap:'Acapella',sing:'Singing',loop:'Loop vox',spoken:'Spoken',ssw:'S&S word',sss:'S&S line',ssl:'S&S letter',ssn:'S&S number'}, gshort=g=>GSH[g.id]||g.name;
+const GSH={acap:'Acapella',sing:'Singing',loop:'Loop vox',spoken:'Spoken',ssw:'S&S word',sss:'S&S line',ssl:'S&S letter',ssn:'S&S number'}, gshort=g=>GSH[g.id]||g.s||g.name;
 const slotShort=s=>(s&&s.t!=='none')?s.name:'Empty';
 function smpPaint(){ decks.forEach(d=>{ const g=$('smps'+d.id); if(!g) return; g.querySelectorAll('.sp').forEach(b=>{ const sl=SLOTS&&SLOTS[slotIdx(d,+b.dataset.k)], nm=slotShort(sl); b.querySelector('.smn').textContent=nm; b.classList.toggle('empty',!sl||sl.t==='none'); b.title=nm; }); }); }
 function pkFind(id){ if(!PK.man) return null; for(const g of PK.man.groups){ const c=g.clips.find(x=>x.id===id); if(c) return c; } return null; }
@@ -698,7 +698,7 @@ async function smpInit(){
   try{ const a=JSON.parse(localStorage.getItem('ebdj.slots')||'null'); if(Array.isArray(a)&&a.length===16) SLOTS=a; }catch(e){}
   if(!SLOTS){ const m=await pkMan(); let vl=[]; try{ vl=ev(decks[0],'VOX_LIST')||[]; }catch(e){}
     const G=id=>{ const g=m&&m.groups.find(x=>x.id===id); return g?{t:'grp',g:id,name:gshort(g)}:{t:'none'}; }, V=id=>{ const v=vl.find(x=>x[0]===id); return v?{t:'vox',id:id,name:v[1]}:{t:'none'}; };
-    SLOTS=['acap','sing','loop','spoken','ssw','sss'].map(G).concat([V('hey'),V('yeah')],['spoken','ssw','sing','acap','sss','loop'].map(G),[V('whoa'),V('woo')]); slotSave(); }
+    SLOTS=['dk','ds','dc','dh','do','dt','dp','fxs'].map(G).concat(['acap','sing','ssw','sss','gtr','keys'].map(G),[V('hey'),V('yeah')]); slotSave(); }
   smpPaint(); setTimeout(smpPrefetch,3000);
 }
 async function smpPrefetch(){ // get a few sounds ready so the first press is instant
@@ -877,7 +877,7 @@ const VOXG={ riser:['breath','whisper','gasp','siren','oohup','sigh'], shout:['a
   vowel:['ah','oo','oh','aw','ae','choir','falsetto','gospel','lead_oh','male_ah','hum','stack','oohup','aahdown'], scat:['ba','bap','doo','doobie','dum','hoo','la','nana','scat','shabada','bbhat','bbkick','bbsnare'] };
 const VOXSPEC={ riser:{k:4,r:0,mode:'fixed',hold:2,level:.5,space:45,loops:1}, shout:{k:1,r:0,mode:'fixed',hold:1,level:.72,space:30,loops:1}, vowel:{k:2,r:0,mode:'sing',hold:8,level:.5,space:70,loops:2}, scat:{k:7,r:0,mode:'walk',hold:1,level:.55,space:30,loops:1}, sample:{k:1,r:0,mode:'fixed',hold:0,level:.62,space:35,loops:1} };
 let VOXOK=null, VOXS=[], voxT={A:null,B:null};
-const voxMode=()=>($('voxuse')&&$('voxuse').value)||'off', voxFreq=()=>(({rare:.25,some:.55,often:1,lots:1.7,max:2.6})[($('voxoften')&&$('voxoften').value)||'often']||1)*Math.max(.4,Math.min(2.5,tw('vox','all')));
+const voxRaw=()=>($('voxuse')&&$('voxuse').value)||'off', voxMode=()=>{ const v=voxRaw(); return v==='samples'?'all':v; }, voxSamplesOnly=()=>voxRaw()==='samples', voxFreq=()=>(({rare:.25,some:.55,often:1,lots:1.7,max:2.6})[($('voxoften')&&$('voxoften').value)||'often']||1)*Math.max(.4,Math.min(2.5,tw('vox','all')));
 function voxPrep(){ // which voices this build of Eight Bells has, which of your samples are short enough, and the starter pack
   try{ VOXOK=new Set(ev(decks[0],'Object.keys(VOXP)')); }catch(e){ VOXOK=new Set(); }
   VOXS=[]; if(voxMode()!=='all'){ pkClear(); return; }
@@ -893,7 +893,7 @@ function voxPick(kind){
   if(rep&&H.length&&Math.random()<(kind==='riser'?.35:.5)){ const w=H.length>1&&Math.random()<.6?H[H.length-1]:H[Math.floor(Math.random()*H.length)]; p=w; again=true; }
   if(!p){
     if(kind==='sample'){ p=smartSample(AU.on?D(AU.cur):(decks.find(playing)||decks[0])); if(!p) return null; }
-    else { if(!VOXOK) voxPrep(); const l=(VOXG[kind]||[]).filter(x=>VOXOK.has(x)); if(!l.length) return null; const id=l[Math.floor(Math.random()*l.length)]; p=[id,id]; }
+    else { if(voxSamplesOnly()) return null; if(!VOXOK) voxPrep(); const l=(VOXG[kind]||[]).filter(x=>VOXOK.has(x)); if(!l.length) return null; const id=l[Math.floor(Math.random()*l.length)]; p=[id,id]; }
     if(!H.some(h=>h[0]===p[0])){ H.push(p); if(H.length>3) H.shift(); } // keep a short list of hooks per kind
   }
   if(kind==='sample'){ const t=smpTune(p[0],AU.on?D(AU.cur):(decks.find(playing)||decks[0])); return Object.assign(p.slice(),{again:again,shift:t.shift,gain:t.gain,why:t.why}); }
@@ -961,7 +961,8 @@ function autoVox(c){ // vocals and samples on their own clock, so the "how often
   AU.voxAt=b+gap[0]+Math.floor(Math.random()*(gap[1]-gap[0]+1));
   if(Date.now()<(AU.voxUntil||0)) { AU.voxAt=b+1; return; }
   const pr=AU.slow||AU.e<.55?[['vowel',.75],['scat',.25]]:(AU.e>=.9?[['shout',.5],['scat',.3],['vowel',.2]]:[['shout',.4],['scat',.3],['vowel',.3]]), k=wpick(pr,q=>q[1]*tw('vox',q[0]))[0];
-  if(voxMode()==='all'&&VOXS.length&&Math.random()<.22*Math.min(2.2,tw('vox','sample'))) voxLoopEnd(c,'sample'); else voxLoopEnd(c,k);
+  if(voxSamplesOnly()){ if(VOXS.length) voxLoopEnd(c,'sample'); }
+  else if(voxMode()==='all'&&VOXS.length&&Math.random()<.22*Math.min(2.2,tw('vox','sample'))) voxLoopEnd(c,'sample'); else voxLoopEnd(c,k);
 }
 function autoStepSecs(c){ // wander through the patterns while a deck plays on its own
   const b=barsOf(c); if(b-AU.lastBar<AU.step) return;
@@ -1449,7 +1450,7 @@ $('go').addEventListener('click',()=>{
 });
 boot();
 // for tests
-window.__djTest={anaBuf:anaBuf,anaData:anaData,smpMeta:smpMeta,smartSample:smartSample,smpTune:smpTune,keyShift:keyShift,loopRate:loopRate,smAnalyseMissing:smAnalyseMissing,pkCtx:pkCtx,bpmHint:bpmHint,smmeta:smmeta,SLOTS:()=>SLOTS,smpHold:smpHold,smpInit:smpInit,smpDelay:smpDelay,smpSurprise:smpSurprise,smPick:smPick,unzipAudio:unzipAudio,phrasesJS:phrasesJS,PK:PK,pkPrep:pkPrep,TASTE:()=>TASTE,tasteFromReport:tasteFromReport,tasteLearn:tasteLearn,tagPick:tagPick,wpick:wpick,tw:tw,lenOf:lenOf,setPlay:setPlay,autoOn:autoOn,autoSay:autoSay,voxFire:voxFire,voxLoopEnd:voxLoopEnd,voxOff:voxOff,voxPrep:voxPrep,VOXG:VOXG,VOXS:()=>VOXS,planNext:planNext,LOG:LOG,TRK:TRK,buildReport:buildReport,markSet:markSet,makePlan:makePlan,nowText:nowText,nextText:nextText,warp:warp,rollFade:rollFade,fadeBars:fadeBars,EUPH:EUPH,CLUB:CLUB,bigBuild:bigBuild,lastTrack:lastTrack,matchKey:matchKey,barsOf:barsOf,gstepOf:gstepOf,pickGenre:pickGenre,energyAt:energyAt,SHAPES:SHAPES,GFX:GFX,setGfx:setGfx,startSwell:startSwell,swellTick:swellTick,freshDeck:freshDeck,swapSound:swapSound,autoFlair:autoFlair,autoStepSecs:autoStepSecs,autoMix:autoMix,STYLES:STYLES,AU:AU,autoOn:autoOn,timing:timing,barTime:barTime,PC:PC,stepGenre:stepGenre,decks:decks,S:S,knob:knob,knobB:knobB,onMidi:onMidi,onNote:onNote,applyMix:applyMix,cross:cross,MAP:()=>MAP};
+window.__djTest={voxPick:voxPick,anaBuf:anaBuf,anaData:anaData,smpMeta:smpMeta,smartSample:smartSample,smpTune:smpTune,keyShift:keyShift,loopRate:loopRate,smAnalyseMissing:smAnalyseMissing,pkCtx:pkCtx,bpmHint:bpmHint,smmeta:smmeta,SLOTS:()=>SLOTS,smpHold:smpHold,smpInit:smpInit,smpDelay:smpDelay,smpSurprise:smpSurprise,smPick:smPick,unzipAudio:unzipAudio,phrasesJS:phrasesJS,PK:PK,pkPrep:pkPrep,TASTE:()=>TASTE,tasteFromReport:tasteFromReport,tasteLearn:tasteLearn,tagPick:tagPick,wpick:wpick,tw:tw,lenOf:lenOf,setPlay:setPlay,autoOn:autoOn,autoSay:autoSay,voxFire:voxFire,voxLoopEnd:voxLoopEnd,voxOff:voxOff,voxPrep:voxPrep,VOXG:VOXG,VOXS:()=>VOXS,planNext:planNext,LOG:LOG,TRK:TRK,buildReport:buildReport,markSet:markSet,makePlan:makePlan,nowText:nowText,nextText:nextText,warp:warp,rollFade:rollFade,fadeBars:fadeBars,EUPH:EUPH,CLUB:CLUB,bigBuild:bigBuild,lastTrack:lastTrack,matchKey:matchKey,barsOf:barsOf,gstepOf:gstepOf,pickGenre:pickGenre,energyAt:energyAt,SHAPES:SHAPES,GFX:GFX,setGfx:setGfx,startSwell:startSwell,swellTick:swellTick,freshDeck:freshDeck,swapSound:swapSound,autoFlair:autoFlair,autoStepSecs:autoStepSecs,autoMix:autoMix,STYLES:STYLES,AU:AU,autoOn:autoOn,timing:timing,barTime:barTime,PC:PC,stepGenre:stepGenre,decks:decks,S:S,knob:knob,knobB:knobB,onMidi:onMidi,onNote:onNote,applyMix:applyMix,cross:cross,MAP:()=>MAP};
 })();
 </script>
 </body>
