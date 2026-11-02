@@ -489,7 +489,7 @@ function mqFit(sp,txt){ // long status text: a continuous ticker, or shrink it t
     else { if(sp._sc&&sp._sc!==1){ sp._sc=1; i.style.fontSize=''; } sp.classList.toggle('clip',over); }
   }
 }
-function autoSay(t,nx){ const a=$('auton'), b=$('autonx'); if(!a||!b){ const e=$('autost'); if(e) e.textContent=t; return; } const n=nx!==undefined?nx:''; a.firstChild.children[0].textContent=t; b.firstChild.children[0].textContent=n; mqFit(a,t); mqFit(b,n); }
+function autoSay(t,nx){ if(t&&!/^(Synths|Samples) \u00b7 /.test(t)) t=(SG.on?'Samples':(AU.on?'Synths':''))+(SG.on||AU.on?' \u00b7 ':'')+t; const a=$('auton'), b=$('autonx'); if(!a||!b){ const e=$('autost'); if(e) e.textContent=t; return; } const n=nx!==undefined?nx:''; a.firstChild.children[0].textContent=t; b.firstChild.children[0].textContent=n; mqFit(a,t); mqFit(b,n); }
 // ---- Taste memory: thumbs teach Auto DJ what to play more or less of (kept on this device)
 const TK='ebdj.taste', TMAX=3;
 let TASTE={v:1,g:{},grp:{},sty:{},open:{},eng:{},vox:{},sec:{},man:{},imp:[],up:0,down:0};
