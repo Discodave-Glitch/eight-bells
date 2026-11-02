@@ -217,8 +217,8 @@ body.nolbl .bt{display:none}
 <div class="settabs" id="settabs" role="tablist"><button type="button" role="tab" data-sec="music">Music</button><button type="button" role="tab" data-sec="samples">Samples and pads</button><button type="button" role="tab" data-sec="look">Look and layout</button><button type="button" role="tab" data-sec="ctrl">Controller</button><button type="button" role="tab" data-sec="rec">Recording and report</button></div>
     <div class="setsec" data-sec="music"><p class="sechint">What Auto DJ plays and how it sounds.</p>
     <div class="row"><b class="chip">Intro music</b><label class="chip" style="cursor:pointer"><input type="checkbox" id="exauto" checked> Play the Eight Bells example song when the page opens (untick for silence at start)</label></div>
-    <div class="row"><b class="chip">Music made by</b><select id="musicsrc" aria-label="What Auto DJ plays"><option value="eb">Eight Bells sounds (synth tunes)</option><option value="songs">Sample songs (built from the sample library)</option><option value="both" selected>Both (takes turns: sample songs, then Eight Bells tunes)</option><option value="random">Random (DJ's choice: mixes it up, random order and lengths)</option></select><select id="sglen" aria-label="How long each sample song is"><option value="short">Short songs (about 1 to 1.5 min)</option><option value="medium" selected>Medium songs (about 2 to 3 min)</option><option value="long">Long songs (about 3 to 4 min)</option><option value="test" hidden>Test (20 s)</option></select><label class="chip">Hook words <input id="sghook" type="text" value="EIGHT BELLS DJ" maxlength="120" size="22" aria-label="Words said in the choruses of sample songs. Separate different hooks with commas. Leave empty for none"></label><select id="sgvox" aria-label="Vocals in sample songs"><option value="mix" selected>Vocals: mixed (sung samples, Speak &amp; Spell, or none)</option><option value="sung">Vocals: sung samples only</option><option value="ss">Vocals: Speak &amp; Spell hook only</option><option value="none">Vocals: none</option><option value="mixns">Vocals: mixed, Speak &amp; Spell off (sung samples or none)</option><option value="dj">Vocals: DJ's choice (random each song)</option></select><label class="chip"><input type="checkbox" id="sgmine" checked> Use my samples too</label><button id="sgskip" type="button" disabled>Next song</button></div>
-    <div class="chip" style="white-space:normal">Hook words: type what the choruses should say. Put a comma between different hooks and the DJ picks one for each song (for example: EIGHT BELLS DJ, PARTY TIME, ONE TWO THREE). Speak &amp; Spell only knows about 160 real words and the numbers, so any other word is spelled out letter by letter. To make one say a word, add a short recording of it in My samples and name the file after the word (BELLS.wav says BELLS).</div>
+    <div class="row"><b class="chip">Music made by</b><select id="musicsrc" aria-label="What Auto DJ plays"><option value="eb">Eight Bells sounds (synth tunes)</option><option value="songs">Sample songs (built from the sample library)</option><option value="both" selected>Both (takes turns: sample songs, then Eight Bells tunes)</option><option value="random">Random (DJ's choice: mixes it up, random order and lengths)</option></select><select id="sglen" aria-label="How long each sample song is"><option value="short">Short songs (about 1 to 1.5 min)</option><option value="medium" selected>Medium songs (about 2 to 3 min)</option><option value="long">Long songs (about 3 to 4 min)</option><option value="test" hidden>Test (20 s)</option></select><label class="chip">Hook words <input id="sghook" type="text" value="EIGHT BELLS DJ" maxlength="120" size="22" aria-label="Words said in the choruses of sample songs. Separate different hooks with commas. Leave empty for none"></label><select id="sghookv" aria-label="Voice for the hook words"><option value="mix" selected>Hook voice: Speak &amp; Spell words, robot for any other word</option><option value="robot">Hook voice: robot voice for every word</option><option value="ss">Hook voice: Speak &amp; Spell only (spells other words)</option></select><button id="sghear" type="button" title="Hear the hook words">▶ Hear hook</button><label class="chip" hidden></label><select id="sgvox" aria-label="Vocals in sample songs"><option value="mix" selected>Vocals: mixed (sung samples, Speak &amp; Spell, or none)</option><option value="sung">Vocals: sung samples only</option><option value="ss">Vocals: Speak &amp; Spell hook only</option><option value="none">Vocals: none</option><option value="mixns">Vocals: mixed, Speak &amp; Spell off (sung samples or none)</option><option value="dj">Vocals: DJ's choice (random each song)</option></select><label class="chip"><input type="checkbox" id="sgmine" checked> Use my samples too</label><button id="sgskip" type="button" disabled>Next song</button></div>
+    <div class="chip" style="white-space:normal">Hook words: type what the choruses should say. Put a comma between different hooks and the DJ picks one for each song (for example: EIGHT BELLS DJ, PARTY TIME, ONE TWO THREE). Speak &amp; Spell only knows about 160 real words and the numbers. Any other word is said by the robot voice (or spelled out letter by letter if you choose Speak &amp; Spell only in the Hook voice menu). You can also make one say a word with your own voice: add a short recording of it in My samples and name the file after the word (BELLS.wav says BELLS).</div>
     <div class="chip">Sample songs: every song picks a genre, a tempo and key that fit together, real drum kits playing that genre's rhythm, a sub bass tuned to the key, chord loops from the library, and the hook words in the choruses. Songs hand over into each other and the tempo wanders slowly. Choose "Sample songs", then press Auto DJ.</div>
     <div class="row"><b class="chip">Vocals and samples</b><select id="voxuse" aria-label="Vocals and samples Auto DJ may use"><option value="off">Off</option><option value="voices">Built-in voices</option><option value="all" selected>Built-in voices + samples (starter pack and mine)</option><option value="samples">Samples only (starter pack and mine, no built-in voices)</option><option value="dj">DJ's choice (random mix, changes every few minutes)</option></select><select id="voxoften" aria-label="How often Auto DJ uses vocals and samples"><option value="rare">Rarely</option><option value="some">Now and then</option><option value="often" selected>Often (every 6-10 bars)</option><option value="lots">Very often (every 3-6 bars)</option><option value="max">Non-stop (every 2-4 bars)</option><option value="dj">DJ's choice (random, changes every few minutes)</option></select><label class="chip"><input type="checkbox" id="voxrep" checked> Repeat favourite phrases</label></div>
     <div class="row"><b class="chip">Sample volume</b><input type="range" id="smpvol" min="10" max="100" value="60" aria-label="How loud Auto DJ and the pads play samples"><span id="smpvolv" class="chip">60%</span></div>
@@ -433,8 +433,12 @@ function setBpm(d,v){ v=Math.max(40,Math.min(240,Math.round(v))); ev(d,"(functio
 function getBpm(d){ return ev(d,'state.bpm'); }
 function newBase(d){ d.base=getBpm(d); }
 function playing(d){ return !!ev(d,'playing'); }
-function togglePlay(d){ if(SG.on&&SG.cur&&SG.cur.deck===d) return; exampleStop(); ev(d,"(function(){ if(playing){ stopPlay(); } else { startPlay(); } })()"); }
-function setPlay(d,on){ if(playing(d)!==on) togglePlay(d); }
+// Pause while Auto DJ runs: freeze both decks' audio clocks together (so songs, tunes and timing all hold their place), press again to carry on
+function autoResume(){ if(!S.apaused) return; S.apaused=false; decks.forEach(dk=>ev(dk,"(function(){ try{ ac.resume(); }catch(e){} })()")); }
+function autoPause(){ if(S.apaused){ autoResume(); return; } S.apaused=true; decks.forEach(dk=>ev(dk,"(function(){ try{ ac.suspend(); }catch(e){} })()")); }
+function togglePlayRaw(d){ exampleStop(); ev(d,"(function(){ if(playing){ stopPlay(); } else { startPlay(); } })()"); }
+function togglePlay(d){ if(SG.on||AU.on){ autoPause(); return; } autoResume(); togglePlayRaw(d); } // the PLAY button: pauses everything while Auto DJ runs
+function setPlay(d,on){ if(playing(d)!==on) togglePlayRaw(d); }
 function setGenre(d,id){ d.genre=id; ev(d,"(function(){ state.section=null; LV.next=null; setGenre('"+id+"'); if(typeof renderAll==='function') renderAll(); })()"); newBase(d); const s=$('deck'+d.id)&&$('deck'+d.id).querySelector('select'); if(s) s.value=id; }
 function randGenre(d){ ev(d,"$('gsurp').click()"); d.genre=ev(d,'state.genre'); $('deck'+d.id).querySelector('select').value=d.genre; newBase(d); }
 function newPattern(d){ ev(d,"$('gen').click()"); newBase(d); }
@@ -590,7 +594,7 @@ async function pkBuild(){
     cb.addEventListener('change',()=>{ const o=pkOn(); o[g.id]=cb.checked?1:0; try{ localStorage.setItem('ebdj.pack',JSON.stringify(o)); }catch(e){} pkPrep(false).catch(()=>{}); });
     const pv=document.createElement('button'); pv.type='button'; pv.textContent='▶'; pv.title='Hear one'; pv.setAttribute('aria-label','Hear one from '+g.name); pv.addEventListener('click',e=>{ e.preventDefault(); e.stopPropagation(); pkPreview(g); });
     l.appendChild(cb); l.appendChild(document.createTextNode(g.name+' ('+g.clips.length+')'+(g.so?' pads only':''))); l.appendChild(pv); box.appendChild(l); });
-  $('pkcredt').innerHTML='Acapella phrases: Andres Franco and Snowflake (Emily Richards), from ccMixter, licensed CC BY 3.0 (creativecommons.org/licenses/by/3.0/us/). They were shortened into phrases and converted to small mono files. Speak and Spell groups: Texas Instruments Speak &amp; Spell (1978) sample library produced by Motion Laboratories. Singing, loops and spoken word: SampleSwap vocal sampler (NASA recordings are public domain). Instruments (guitars, keys, synths, bass, flute, horns, orchestral, world), drum machine, kit and percussion samples and sound effects were supplied by the app owner as royalty free; the files carried few or no licence notes, so check before you publish a recording that uses them.';
+  $('pkcredt').innerHTML='Robot voice: eSpeak by Jonathan Duddington, compiled to JavaScript as meSpeak.js by Norbert Landsteiner (masswerk.at/mespeak) and packaged by Mikola Lysenko; GNU GPL v3 or later (see vendor/mespeak/NOTICE.txt). Acapella phrases: Andres Franco and Snowflake (Emily Richards), from ccMixter, licensed CC BY 3.0 (creativecommons.org/licenses/by/3.0/us/). They were shortened into phrases and converted to small mono files. Speak and Spell groups: Texas Instruments Speak &amp; Spell (1978) sample library produced by Motion Laboratories. Singing, loops and spoken word: SampleSwap vocal sampler (NASA recordings are public domain). Instruments (guitars, keys, synths, bass, flute, horns, orchestral, world), drum machine, kit and percussion samples and sound effects were supplied by the app owner as royalty free; the files carried few or no licence notes, so check before you publish a recording that uses them.';
 }
 // ---- Sample analysis: what each sound is (hit, word, phrase, sung, loop), how bright and busy it is, its pitch and, for loops, tempo
 function anaFFT(re,im){ const n=re.length; for(let i=1,j=0;i<n;i++){ let b=n>>1; for(;j&b;b>>=1) j^=b; j^=b; if(i<j){ let t=re[i]; re[i]=re[j]; re[j]=t; t=im[i]; im[i]=im[j]; im[j]=t; } }
@@ -1148,7 +1152,7 @@ function stepGenre(dir){
 function setFocus(id){ S.focus=id; decks.forEach(x=>$('deck'+x.id).classList.toggle('focus',x.id===id)); const b=$('focusb'); }
 function ctlPress(id){
   if(id==='markgood') return markSet(true); if(id==='markbad') return markSet(false);
-  if(id==='auto') return autoToggle(); if(id==='prev') return syncTo(decks[0]); if(id==='next') return syncTo(decks[1]); if(id==='playall') return bothPlay(); if(id==='stopall') return bothStop(); if(id==='focus') return sync();
+  if(id==='auto') return autoToggle(); if(id==='prev') return syncTo(decks[0]); if(id==='next') return syncTo(decks[1]); if(id==='playall') return bothPlay(); if(id==='stopall') return stopBothPress(); if(id==='focus') return sync();
   const p=id.split(':'), d=D(p[1]);
   if(p[0]==='play'){ if(d.syncing){ clearTimeout(d.syncT); d.syncing=false; const e=document.querySelector('[data-ctl="sync:'+d.id+'"]'); if(e) e.classList.remove('on'); } else togglePlay(d); } else if(p[0]==='sync') syncTo(d); else if(p[0]==='mode'){ d.page=(d.page+1)%4; paintPads(); } else if(p[0]==='sec') section(d,SECS[+p[2]][0]);
 }
@@ -1180,6 +1184,7 @@ function paint(){
     if(!st) return;
     // sample songs play through the deck's audio without its own pattern player, so show the song on the deck instead of "stopped"
     let sgp=-1; if(SG.on&&SG.cur&&SG.cur.deck===d&&SG.cur.s&&SG.cur.s.plan){ const pl=SG.cur.s.plan; let tnow=0; try{ tnow=+ev(d,'ac.currentTime')||0; }catch(e){} if(tnow>=SG.cur.start-.05){ st.p=true; st.b=Math.round(pl.T); st.g=String(pl.g.name).replace(/&amp;/g,'&'); st.s=null; st.n=null; sgp=Math.max(0,Math.min(1,(tnow-SG.cur.start)/(pl.total*pl.barSec))); } }
+    if(S.apaused&&(SG.on||AU.on)) st.p=false; else if(S.apaused) autoResume();
     const sn={intro:'Intro',bld:'Build-up',drop:'Drop',chorus:'Chorus',brk:'Breakdown',bridge:'Bridge',half:'Half-time',allt:'All tracks',outro:'Outro'};
     $('st'+d.id).textContent=st.g+' · '+(sgp>=0?'sample song '+SG.cur.n:(st.s?sn[st.s]:'full pattern'))+(st.n?' · next: '+sn[st.n]:'')+' · '+(st.p?'playing':'stopped');
     $('bp'+d.id).textContent=st.b;
@@ -1228,11 +1233,23 @@ function onMidi(e){
     const cc=m[1], c=PC.cc, ka=c.k.indexOf(cc), kb=c.kb.indexOf(cc);
     if(ka>=0) knob(ka,v/127);
     else if(kb>=0) knobB(kb,v/127);
-    else if(v>0){ if(cc===c.prev) syncTo(decks[0]); else if(cc===c.next) syncTo(decks[1]); else if(cc===c.play) bothPlay(); else if(cc===c.stop) bothStop(); else if(cc===c.rec) ctlPress('focus'); }
+    else if(v>0){ if(cc===c.prev) syncTo(decks[0]); else if(cc===c.next) syncTo(decks[1]); else if(cc===c.play) bothPlay(); else if(cc===c.stop) stopBothPress(); else if(cc===c.rec) ctlPress('focus'); }
   }
 }
 function bothPlay(){ const any=decks.some(playing); if(any){ return; } decks.forEach(d=>setPlay(d,true)); }
 function bothStop(){ decks.forEach(d=>setPlay(d,false)); }
+// Stop both: one press lets the current song or track finish and then stops; a second press stops straight away
+function stopLabel(t){ const b=$('bothstop'); if(b) b.textContent=t; }
+function stopNow(){ autoResume(); clearTimeout(S.spT); S.spend=false; stopLabel('Stop both'); bothModeStop(); if(SG.on){ SG.stopEnd=false; songOn(false); } if(AU.on) autoOn(false); exampleStop(); bothStop(); try{ autoSay(''); }catch(e){} }
+function stopBothPress(){
+  const auto=!!(BOTH.t||SG.on||AU.on);
+  if(!auto){ clearTimeout(S.spT); S.spend=false; stopLabel('Stop both'); exampleStop(); bothStop(); return; }
+  if(S.spend){ stopNow(); return; }
+  S.spend=true; stopLabel('Stop now'); bothModeStop();
+  if(SG.on&&SG.cur){ SG.stopEnd=true; clearTimeout(SG.wait); clearInterval(SG.xfT); const cur=SG.cur; let ms=8000; try{ ms=Math.max(800,(cur.start+cur.s.dur-0.4-sgNow(cur.deck))*1000); }catch(e){} S.spT=setTimeout(stopNow,ms); try{ sgSay('Stopping after this song. Press Stop now to stop straight away.'); }catch(e){} }
+  else if(AU.on){ AU.max=Math.max(1,AU.tr||1); AU.endAt=0; AU.stopEnd=true; S.spT=setInterval(()=>{ if(!AU.on||AU.phase==='finished'||AU.phase==='idle'){ clearInterval(S.spT); if(S.spend) stopNow(); } },1500); try{ autoSay('Stopping after this track. Press Stop now to stop straight away.'); }catch(e){} }
+  else stopNow();
+}
 let midiAcc=null;
 function listInputs(){ if(PC.imported&&$('padnote')) $('padnote').textContent='Using the pad numbers you taught Eight Bells Pad mode.';
   const ins=midiAcc?[...midiAcc.inputs.values()]:[];
@@ -1322,6 +1339,8 @@ function wireUI(){
   document.addEventListener('pointermove',e=>{ const p=e.target.closest&&e.target.closest('.plat'); if(!p||!p._drag) return; const a=Math.atan2(e.clientY-p._cy,e.clientX-p._cx); let da=(a-p._a)*180/Math.PI; if(da>180) da-=360; if(da<-180) da+=360; p._a=a; if(!da) return; const d=D(p.dataset.d); if(scrMode()){ const now=performance.now(), dt=Math.max(8,now-(p._tm||p._tt))/1000; p._tm=now; p._moved+=Math.abs(da); scrMove(d,da/360/dt); scrTurn(d,da); } else jog(d,da*0.25); });
   const pup=e=>{ const p=e.target.closest&&e.target.closest('.plat'); if(p){ const was=p._drag; p._drag=false; p._tm=0; if(was&&scrMode()){ const d=D(p.dataset.d); scrStop(d); if(p._moved<6&&e.type==='pointerup') scrTap(d); } } };
   document.addEventListener('pointerup',pup); document.addEventListener('pointercancel',pup);
+  { const hv=$('sghookv'); try{ const v=localStorage.getItem('ebdj.sghookv'); if(v&&[...hv.options].some(o=>o.value===v)) hv.value=v; }catch(e){} hv.addEventListener('change',()=>{ try{ localStorage.setItem('ebdj.sghookv',hv.value); }catch(e){} });
+    $('sghear').addEventListener('click',async()=>{ const b=$('sghear'); b.disabled=true; const old=b.textContent; b.textContent='Loading...'; try{ const man=await pkMan(); SG.mineOn=!($('sgmine')&&!$('sgmine').checked); SG.mine=SG.mineOn?sgMine():[]; const clips=man?await sgHookClips(man):[]; if(!clips.length){ b.textContent='Nothing to say'; } else { const ctx=pkCtx(); if(ctx.state==='suspended') await ctx.resume(); let t=ctx.currentTime+.1; for(const h of clips){ const bf=await sgBuf(h.c), d=bf.getChannelData(0), ab=ctx.createBuffer(1,d.length,bf.sampleRate); ab.copyToChannel(d,0); const src=ctx.createBufferSource(); src.buffer=ab; src.playbackRate.value=h.spell?1.12:1; const g=ctx.createGain(); g.gain.value=.9; src.connect(g); g.connect(ctx.destination); src.start(t); t+=Math.max(.52,ab.duration); } b.textContent='Playing...'; await new Promise(z=>setTimeout(z,Math.max(600,(t-ctx.currentTime)*1000))); } }catch(e){ b.textContent='Could not play'; await new Promise(z=>setTimeout(z,1200)); } b.textContent=old; b.disabled=false; }); }
   try{ const v=localStorage.getItem('ebdj.platmode'); if(v&&[...$('platmode').options].some(o=>o.value===v)) $('platmode').value=v; }catch(e){} $('platmode').addEventListener('change',()=>{ try{ localStorage.setItem('ebdj.platmode',$('platmode').value); }catch(e){} }); setTimeout(scrWarm,3000); $('platmode').addEventListener('change',scrWarm);
   try{ const v=localStorage.getItem('ebdj.barmode'); if(v&&[...$('barmode').options].some(o=>o.value===v)) $('barmode').value=v; }catch(e){} $('barmode').addEventListener('change',()=>{ try{ localStorage.setItem('ebdj.barmode',$('barmode').value); }catch(e){} });
   { const km=$('knobmode'); try{ const v=localStorage.getItem('ebdj.knobmode'); if(v&&[...km.options].some(o=>o.value===v)) km.value=v; }catch(e){} const pk=()=>document.body.classList.toggle('knobcol',km.value==='col'); pk(); km.addEventListener('change',()=>{ try{ localStorage.setItem('ebdj.knobmode',km.value); }catch(e){} pk(); }); }
@@ -1546,7 +1565,7 @@ function wireUI(){
   $('mkgood').addEventListener('click',()=>markSet(true)); $('mkbad').addEventListener('click',()=>markSet(false)); $('rptcopy').addEventListener('click',reportCopy); $('rptshare').addEventListener('click',reportShare); $('rptdl').addEventListener('click',reportDownload); $('ctlp').addEventListener('toggle',()=>{ refreshReport(); tasteSum(); });
   try{ const r=JSON.parse(localStorage.getItem('ebdj.report')||'null'); if(r&&r.LOG&&!LOG.length){ r.LOG.forEach(x=>LOG.push(x)); (r.TRK||[]).forEach(x=>TRK.push(x)); AU.setInfo=r.set||''; AU.tStart=r.t0||0; refreshReport(); } }catch(e){}
   $('auto').addEventListener('click',autoToggle); if($('sgskip')) $('sgskip').addEventListener('click',sgSkip); $('autolen').addEventListener('change',()=>{ if(AU.on){ AU.len=+$('autolen').value; AU.fade=Math.min(32,Math.floor(AU.len/2)); } });
-  $('bothplay').addEventListener('click',bothPlay); $('bothstop').addEventListener('click',bothStop);
+  $('bothplay').addEventListener('click',bothPlay); $('bothstop').addEventListener('click',stopBothPress);
   $('wiz').addEventListener('click',()=>learnStart(wizList()));
   $('teachA').addEventListener('click',()=>{ $('msg').textContent='Set the pad to knob bank A, then turn its knobs 1 to 8 one at a time, in order.'; learnStart(['xf','mv','bass:A','bass:B','mid:A','mid:B','treb:A','treb:B']); });
   $('teachB').addEventListener('click',()=>{ $('msg').textContent='Set the pad to knob bank B, then turn its knobs 1 to 8 one at a time, in order.'; learnStart(['xf','mv','vol:A','vol:B','filt:A','filt:B','tempo:A','tempo:B']); }); $('learn').addEventListener('click',()=>learnStart(null));
@@ -1562,7 +1581,7 @@ $('go').addEventListener('click',()=>{
   $('start').hidden=true; $('app').hidden=false;
   if(PC.imported) $('padnote').textContent='Using the pad numbers you taught Eight Bells Pad mode.';
   wireUI(); sgWire(); applyMix(); paint(); setInterval(paint,200);
-  S.t0=0; S.el=0; const clk=()=>{ const pl=!!(AU.on||SG.on||BOTH.t); if(pl&&!S.t0) S.t0=Date.now()-S.el; else if(!pl&&S.t0){ S.el=Date.now()-S.t0; S.t0=0; } const t=Math.floor((S.t0?Date.now()-S.t0:S.el)/1000),h=Math.floor(t/3600),m=Math.floor(t/60)%60,sc=t%60; $('clk').textContent=(h?h+':'+String(m).padStart(2,'0'):m)+':'+String(sc).padStart(2,'0'); }; window.clkReset=()=>{ S.el=0; S.t0=0; clk(); }; clk(); setInterval(clk,500); $('clk').addEventListener('click',()=>{ S.el=0; if(S.t0) S.t0=Date.now(); clk(); }); midiInit(); smpInit(); exampleStart();
+  S.t0=0; S.el=0; const clk=()=>{ const pl=!!(AU.on||SG.on||BOTH.t)&&!S.apaused; if(pl&&!S.t0) S.t0=Date.now()-S.el; else if(!pl&&S.t0){ S.el=Date.now()-S.t0; S.t0=0; } const t=Math.floor((S.t0?Date.now()-S.t0:S.el)/1000),h=Math.floor(t/3600),m=Math.floor(t/60)%60,sc=t%60; $('clk').textContent=(h?h+':'+String(m).padStart(2,'0'):m)+':'+String(sc).padStart(2,'0'); }; window.clkReset=()=>{ S.el=0; S.t0=0; clk(); }; clk(); setInterval(clk,500); $('clk').addEventListener('click',()=>{ S.el=0; if(S.t0) S.t0=Date.now(); clk(); }); midiInit(); smpInit(); exampleStart();
 });
 boot();
 // for tests
@@ -1587,7 +1606,19 @@ function sgEuclid(k,n,rot){ const o=[]; for(let j=0;j<k;j++) o.push((Math.floor(
 function sgSteps(def,base){ let st=[], f=def.fixed; if(f&&f.length&&Array.isArray(f[0])) f=sgPick(f); if(f) st=f.slice();
   if(def.k){ const k=Math.round(sgRnd(def.k[0],def.k[1])), r=(!def.rot||def.rot==='any')?Math.floor(Math.random()*base):sgPick(def.rot); if(k>0) sgEuclid(Math.min(k,base),base,r).forEach(x=>st.push(x)); }
   return Array.from(new Set(st.filter(x=>x>=0&&x<base))).sort((a,b)=>a-b); }
-async function sgBuf(c){ if(c.my){ try{ await ev(decks[0],"sampBuf('"+c.id+"')"); }catch(e){} const b=decks[0].win.eval("SBUF.get('"+c.id+"')"); if(!b) throw new Error('sample not ready'); return b; } if(SG.bufs.has(c.id)) return SG.bufs.get(c.id); const r=await fetch(PKBASE+c.f); if(!r.ok) throw new Error('missing '+c.f); const b=await pkCtx().decodeAudioData(await r.arrayBuffer()); SG.bufs.set(c.id,b); if(SG.bufs.size>160) SG.bufs.delete(SG.bufs.keys().next().value); return b; }
+// ---- Robot voice: eSpeak (meSpeak build, GPL, see vendor/mespeak) says any word. It loads the first time it is needed (about 5 MB) and the words are cached.
+const ROBO={p:null,cache:new Map(),fail:false};
+function roboLoad(){ if(ROBO.p) return ROBO.p; ROBO.p=(async()=>{ try{ const g=f=>fetch('vendor/mespeak/'+f).then(r=>{ if(!r.ok) throw new Error(f); return f.endsWith('.json')?r.json():r.text(); });
+    const [a,b,c,d]=await Promise.all(['ESpeak.js','index.js','mespeak_config.json','en-us.json'].map(g)); const mk=(src,req)=>{ const m={exports:{}}; new Function('module','exports','require',src)(m,m.exports,req); return m.exports; };
+    const ES=mk(a,()=>{}), me=mk(b,n=>n==='./ESpeak.js'?ES:{}); me.loadConfig(c); me.loadVoice(d); return me; }catch(e){ console.warn('robot voice unavailable',e); ROBO.fail=true; return null; } })(); return ROBO.p; }
+async function roboWord(word){ const key=String(word).toLowerCase(); if(ROBO.cache.has(key)) return ROBO.cache.get(key); const me=await roboLoad(); if(!me) return null; let arr=null; try{ arr=me.speak(key,{rawdata:'array',voice:'en/en-us',pitch:28,speed:125,amplitude:100,wordgap:0}); }catch(e){} if(!arr||arr.length<200) return null;
+  const u=new Uint8Array(arr), dv=new DataView(u.buffer,u.byteOffset,u.byteLength); let p=12, sr=22050, off=44, len=u.length-44; while(p+8<=u.length){ const id=String.fromCharCode(u[p],u[p+1],u[p+2],u[p+3]), sz=dv.getUint32(p+4,true); if(id==='fmt ') sr=dv.getUint32(p+12,true); if(id==='data'){ off=p+8; len=Math.min(sz,u.length-off); break; } p+=8+sz+(sz&1); }
+  const n=len>>1; let x=new Float32Array(n); for(let i=0;i<n;i++) x[i]=dv.getInt16(off+2*i,true)/32768;
+  let a0=0, a1=n-1; const th=.01; while(a0<n&&Math.abs(x[a0])<th) a0++; while(a1>a0&&Math.abs(x[a1])<th) a1--; x=x.slice(Math.max(0,a0-80),Math.min(n,a1+400)); // trim silence, keep a short tail
+  for(let i=0;i<x.length;i+=2){ const h=x[i]; if(i+1<x.length) x[i+1]=h; } for(let i=0;i<x.length;i++) x[i]=Math.round(x[i]*40)/40; // gritty sample-and-hold and coarse levels: that old talking-toy sound
+  let pk=0; for(let i=0;i<x.length;i++) if(Math.abs(x[i])>pk) pk=Math.abs(x[i]); const g=pk?.9/pk:1; for(let i=0;i<x.length;i++) x[i]*=g; const fo=Math.min(300,x.length>>2); for(let i=0;i<fo;i++) x[x.length-1-i]*=i/fo;
+  const buf={getChannelData:()=>x,sampleRate:sr,length:x.length,duration:x.length/sr,numberOfChannels:1}; const clip={id:'rb_'+key,name:word,d:x.length/sr,rb:true,buf:buf}; ROBO.cache.set(key,clip); return clip; }
+async function sgBuf(c){ if(c.rb) return c.buf; if(c.my){ try{ await ev(decks[0],"sampBuf('"+c.id+"')"); }catch(e){} const b=decks[0].win.eval("SBUF.get('"+c.id+"')"); if(!b) throw new Error('sample not ready'); return b; } if(SG.bufs.has(c.id)) return SG.bufs.get(c.id); const r=await fetch(PKBASE+c.f); if(!r.ok) throw new Error('missing '+c.f); const b=await pkCtx().decodeAudioData(await r.arrayBuffer()); SG.bufs.set(c.id,b); if(SG.bufs.size>160) SG.bufs.delete(SG.bufs.keys().next().value); return b; }
 const sgBase=(man,id)=>{ const l=(man.groups.find(g=>g.id===id)||{clips:[]}).clips; return SG.only?l.filter(c=>SG.only.has(c.id)):l; }; // SG.only: used by tests and demos to build songs from a chosen set of clips
 SG.used=[]; SG.lastGrps=[]; SG.lastFam=''; SG.lastHook='';
 const sgFresh=list=>{ const f=list.filter(c=>SG.used.indexOf(c.id)<0); return f.length>=Math.min(3,list.length)?f:list; };
@@ -1643,12 +1674,14 @@ function sgChooseVocals(man,key,minor){ const out=[];
   out.sort((a,b)=>b.sc-a.sc); const res=[], seen=new Set(); for(const o of out){ if(seen.has(o.c.id)) continue; seen.add(o.c.id); res.push(o); if(res.length>=6) break; }
   if(res.length<2) return []; const a=sgPick(res); let b=sgPick(res.filter(x=>x!==a)); return [a,b]; }
 function sgVoxMode(){ let v=($('sgvox')&&$('sgvox').value)||'mix'; if(v==='dj') v=sgPick(['mix','mix','mixns','sung','ss','none']); if(v==='mixns'){ const m=sgPick(['none','sung','sung','sung']); return m; } if(v!=='mix') return v; let m=sgPick(['none','none','none','sung','sung','sung','ss','sung']); if(m===SG.lastHook&&m!=='none') m=sgPick(['none','sung','ss']); return m; }
-async function sgHookClips(man){ const phr=(($('sghook')&&$('sghook').value)||'').toUpperCase().split(/[,;\/|]+/).map(x=>x.trim()).filter(Boolean); if(!phr.length) return []; const txt=sgPick(phr); const out=[], ssn=sgGroup(man,'ssn'), ssw=sgGroup(man,'ssw'), ssl=sgGroup(man,'ssl');
-  if(txt==='EIGHT BELLS DJ'&&Math.random()<.65){ const pool=sgFresh(ssw.filter(x=>x.d<1&&x.d>.25)); const w=[]; while(w.length<3&&pool.length) w.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]); sgNote(w.map(x=>x.id)); return w.map(c=>({c:c,spell:false})); } // mix it up: three random Speak & Spell words
-  for(const tok of txt.split(/\s+/)){ let c=null; if(!c&&SG.mineOn){ const mm=(SG.mine||[]).find(x=>String(x.name).toUpperCase().replace(/\.[A-Z0-9]+$/,'').trim()===tok&&x.d<2.5); if(mm) c=mm; } if(!c&&SGNUM[tok]) c=ssn.find(x=>x.name.toUpperCase()==='NUMBER '+tok); if(!c) c=ssw.find(x=>x.name.toUpperCase()===tok&&x.d<1);
-    if(!c&&!SGNUM[tok]){ const W=n=>ssw.find(x=>x.name.toUpperCase()===n), base=tok.replace(/'/g,'').replace(/S$/,''); c=(base!==tok&&W(base))||null; // plural -> the single word
+async function sgHookClips(man){ const phr=(($('sghook')&&$('sghook').value)||'').toUpperCase().split(/[,;\/|]+/).map(x=>x.trim()).filter(Boolean); if(!phr.length) return []; const txt=sgPick(phr), hv=($('sghookv')&&$('sghookv').value)||'mix'; const out=[], ssn=sgGroup(man,'ssn'), ssw=sgGroup(man,'ssw'), ssl=sgGroup(man,'ssl');
+  if(txt==='EIGHT BELLS DJ'&&hv==='ss'&&Math.random()<.65){ const pool=sgFresh(ssw.filter(x=>x.d<1&&x.d>.25)); const w=[]; while(w.length<3&&pool.length) w.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]); sgNote(w.map(x=>x.id)); return w.map(c=>({c:c,spell:false})); } // mix it up: three random Speak & Spell words
+  for(const tok of txt.split(/\s+/)){ let c=null; if(!c&&SG.mineOn){ const mm=(SG.mine||[]).find(x=>String(x.name).toUpperCase().replace(/\.[A-Z0-9]+$/,'').trim()===tok&&x.d<2.5); if(mm) c=mm; } if(!c&&hv==='robot'){ const rb=await roboWord(tok); if(rb) c=rb; }
+    if(!c&&hv!=='robot'&&SGNUM[tok]) c=ssn.find(x=>x.name.toUpperCase()==='NUMBER '+tok); if(!c&&hv!=='robot') c=ssw.find(x=>x.name.toUpperCase()===tok&&x.d<1);
+    if(!c&&hv!=='robot'&&!SGNUM[tok]){ const W=n=>ssw.find(x=>x.name.toUpperCase()===n), base=tok.replace(/'/g,'').replace(/S$/,''); c=(base!==tok&&W(base))||null; // plural -> the single word
       if(!c) for(let i=3;i<=tok.length-3&&!c;i++){ const x=W(tok.slice(0,i))||ssn.find(q=>q.name.toUpperCase()==='NUMBER '+tok.slice(0,i)), y=W(tok.slice(i)); if(x&&y){ out.push({c:x,spell:false},{c:y,spell:false}); c='done'; } } // two words glued together
       if(c==='done') continue; }
+    if(!c&&hv!=='ss'&&/[A-Z]{2}/.test(tok)){ const rb=await roboWord(tok); if(rb) c=rb; }
     if(c) out.push({c:c,spell:false}); else for(const ch of tok){ const l=ssl.find(x=>x.name.toUpperCase()==='LETTER '+ch); if(l) out.push({c:l,spell:true}); } }
   return out; }
 function sgChooseLoop(man,gid,T,minBars,pred){ const out=[];
@@ -1778,11 +1811,11 @@ async function sgSchedule(){ // while this song plays, make the next one, then s
   const cur=SG.cur; if(!cur||!SG.on) return; SG.busy=true; const nxt=await sgMake(cur.s.plan); SG.busy=false; if(!SG.on||SG.cur!==cur) return;
   if(!nxt){ sgSay('Could not make the next song; letting this one finish.'); return; }
   SG.next=nxt; sgSay('Song '+cur.n+': '+cur.s.plan.name,'Next: '+nxt.plan.name); sgArm(); }
-function sgArm(){ clearTimeout(SG.wait); const cur=SG.cur, nxt=SG.next; if(!cur||!nxt||!SG.on) return;
+function sgArm(){ clearTimeout(SG.wait); const cur=SG.cur, nxt=SG.next; if(!cur||!nxt||!SG.on||SG.stopEnd) return;
   const d=cur.deck, now=sgNow(d), p=cur.s.plan, end=cur.start+cur.s.dur-3, ov=Math.min(p.ovBars,nxt.plan.ovBars)*p.barSec;
   let k=Math.floor((end-ov-cur.start)/p.barSec), tN=cur.start+Math.max(1,k)*p.barSec; if(SG.skip){ const kk=Math.ceil((now+.6-cur.start)/p.barSec); tN=cur.start+kk*p.barSec; SG.skip=false; }
   const ovAct=Math.max(p.barSec,cur.start+p.total*p.barSec-tN), wait=Math.max(0,(tN-now-1.2)*1000); SG.wait=setTimeout(()=>sgHandover(tN,Math.min(ovAct,ov*1.6)),wait); }
-function sgHandover(tN,ov){ const cur=SG.cur, nxt=SG.next; if(!SG.on||!cur||!nxt) return; const dn=cur.deck.id==='A'?D('B'):D('A'), d=cur.deck;
+function sgHandover(tN,ov){ const cur=SG.cur, nxt=SG.next; if(!SG.on||!cur||!nxt||SG.stopEnd) return; const dn=cur.deck.id==='A'?D('B'):D('A'), d=cur.deck;
   const now=sgNow(d), when=Math.max(.05,tN-now), r=cur.s.plan.T/nxt.plan.T, ramp=Math.min(ov,cur.s.plan.barSec*nxt.plan.ovBars);
   const rate0=sgClamp(r,.9,1.1), t=sgPlayFn(dn)(nxt.data,nxt.sr,when,rate0,ramp); SG.n++; const n=SG.n;
   sgLog('mix','Song '+n+' comes in on Deck '+dn.id+': '+nxt.plan.name+sgDetail(nxt.plan)); try{ window.__recMark&&window.__recMark('in',dn); }catch(e){}
@@ -1795,19 +1828,19 @@ function songOn(on){
   const b=$('auto'); SG.on=on; b.textContent='Auto DJ: '+(on?'on (sample songs)':'off'); b.classList.toggle('on',on); b.setAttribute('aria-pressed',on?'true':'false'); const sk=$('sgskip'); if(sk) sk.disabled=!on;
   clearTimeout(SG.wait); clearInterval(SG.xfT);
   if(!on){ decks.forEach(d=>sgStopDeck(d,.6)); setTimeout(()=>{ decks.forEach(d=>{ d.eq={l:0,m:0,h:0}; d.filt=0; d.vol=85; }); applyMix(); },700); SG.cur=null; SG.next=null; sgSay(''); wakeOn(false); return; }
-  if(AU.on) autoOn(false); SG.n=0; SG.recent=[]; SG.beds=[]; SG.skip=false; LOG.length=0; TRK.length=0; SG.t0=Date.now(); AU.tStart=SG.t0; wakeOn(true); decks.forEach(d=>setPlay(d,false)); sgStartFirst();
+  if(AU.on) autoOn(false); SG.stopEnd=false; SG.n=0; SG.recent=[]; SG.beds=[]; SG.skip=false; LOG.length=0; TRK.length=0; SG.t0=Date.now(); AU.tStart=SG.t0; wakeOn(true); decks.forEach(d=>setPlay(d,false)); sgStartFirst();
 }
 const autoToggle0=0;
 const BOTH={t:null,mode:'',k:3,lastN:-1,nT:0,t0:0};
-function bothStop(){ clearInterval(BOTH.t); BOTH.t=null; BOTH.mode=''; }
+function bothModeStop(){ clearInterval(BOTH.t); BOTH.t=null; BOTH.mode=''; }
 function bothRun(mode){ BOTH.mode=mode; BOTH.t0=Date.now(); BOTH.lastN=-1; const RN=($('musicsrc')&&$('musicsrc').value)==='random'; BOTH.rnd=RN; BOTH.k=RN?1+Math.floor(Math.random()*4):2+Math.floor(Math.random()*2); BOTH.mins=RN?3+Math.random()*7:7;
   if(mode==='songs') songOn(true); else autoOn(true);
   clearInterval(BOTH.t); BOTH.t=setInterval(()=>{ // after a few songs (or several minutes of Eight Bells) fade out and hand over to the other kind of music
     if(BOTH.mode==='songs'){ if(SG.n!==BOTH.lastN){ BOTH.lastN=SG.n; BOTH.nT=Date.now(); } if(SG.on&&SG.n>=BOTH.k&&Date.now()-BOTH.nT>70000){ clearInterval(BOTH.t); songOn(false); setTimeout(()=>bothRun(BOTH.rnd&&Math.random()<.4?'songs':'eb'),1500); } }
     else if(AU.on&&Date.now()-BOTH.t0>BOTH.mins*60000){ clearInterval(BOTH.t); autoOn(false); setTimeout(()=>bothRun(BOTH.rnd&&Math.random()<.4?'eb':'songs'),1500); } },4000); }
-const autoToggle=()=>{ if(!(BOTH.t||SG.on||AU.on)&&window.clkReset) window.clkReset(); exampleStop();
-  if(['both','random'].includes($('musicsrc')&&$('musicsrc').value)){ if(BOTH.t||SG.on||AU.on){ bothStop(); if(SG.on) songOn(false); if(AU.on) autoOn(false); } else bothRun(Math.random()<.5?'songs':'eb'); return; }
-  bothStop();
+const autoToggle=()=>{ autoResume(); clearTimeout(S.spT); clearInterval(S.spT); S.spend=false; SG.stopEnd=false; stopLabel('Stop both'); if(!(BOTH.t||SG.on||AU.on)&&window.clkReset) window.clkReset(); exampleStop();
+  if(['both','random'].includes($('musicsrc')&&$('musicsrc').value)){ if(BOTH.t||SG.on||AU.on){ bothModeStop(); if(SG.on) songOn(false); if(AU.on) autoOn(false); } else bothRun(Math.random()<.5?'songs':'eb'); return; }
+  bothModeStop();
   if(($('musicsrc')&&$('musicsrc').value)==='songs') songOn(!SG.on); else { if(SG.on) songOn(false); autoOn(!AU.on); } };
 function sgSkip(){ if(!SG.on||!SG.cur) return; if(SG.next){ SG.skip=true; sgArm(); } else sgSay('The next song is still being made…'); }
 
@@ -1825,7 +1858,7 @@ function sgWire(){
     e.addEventListener('change',()=>{ try{ localStorage.setItem('ebdj.'+a[0],a[1]==='c'?(e.checked?'1':'0'):e.value); }catch(x){} if(a[0]==='smpvol') $('smpvolv').textContent=e.value+'%'; });
     e.addEventListener('input',()=>{ if(a[0]==='smpvol') $('smpvolv').textContent=e.value+'%'; }); });
   if($('smpvolv')) $('smpvolv').textContent=$('smpvol').value+'%'; if($('exstop')) $('exstop').addEventListener('click',exampleStop);
-  if($('musicsrc')) $('musicsrc').addEventListener('change',()=>{ const v=$('musicsrc').value; if(v!=='both'&&v!=='random') bothStop(); if(SG.on&&v==='eb') songOn(false); if(AU.on&&v==='songs'){ autoOn(false); } });
+  if($('musicsrc')) $('musicsrc').addEventListener('change',()=>{ const v=$('musicsrc').value; if(v!=='both'&&v!=='random') bothModeStop(); if(SG.on&&v==='eb') songOn(false); if(AU.on&&v==='songs'){ autoOn(false); } });
 }
 window.__djTest={SCR:SCR,scrWarm:scrWarm,scrTap:scrTap,D:D,BOTH:BOTH,bothRun:bothRun,sgMine:sgMine,sgGroup:sgGroup,anaExtra:anaExtra,sgChooseVocals:sgChooseVocals,smpVol:smpVol,exampleStop:exampleStop,EX:EX,voxPick:voxPick,sgPlan:sgPlan,sgRender:sgRender,SG:SG,songOn:songOn,sgGenres:sgGenres,anaBuf:anaBuf,anaData:anaData,smpMeta:smpMeta,smartSample:smartSample,smpTune:smpTune,keyShift:keyShift,loopRate:loopRate,smAnalyseMissing:smAnalyseMissing,pkCtx:pkCtx,bpmHint:bpmHint,smmeta:smmeta,SLOTS:()=>SLOTS,smpHold:smpHold,smpInit:smpInit,smpDelay:smpDelay,smpSurprise:smpSurprise,smPick:smPick,unzipAudio:unzipAudio,phrasesJS:phrasesJS,PK:PK,pkPrep:pkPrep,TASTE:()=>TASTE,tasteFromReport:tasteFromReport,tasteLearn:tasteLearn,tagPick:tagPick,wpick:wpick,tw:tw,lenOf:lenOf,setPlay:setPlay,autoOn:autoOn,autoSay:autoSay,voxFire:voxFire,voxLoopEnd:voxLoopEnd,voxOff:voxOff,voxPrep:voxPrep,VOXG:VOXG,VOXS:()=>VOXS,planNext:planNext,LOG:LOG,TRK:TRK,buildReport:buildReport,markSet:markSet,makePlan:makePlan,nowText:nowText,nextText:nextText,warp:warp,rollFade:rollFade,fadeBars:fadeBars,EUPH:EUPH,CLUB:CLUB,bigBuild:bigBuild,lastTrack:lastTrack,matchKey:matchKey,barsOf:barsOf,gstepOf:gstepOf,pickGenre:pickGenre,energyAt:energyAt,SHAPES:SHAPES,GFX:GFX,setGfx:setGfx,startSwell:startSwell,swellTick:swellTick,freshDeck:freshDeck,swapSound:swapSound,autoFlair:autoFlair,autoStepSecs:autoStepSecs,autoMix:autoMix,STYLES:STYLES,AU:AU,autoOn:autoOn,timing:timing,barTime:barTime,PC:PC,stepGenre:stepGenre,decks:decks,S:S,knob:knob,knobB:knobB,onMidi:onMidi,onNote:onNote,applyMix:applyMix,cross:cross,MAP:()=>MAP};
 })();
