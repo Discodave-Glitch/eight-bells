@@ -96,6 +96,9 @@ body.nolbl .bt{display:none}
 .xfr b{font-size:17px}.xfr .A{color:var(--a)}.xfr .B{color:var(--b)}
 .mvr{display:flex;align-items:center;justify-content:center;gap:10px}
 .recb{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 12px;border-radius:12px;font-weight:700;font-variant-numeric:tabular-nums}
+@media (orientation:landscape) and (max-width:1000px){.trkt{display:none}.trkb{padding:0 9px}}
+@media (orientation:landscape) and (max-width:780px){.mvr{gap:4px}.mvr .recb{padding:0 8px;gap:4px;min-height:34px}.trkb{min-height:34px;padding:0 7px}}
+.trkb{padding:0 10px}.trkb:disabled{opacity:.45}.trkb.hit{border-color:var(--good,#46c48a)}.rpbox .trklist{display:flex;flex-direction:column;gap:6px;max-height:34vh;overflow:auto}.rpbox .trkrow{display:flex;gap:8px;align-items:center;justify-content:space-between;font-size:13px}.rpbox .trkrow span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rpbox .trkrow button{min-height:32px;padding:0 10px;flex:none}
 .rdot{width:12px;height:12px;border-radius:50%;background:#ef4a4a;display:inline-block}
 .recb.arm{border-color:#e0a030}.recb.arm .rdot{background:#e0a030;animation:recp 1.6s ease-in-out infinite}
 .recb.on{border-color:#ef4a4a;color:#ffb3b3}
@@ -214,6 +217,7 @@ body.nolbl .bt{display:none}
     <div class="row"><b class="chip">Taste</b><select id="taste" aria-label="How strongly Auto DJ follows what you have marked"><option value="off">Ignore my marks</option><option value="gentle">Gentle</option><option value="normal" selected>Normal</option><option value="strong">Strong</option></select><button id="tasteimp">Learn from a report...</button><button id="tasteexp">Save my taste</button><button id="tastein">Load taste...</button><button id="tasterst">Reset</button><input type="file" id="tasterep" accept=".md,.txt,text/*" multiple hidden><input type="file" id="tastefile" accept=".json,application/json" hidden></div>
     <div class="chip" id="tastesum">Tap thumbs up or down while Auto DJ plays and it learns what you like.</div>
     <details class="tfam" id="fam"><summary>Genre families: more or less of each</summary><div id="famrows"></div></details>
+    <div class="row"><b class="chip">Album</b><select id="album" aria-label="Save each tune of a recording as its own file"><option value="on" selected>Make an album: each tune as its own file</option><option value="off">One file only</option></select></div>
     <div class="row"><b class="chip">Recording</b><span id="recmsg" class="chip">Press Rec by the master volume to record the mix.</span><button id="recshare" hidden>Share</button><button id="recdl" hidden>Download</button></div>
     <div class="row"><b class="chip">Set report</b><button id="rptcopy">Copy</button><button id="rptshare">Share</button><button id="rptdl">Download</button></div>
     <textarea id="rpt" readonly rows="6" aria-label="Auto DJ set report" placeholder="Start Auto DJ and the report builds as it plays."></textarea>
@@ -347,7 +351,7 @@ function buildUI(){
    '<div class="mixer" aria-label="Mixer"><div class="strips">'+stripHTML(decks[0])+stripHTML(decks[1])+'</div>'+
    '<div class="xfw" data-ctl="xf" data-kind="abs"><div class="lbl"><span>Crossfader <i class="bt">A1 B1</i></span></div><div class="xfr"><b class="A">A</b><input type="range" id="xf" min="0" max="100" value="50" aria-label="Crossfader"><b class="B">B</b></div><div class="xfb"><button data-xf="0">All A</button><button data-xf="50">Centre</button><button data-xf="100">All B</button></div></div>'+
    '<div class="xfw pbw"><div class="lbl"><span>Pad buttons</span></div><div class="pbtn"><button data-ctl="prev" data-kind="btn" data-a="prev" aria-label="Sync Deck A to Deck B">&lt; A</button><button data-ctl="next" data-kind="btn" data-a="next" aria-label="Sync Deck B to Deck A">B &gt;</button><button data-ctl="playall" data-kind="btn" data-a="playall">Play</button><button data-ctl="stopall" data-kind="btn" data-a="stopall">Stop</button><button data-ctl="focus" data-kind="btn" data-a="focus" id="focusb">Sync</button></div><div class="chip">&lt; syncs Deck A to Deck B, &gt; syncs Deck B to Deck A. Record also syncs Deck B to Deck A.</div></div>'+
-   '<div class="mvr">'+knobHTML('Master <i class="bt">A2 B2</i>','mv','id="mv"',0,100,85,'mvv','Master volume')+'<button id="rec" class="recb" aria-pressed="false" title="Record the mix to a file"><i class="rdot"></i><span id="rect">Rec</span></button></div></div>'+
+   '<div class="mvr">'+knobHTML('Master <i class="bt">A2 B2</i>','mv','id="mv"',0,100,85,'mvv','Master volume')+'<button id="rec" class="recb" aria-pressed="false" title="Record the mix to a file"><i class="rdot"></i><span id="rect">Rec</span></button><button id="trk" class="recb trkb" title="Mark where a new track starts while recording" aria-label="Mark a new track" disabled><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" style="flex:none"><path d="M3 1v12M3 2h8.5l-2.2 3 2.2 3H3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="trkt">Track</span></button></div></div>'+
    deckHTML(decks[1],opts);
   decks.forEach(d=>{ $('deck'+d.id).querySelector('select').value=d.genre; d.page=0; d.held={}; });
   paintPads(); refreshMapped(); setFocus(S.focus);
@@ -755,7 +759,7 @@ function autoTick(){
       queueSec(n,rndSec(['intro','bld','intro'],''));
       queueSec(c,rndSec(['outro','outro','brk','bridge'],''));
       AU.pend=P; alog('handover','Deck '+c.id+' into Deck '+n.id+': '+P.style+', '+P.gname+' ('+ev(n,'state.engine||""')+') at '+P.tgt+' BPM in '+keyName(n)+', '+fadeBars()+'-bar overlap, '+Math.round((AU.hold||0)*100)+'% side by side'+(P.kind!=='normal'?' ['+P.kind+']':''));
-      lockStart(n,c,()=>{ alog('mix','Deck '+n.id+' starts on the phrase'); AU.phase='mix'; AU.t0=Date.now(); AU.half=false; AU.third=false; AU.fourth=false; });
+      lockStart(n,c,()=>{ alog('mix','Deck '+n.id+' starts on the phrase'); try{ window.__recMark&&window.__recMark('in',n); }catch(e){} AU.phase='mix'; AU.t0=Date.now(); AU.half=false; AU.third=false; AU.fourth=false; });
     }
   }
   else if(AU.phase==='mix'){
@@ -765,7 +769,7 @@ function autoTick(){
     if(p>=0.5&&!AU.half){ AU.half=true; fxHit(c,'Echo',240000/getBpm(c)/2); queueSec(n,rndSec(AU.ne<.6?['half','bld','bridge']:['drop','chorus','half','bld'],'')); }
     if(p>=0.8&&!AU.third){ AU.third=true; const pk=rndSec(AU.ne<.6?['bridge','half','chorus']:(AU.ne>=.9?['drop','drop','chorus']:['drop','chorus','bridge']),''); queueSec(n,pk); if(pk==='drop'&&voxRoll(.8)) voxLoopEnd(n,'shout'); else if(voxRoll(.12)) voxLoopEnd(n,'shout'); if(pk==='drop'){ const bt=60000/getBpm(n); setTimeout(()=>{ if(AU.on) fxHit(n,'Loop 1/8',bt); },bt*2); } } // loops tighten into the drop // half-beat delay-style roll into the drop
     if(p>=0.85&&!AU.fourth){ AU.fourth=true; fxHit(c,'Echo',60000/getBpm(c)*4); } // echo out the old track
-    if(p>=1){ setPlay(c,false); voxOff(c); c.eq={l:0,m:0,h:0}; c.filt=0; n.eq={l:0,m:0,h:0}; n.filt=0; applyMix(); AU.cur=n.id; AU.g0=0; AU.lastBar=Math.floor(barsOf(n)); AU.flairAt=Math.floor(barsOf(n))+6; AU.voxAt=Math.floor(barsOf(n))+4; AU.chorus=false; AU.chQ=false; AU.built=false; AU.slow=AU.nslow; AU.inStyle=AU.style; AU.adj=0; AU.tr++; AU.e=energyAt(AU.tr); AU.phase='play'; trkPush(n,AU.pend,AU.style); alog('mix','Deck '+n.id+' is now the main deck (track '+AU.tr+')'); planNext(n); }
+    if(p>=1){ try{ window.__recMark&&window.__recMark('out',c); }catch(e){} setPlay(c,false); voxOff(c); c.eq={l:0,m:0,h:0}; c.filt=0; n.eq={l:0,m:0,h:0}; n.filt=0; applyMix(); AU.cur=n.id; AU.g0=0; AU.lastBar=Math.floor(barsOf(n)); AU.flairAt=Math.floor(barsOf(n))+6; AU.voxAt=Math.floor(barsOf(n))+4; AU.chorus=false; AU.chQ=false; AU.built=false; AU.slow=AU.nslow; AU.inStyle=AU.style; AU.adj=0; AU.tr++; AU.e=energyAt(AU.tr); AU.phase='play'; trkPush(n,AU.pend,AU.style); alog('mix','Deck '+n.id+' is now the main deck (track '+AU.tr+')'); planNext(n); }
   }
   else if(AU.phase==='end'){ // planned ending: outro, echo and a long filter close, then stop
     const barMs=240000/getBpm(c), p=Math.min(1,(Date.now()-AU.t0)/(AU.fadeMix*barMs));
@@ -1038,29 +1042,75 @@ function wireUI(){
     window.__fixTop=fixTop; fixTop(); addEventListener('resize',()=>{ clearTimeout(fixT); fixT=setTimeout(fixTop,150); });
   }
   { // record the master mix (both decks) to an audio file
-    let RC=null, mr=null, chunks=[], t0=0, tm=null, url=null, file=null, mime='', armT=null, armed=false, endT=null, secsLast=0;
+    let RC=null, mr=null, chunks=[], t0=0, tm=null, url=null, file=null, mime='', armT=null, armed=false, endT=null, secsLast=0, recDest=null, segs=[], album=null, zipUrl=null;
     const fmt=n=>{ const m=Math.floor(n/60), s=n%60; return (m>=60?Math.floor(m/60)+':'+String(m%60).padStart(2,'0'):m)+':'+String(s).padStart(2,'0'); };
     const msg=t=>{ $('recmsg').textContent=t; };
     const btn=(cls,txt)=>{ const r=$('rec'); r.classList.toggle('on',cls==='on'); r.classList.toggle('arm',cls==='arm'); r.setAttribute('aria-pressed',cls?'true':'false'); $('rect').textContent=txt; };
     const anyPlaying=()=>decks.some(d=>playing(d));
     const recording=()=>mr&&mr.state==='recording';
+
+    const albumOn=()=>(($('album')&&$('album').value)||'on')!=='off';
+    const safeName=t=>String(t).replace(/[\\/:*?"<>|\u0000-\u001f]/g,' ').replace(/\s+/g,' ').trim().slice(0,70)||'Track';
+    const lead=()=>decks.filter(playing).sort((a,b)=>b.vol-a.vol)[0]||decks[0];
+    const segLabel=d=>{ try{ return ev(d,'genreObj().name')+' '+getBpm(d)+' BPM'; }catch(e){ return 'Track'; } };
+    function segOpen(label){ // each tune gets its own recorder, started when it first becomes audible
+      if(!recording()) return null;
+      const s={n:segs.length+1,label:label||'Track '+(segs.length+1),t:(Date.now()-t0)/1000,end:0,chunks:[],mr:null,p:Promise.resolve(),closed:false,blob:null};
+      if(albumOn()&&recDest){ try{ const m=new MediaRecorder(recDest.stream,mime?{mimeType:mime}:undefined); s.mr=m; m.ondataavailable=e=>{ if(e.data&&e.data.size) s.chunks.push(e.data); };
+        s.p=new Promise(res=>{ m.onstop=()=>{ s.blob=new Blob(s.chunks,{type:(m.mimeType||mime||'audio/webm').split(';')[0]}); s.chunks=[]; res(); }; }); m.start(1000); }catch(e){ s.mr=null; } }
+      segs.push(s); msg('Recording track '+s.n+': '+s.label); if(AU.on) alog('record','Track '+s.n+' starts: '+s.label); return s;
+    }
+    function segClose(s){ if(!s||s.closed) return s&&s.p; s.closed=true; s.end=(Date.now()-t0)/1000; if(s.mr&&s.mr.state!=='inactive'){ try{ s.mr.stop(); }catch(e){} } return s.p; }
+    const crcT=(()=>{ const t=new Uint32Array(256); for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c=c&1?0xEDB88320^(c>>>1):c>>>1; t[n]=c>>>0; } return t; })();
+    const crc32=u=>{ let c=0xFFFFFFFF; for(let i=0;i<u.length;i++) c=crcT[(c^u[i])&255]^(c>>>8); return (c^0xFFFFFFFF)>>>0; };
+    async function zipBlob(files){ // a plain zip (stored, not squeezed: audio is already compressed)
+      const enc=new TextEncoder(), parts=[], cen=[]; let off=0; const dt=new Date(), tm=(dt.getHours()<<11)|(dt.getMinutes()<<5)|(dt.getSeconds()>>1), dd=((dt.getFullYear()-1980)<<9)|((dt.getMonth()+1)<<5)|dt.getDate();
+      for(const f of files){ const nm=enc.encode(f.name), sz=f.blob.size, crc=crc32(new Uint8Array(await f.blob.arrayBuffer()));
+        const h=new DataView(new ArrayBuffer(30)); h.setUint32(0,0x04034b50,true); h.setUint16(4,20,true); h.setUint16(6,0x0800,true); h.setUint16(10,tm,true); h.setUint16(12,dd,true); h.setUint32(14,crc,true); h.setUint32(18,sz,true); h.setUint32(22,sz,true); h.setUint16(26,nm.length,true);
+        parts.push(h.buffer,nm,f.blob);
+        const c=new DataView(new ArrayBuffer(46)); c.setUint32(0,0x02014b50,true); c.setUint16(4,20,true); c.setUint16(6,20,true); c.setUint16(8,0x0800,true); c.setUint16(12,tm,true); c.setUint16(14,dd,true); c.setUint32(16,crc,true); c.setUint32(20,sz,true); c.setUint32(24,sz,true); c.setUint16(28,nm.length,true); c.setUint32(42,off,true);
+        cen.push(c.buffer,nm); off+=30+nm.length+sz; }
+      const csz=cen.reduce((a,x)=>a+x.byteLength,0), e=new DataView(new ArrayBuffer(22)); e.setUint32(0,0x06054b50,true); e.setUint16(8,files.length,true); e.setUint16(10,files.length,true); e.setUint32(12,csz,true); e.setUint32(16,off,true);
+      return new Blob(parts.concat(cen,[e.buffer]),{type:'application/zip'});
+    }
+    const cueT=t=>{ const m=Math.floor(t/60), s=Math.floor(t%60), f=Math.floor((t%1)*75); return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')+':'+String(f).padStart(2,'0'); };
+    async function buildAlbum(base,ext,type){ // album = every tune as its own file, a track list, a cue sheet for the full mix, and the full mix
+      album=null; const have=segs.filter(s=>s.blob&&s.blob.size>2000&&s.end-s.t>=5); // a tune that only just began when the recording stopped is not a track if(!albumOn()||have.length<2) return;
+      const dt=new Date(), when=dt.toLocaleString(), pad=String(have.length).length>1?2:2;
+      const tracks=have.map((s,i)=>{ const nm=String(i+1).padStart(2,'0')+' - '+safeName(s.label)+'.'+ext; return {s:s,name:nm,file:new File([s.blob],nm,{type:type})}; });
+      const list=['Eight Bells DJ set, '+when,'','Tracks (times are in the full mix file)'].concat(have.map((s,i)=>String(i+1).padStart(2,'0')+'  '+fmt(Math.round(s.t))+'  '+s.label+'  ('+fmt(Math.round(s.end-s.t))+' long)')).join('\r\n');
+      const cue=['TITLE "Eight Bells DJ set '+when.replace(/"/g,'')+'"','PERFORMER "Eight Bells Auto DJ"','FILE "'+base+'.'+ext+'" WAVE'].concat(have.map((s,i)=>'  TRACK '+String(i+1).padStart(2,'0')+' AUDIO\r\n    TITLE "'+s.label.replace(/"/g,"'")+'"\r\n    INDEX 01 '+cueT(i===0?0:s.t))).join('\r\n');
+      const files=tracks.map(t=>({name:t.name,blob:t.file})).concat([{name:'00 Tracklist.txt',blob:new Blob([list],{type:'text/plain'})},{name:base+'.cue',blob:new Blob([cue],{type:'text/plain'})},{name:base+'.'+ext,blob:file}]);
+      let zip=null; try{ zip=await zipBlob(files); }catch(e){}
+      album={tracks:tracks,zip:zip?new File([zip],base.replace('set','album')+'.zip',{type:'application/zip'}):null};
+      segs.forEach(s=>{ if(!have.includes(s)) s.blob=null; });
+    }
+    window.__recMark=(kind,deck)=>{ if(!recording()) return; if(kind==='in') segOpen(segLabel(deck)); else if(kind==='out'){ const l=segs.filter(s=>!s.closed); if(l.length>1) segClose(l[0]); } };
+    $('trk').addEventListener('click',()=>{ if(!recording()) return; const b=$('trk'); b.classList.add('hit'); setTimeout(()=>b.classList.remove('hit'),500);
+      if(AU.on&&AU.phase==='mix'){ msg('A handover is happening: the next tune is already its own track.'); return; }
+      segs.filter(s=>!s.closed).forEach(segClose); segOpen(segLabel(lead())); });
     function popup(){
       let dlg=$('recpop'); if(!dlg){ dlg=document.createElement('div'); dlg.id='recpop'; dlg.setAttribute('role','dialog'); dlg.setAttribute('aria-modal','true'); dlg.setAttribute('aria-label','Recording saved'); document.body.appendChild(dlg); }
-      dlg.innerHTML='<div class="rpbox"><h2>Your recording is ready</h2><p id="rpinfo"></p><audio id="rpaudio" controls></audio><p class="rpnote">It is only kept until you close this page, so save it now.</p><div class="rpbtns"><button id="rpshare" hidden>Share</button><button id="rpdl">Download</button><button id="rpclose">Close</button></div></div>';
+      dlg.innerHTML='<div class="rpbox"><h2>Your recording is ready</h2><p id="rpinfo"></p><audio id="rpaudio" controls></audio><p class="rpnote">It is only kept until you close this page, so save it now.</p><div id="rpalb"></div><div class="rpbtns"><button id="rpshare" hidden>Share</button><button id="rpdl">Download full mix</button><button id="rpclose">Close</button></div></div>';
       $('rpinfo').textContent=fmt(secsLast)+' long, '+(file.size/1048576).toFixed(1)+' MB ('+file.name+')'; $('rpaudio').src=url;
       $('rpshare').hidden=!(navigator.canShare&&navigator.canShare({files:[file]}));
       $('rpdl').onclick=dl; $('rpshare').onclick=share; $('rpclose').onclick=()=>{ $('rpaudio').pause(); dlg.remove(); };
+      if(album){ const box=$('rpalb'); box.innerHTML='<p>Album: '+album.tracks.length+' tracks, each with its own file. The full mix above has a cue sheet in the zip.</p><div class="rpbtns"><button id="rpzip">Download album (zip)</button><button id="rpzs" hidden>Share album</button></div><div class="trklist"></div>';
+        const tl=box.querySelector('.trklist'); album.tracks.forEach(t=>{ const r=document.createElement('div'); r.className='trkrow'; const sp=document.createElement('span'); sp.textContent=t.name.replace(/\.[a-z0-9]+$/,'')+' ('+fmt(Math.round(t.s.end-t.s.t))+')'; const b=document.createElement('button'); b.textContent='Save'; b.onclick=()=>fileOut(t.file); r.appendChild(sp); r.appendChild(b); tl.appendChild(r); });
+        if(album.zip){ $('rpzip').onclick=()=>fileOut(album.zip,true); $('rpzs').hidden=!(navigator.canShare&&navigator.canShare({files:[album.zip]})); $('rpzs').onclick=()=>fileOut(album.zip,false,true); } else $('rpzip').hidden=true; }
       dlg.hidden=false; $('rpdl').focus();
     }
     function dl(){ if(!url) return; const a=document.createElement('a'); a.href=url; a.download=file.name; document.body.appendChild(a); a.click(); a.remove(); }
+    async function fileOut(f,dlOnly,shareOnly){ if(!f) return; if(!dlOnly&&navigator.canShare&&navigator.canShare({files:[f]})&&(shareOnly||/Mobi|iPhone|iPad|Android/.test(navigator.userAgent))){ try{ await navigator.share({files:[f],title:f.name}); return; }catch(e){ if(e&&e.name==='AbortError') return; } }
+      const u=URL.createObjectURL(f), a=document.createElement('a'); a.href=u; a.download=f.name; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(u); a.remove(); },4000); }
     async function share(){ if(file){ try{ await navigator.share({files:[file],title:'Eight Bells DJ set'}); }catch(e){} } }
     function disarm(){ clearInterval(armT); armed=false; }
-    function stop(){ clearTimeout(endT); disarm(); if(mr&&mr.state!=='inactive') mr.stop(); else btn('', 'Rec'); }
+    function stop(){ clearTimeout(endT); disarm(); if(mr&&mr.state!=='inactive'){ segs.forEach(segClose); mr.stop(); } else btn('', 'Rec'); }
     async function start(){
       const AC=window.AudioContext||window.webkitAudioContext; if(!AC||typeof MediaRecorder==='undefined'){ msg('This browser cannot record audio.'); btn('','Rec'); return; }
       const taps=decks.map(d=>d.win&&d.win.__dj&&d.win.__dj.rec).filter(Boolean); if(!taps.length){ msg('Audio is not ready yet.'); btn('','Rec'); return; }
       try{ RC=RC||new AC(); await RC.resume(); }catch(e){ msg('Could not start recording.'); btn('','Rec'); return; }
-      const dest=RC.createMediaStreamDestination(), mix=RC.createGain(); mix.connect(dest);
+      const dest=RC.createMediaStreamDestination(), mix=RC.createGain(); mix.connect(dest); recDest=dest;
       taps.forEach(t=>{ RC.createMediaStreamSource(t.stream).connect(mix); });
       mime=['audio/mp4','audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus'].find(m=>MediaRecorder.isTypeSupported(m))||'';
       try{ mr=new MediaRecorder(dest.stream,mime?{mimeType:mime}:undefined); }catch(e){ msg('Could not start recording.'); btn('','Rec'); return; }
@@ -1070,8 +1120,8 @@ function wireUI(){
         const dt=new Date(), p=n=>String(n).padStart(2,'0'); file=new File([blob],'eight-bells-dj-set-'+dt.getFullYear()+'-'+p(dt.getMonth()+1)+'-'+p(dt.getDate())+'-'+p(dt.getHours())+p(dt.getMinutes())+'.'+ext,{type});
         try{ mix.disconnect(); }catch(e){} btn('','Rec');
         msg('Recorded '+fmt(secsLast)+' ('+(blob.size/1048576).toFixed(1)+' MB). Share or download it:'); $('recdl').hidden=false; $('recshare').hidden=!(navigator.canShare&&navigator.canShare({files:[file]})); if(AU.on) alog('record','Recording stopped after '+fmt(secsLast));
-        popup(); };
-      mr.start(1000); t0=Date.now(); $('recdl').hidden=true; $('recshare').hidden=true;
+        $('trk').disabled=true; Promise.all(segs.map(s=>{ segClose(s); return s.p; })).then(()=>buildAlbum(file.name.replace(/\.[a-z0-9]+$/,''),ext,type)).catch(()=>{}).then(()=>{ popup(); }); };
+      mr.start(1000); t0=Date.now(); segs=[]; album=null; $('trk').disabled=false; { const d0=AU.on?D(AU.cur):lead(); segOpen(segLabel(d0)); } $('recdl').hidden=true; $('recshare').hidden=true;
       const tick=()=>btn('on',fmt(Math.round((Date.now()-t0)/1000))); tick(); tm=setInterval(tick,500); msg('Recording the mix...'); if(AU.on) alog('record','Recording started');
     }
     function arm(){ // nothing is playing yet: wait for the first track, then record
