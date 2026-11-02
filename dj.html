@@ -1501,7 +1501,7 @@ function sgSteps(def,base){ let st=[], f=def.fixed; if(f&&f.length&&Array.isArra
   if(def.k){ const k=Math.round(sgRnd(def.k[0],def.k[1])), r=(!def.rot||def.rot==='any')?Math.floor(Math.random()*base):sgPick(def.rot); if(k>0) sgEuclid(Math.min(k,base),base,r).forEach(x=>st.push(x)); }
   return Array.from(new Set(st.filter(x=>x>=0&&x<base))).sort((a,b)=>a-b); }
 async function sgBuf(c){ if(c.my){ try{ await ev(decks[0],"sampBuf('"+c.id+"')"); }catch(e){} const b=decks[0].win.eval("SBUF.get('"+c.id+"')"); if(!b) throw new Error('sample not ready'); return b; } if(SG.bufs.has(c.id)) return SG.bufs.get(c.id); const r=await fetch(PKBASE+c.f); if(!r.ok) throw new Error('missing '+c.f); const b=await pkCtx().decodeAudioData(await r.arrayBuffer()); SG.bufs.set(c.id,b); if(SG.bufs.size>160) SG.bufs.delete(SG.bufs.keys().next().value); return b; }
-const sgBase=(man,id)=>(man.groups.find(g=>g.id===id)||{clips:[]}).clips;
+const sgBase=(man,id)=>{ const l=(man.groups.find(g=>g.id===id)||{clips:[]}).clips; return SG.only?l.filter(c=>SG.only.has(c.id)):l; }; // SG.only: used by tests and demos to build songs from a chosen set of clips
 SG.used=[]; SG.lastGrps=[]; SG.lastFam=''; SG.lastHook='';
 const sgFresh=list=>{ const f=list.filter(c=>SG.used.indexOf(c.id)<0); return f.length>=Math.min(3,list.length)?f:list; };
 function sgNote(ids){ ids.forEach(id=>{ if(id) SG.used.push(id); }); while(SG.used.length>150) SG.used.shift(); }
