@@ -1,6 +1,6 @@
 name: Publish web page
 
-# Publishes index.html as a web page on GitHub Pages every time main changes.
+# Publishes index.html, dj.html and the samples folder (starter pack) as a web page on GitHub Pages every time main changes.
 # In the repo settings, set Pages > Source to "GitHub Actions" once.
 on:
   push:
@@ -28,6 +28,7 @@ jobs:
           mkdir site
           cp index.html dj.html logo.svg manifest.webmanifest sw.js site/
           cp -r icons site/
+          cp -r samples site/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site
