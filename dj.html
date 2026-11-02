@@ -1488,7 +1488,7 @@ function sgSteps(def,base){ let st=[], f=def.fixed; if(f&&f.length&&Array.isArra
   return Array.from(new Set(st.filter(x=>x>=0&&x<base))).sort((a,b)=>a-b); }
 async function sgBuf(c){ if(c.my){ try{ await ev(decks[0],"sampBuf('"+c.id+"')"); }catch(e){} const b=decks[0].win.eval("SBUF.get('"+c.id+"')"); if(!b) throw new Error('sample not ready'); return b; } if(SG.bufs.has(c.id)) return SG.bufs.get(c.id); const r=await fetch(PKBASE+c.f); if(!r.ok) throw new Error('missing '+c.f); const b=await pkCtx().decodeAudioData(await r.arrayBuffer()); SG.bufs.set(c.id,b); if(SG.bufs.size>160) SG.bufs.delete(SG.bufs.keys().next().value); return b; }
 const sgBase=(man,id)=>(man.groups.find(g=>g.id===id)||{clips:[]}).clips;
-SG.used=[]; SG.lastFam=''; SG.lastHook='';
+SG.used=[]; SG.lastGrps=[]; SG.lastFam=''; SG.lastHook='';
 const sgFresh=list=>{ const f=list.filter(c=>SG.used.indexOf(c.id)<0); return f.length>=Math.min(3,list.length)?f:list; };
 function sgNote(ids){ ids.forEach(id=>{ if(id) SG.used.push(id); }); while(SG.used.length>150) SG.used.shift(); }
 // your own samples (analysed in My samples) join the pools: drum hits by what they sound like, loops and phrases as beds, sung phrases as vocals
@@ -1506,17 +1506,19 @@ function sgChooseBed(man,g,Tt,prev,exclude,wantMinor){
   const base=g.base||16, lo=g.bpm[0], hi=g.bpm[1], out=[], groups=SGBEDG.concat(['my']);
   groups.forEach(gid=>sgGroup(man,gid).forEach(c=>{ if(c.kq===undefined||c.kq<.45||c.d<1.3||c.d>8.2||exclude.has(c.id)) return;
     [1,2,3,4,6,8].forEach(N=>{ for(let s=-5;s<=5;s++){ const T=15*N*base*Math.pow(2,s/12)/c.d; if(T<lo||T>hi) continue;
-      let sc=-Math.abs(T-Tt)/8-Math.abs(s)*.12+c.kq*2+Math.random()*1.4+((N===2||N===4)?.3:0)+(gid==='bass'?-1.5:0)+((wantMinor===(c.km===1))?.8:0)+(c.b?1:0);
+      let sc=-Math.abs(T-Tt)/8-Math.abs(s)*.12+c.kq*2+Math.random()*1.4+((N===2||N===4)?.3:0)+(gid==='bass'?-1.5:0)+((wantMinor===(c.km===1))?.8:0)-(/^chill/i.test(c.name)?1.2:0);
       if(prev&&prev.key!==undefined) sc+=sgKeyOk(prev.key,prev.minor?1:0,(c.kt+s+120)%12,c.km)*1.2;
       if(SG.beds.indexOf(c.id)>=0) sc-=2; if(SG.used.indexOf(c.id)>=0) sc-=3;
       out.push({c:c,N:N,s:s,T:T,key:(c.kt+s+120)%12,minor:c.km===1,sc:sc}); } }); }));
-  if(!out.length) return null; out.sort((a,b)=>b.sc-a.sc); return sgPick(out.slice(0,8)); }
+  if(!out.length) return null; out.sort((a,b)=>b.sc-a.sc);
+  const best={}; out.forEach(o=>{ if(!best[o.c.grp]) best[o.c.grp]=o; }); let gs=Object.keys(best).filter(k=>SG.lastGrps.indexOf(k)<0); if(!gs.length) gs=Object.keys(best);
+  const gp=sgPick(gs); SG.lastGrps.push(gp); if(SG.lastGrps.length>3) SG.lastGrps.shift(); return sgPick(out.filter(o=>o.c.grp===gp).slice(0,4)); }
 function sgChooseBed2(man,g,bed,exclude){
   const base=g.base||16, T=bed.T, out=[];
   SGBEDG.concat(['my']).forEach(gid=>sgGroup(man,gid).forEach(c=>{ if(c.kq===undefined||c.kq<.45||c.d<1.3||c.d>8.2||exclude.has(c.id)||c.id===bed.c.id) return;
     [1,2,3,4,6,8].forEach(N=>{ const rate=T*c.d/(15*N*base); if(rate<.8||rate>1.25) return; const s=12*Math.log2(rate), e=Math.abs(s-Math.round(s)); if(e>.3) return;
       const k2=(c.kt+Math.round(s)+120)%12, ok=sgKeyOk(bed.key,bed.minor?1:0,k2,c.km); if(ok<1) return;
-      out.push({c:c,N:N,rate:rate,sc:ok*2-e*4+Math.random()*1.5+(gid==='bass'?.8:0)+(bed.c.grp===c.grp?-1:0)}); }); }));
+      out.push({c:c,N:N,rate:rate,sc:ok*2-e*4+Math.random()*1.5+(gid==='bass'?.8:0)+(bed.c.grp===c.grp?-2.5:0)}); }); }));
   if(!out.length) return null; out.sort((a,b)=>b.sc-a.sc); return sgPick(out.slice(0,5)); }
 const SGTEMPL={
   dance:[['intro',.12],['build',.08],['drop',.2],['break',.12],['build',.08],['drop',.24],['outro',.16]],
@@ -1539,8 +1541,9 @@ function sgChooseVocals(man,key,minor){ const out=[];
   ['acap','sing'].forEach(gid=>sgGroup(man,gid).forEach(c=>{ if(c.kq===undefined||c.kq<.5||c.d<2||c.d>7.6) return; for(let s=-3;s<=3;s++){ const k=(c.kt+s+120)%12, ok=sgKeyOk(key,minor?1:0,k,c.km); if(ok<1) continue; out.push({c:c,s:s,rate:Math.pow(2,s/12),sc:ok*2-Math.abs(s)*.25+c.kq*2+Math.random()*2-(SG.used.indexOf(c.id)>=0?4:0)}); } }));
   out.sort((a,b)=>b.sc-a.sc); const res=[], seen=new Set(); for(const o of out){ if(seen.has(o.c.id)) continue; seen.add(o.c.id); res.push(o); if(res.length>=6) break; }
   if(res.length<2) return []; const a=sgPick(res); let b=sgPick(res.filter(x=>x!==a)); return [a,b]; }
-function sgVoxMode(){ const v=($('sgvox')&&$('sgvox').value)||'mix'; if(v!=='mix') return v; let m=sgPick(['none','none','sung','sung','sung','sung','ss','sung']); if(m===SG.lastHook&&m!=='none') m=sgPick(['none','sung','ss']); return m; }
+function sgVoxMode(){ const v=($('sgvox')&&$('sgvox').value)||'mix'; if(v!=='mix') return v; let m=sgPick(['none','none','none','sung','sung','sung','ss','sung']); if(m===SG.lastHook&&m!=='none') m=sgPick(['none','sung','ss']); return m; }
 async function sgHookClips(man){ const txt=(($('sghook')&&$('sghook').value)||'').trim().toUpperCase(); if(!txt) return []; const out=[], ssn=sgGroup(man,'ssn'), ssw=sgGroup(man,'ssw'), ssl=sgGroup(man,'ssl');
+  if(txt==='EIGHT BELLS DJ'&&Math.random()<.65){ const pool=sgFresh(ssw.filter(x=>x.d<1&&x.d>.25)); const w=[]; while(w.length<3&&pool.length) w.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]); sgNote(w.map(x=>x.id)); return w.map(c=>({c:c,spell:false})); } // mix it up: three random Speak & Spell words
   for(const tok of txt.split(/\s+/)){ let c=null; if(SGNUM[tok]) c=ssn.find(x=>x.name.toUpperCase()==='NUMBER '+tok); if(!c) c=ssw.find(x=>x.name.toUpperCase()===tok&&x.d<1);
     if(!c&&!SGNUM[tok]){ const W=n=>ssw.find(x=>x.name.toUpperCase()===n), base=tok.replace(/'/g,'').replace(/S$/,''); c=(base!==tok&&W(base))||null; // plural -> the single word
       if(!c) for(let i=3;i<=tok.length-3&&!c;i++){ const x=W(tok.slice(0,i))||ssn.find(q=>q.name.toUpperCase()==='NUMBER '+tok.slice(0,i)), y=W(tok.slice(i)); if(x&&y){ out.push({c:x,spell:false},{c:y,spell:false}); c='done'; } } // two words glued together
@@ -1575,8 +1578,9 @@ async function sgPlan(prev,forceId){
   const crash=sgPickKit(man,fam,'do'), fxs=sgFresh(sgGroup(man,'fxs').filter(c=>c.d>=3)), fill=sgPickKit(man,fam,'dt'), perc2=sgPick(sgFresh(sgGroup(man,'dp').filter(c=>c.d<1.2))), hitsPool=sgFresh(sgGroup(man,'fxe').concat(sgGroup(man,'fxr')).filter(c=>c.d<=3.5));
   const flair={pump:/Trance|House|Bass|Hip-hop/.test(g.group||'')?Math.random()<.8:Math.random()<.25, fills:Math.random()<.85, glitch:Math.random()<.5, perc2:Math.random()<.6, hits:hitsPool.length?1+Math.floor(Math.random()*3):0};
   const hits=[]; for(let i=0;i<flair.hits;i++) hits.push(sgPick(hitsPool));
+  const ambPool=sgFresh(sgGroup(man,'fxa').filter(c=>c.d>=3.5)), texPool=sgFresh(sgGroup(man,'fxr').concat(sgGroup(man,'fxe')).filter(c=>c.d>=3&&c.d<=7.7)), ambs=[]; if(ambPool.length&&Math.random()<.9) ambs.push(sgPick(ambPool)); if(texPool.length&&Math.random()<.55) ambs.push(sgPick(texPool)); sgNote(ambs.map(x=>x.id));
   SG.lastFam=fam; sgNote([bed.c.id,bed2&&bed2.c.id,sub&&sub.id,crash&&crash.id,fxs.length&&0].concat(drums.map(d=>d.c.id),vocals.map(v=>v.c.id),hits.map(h=>h.id),[fill&&fill.id,flair.perc2&&perc2&&perc2.id]));
-  return {g:g,fam:fam,T:T,stepSec:stepSec,barSec:barSec,base:base,key:bed.key,minor:bed.minor,bed:bed,bed2:bed2,secs:secs,total:total2,drums:drums,bassSteps:bassSteps,sub:sub,hook:hook,vocals:vocals,vkind:vkind,flair:flair,fill:fill,perc2:perc2,hits:hits,crash:crash,fx:fxs.length?sgPick(fxs):null,ovBars:ovBars,name:String(g.name).replace(/&amp;/g,'&')+', '+Math.round(T)+' BPM, '+SGNOTE[bed.key]+(bed.minor?' minor':' major')}; }
+  return {g:g,fam:fam,T:T,stepSec:stepSec,barSec:barSec,base:base,key:bed.key,minor:bed.minor,bed:bed,bed2:bed2,secs:secs,total:total2,drums:drums,bassSteps:bassSteps,sub:sub,amb:ambs,hook:hook,vocals:vocals,vkind:vkind,flair:flair,fill:fill,perc2:perc2,hits:hits,crash:crash,fx:fxs.length?sgPick(fxs):null,ovBars:ovBars,name:String(g.name).replace(/&amp;/g,'&')+', '+Math.round(T)+' BPM, '+SGNOTE[bed.key]+(bed.minor?' minor':' major')}; }
 // Draw the whole song into one array of samples (mixed in plain code, which is much faster than building thousands of audio nodes)
 const SGSR=44100;
 function sgMix(dst,src,t0,g,rate,o){ o=o||{}; const d=src.getChannelData(0), re=rate*src.sampleRate/SGSR; let n=Math.floor(d.length/re); if(o.dur) n=Math.min(n,Math.floor(o.dur*SGSR)); const s0=Math.floor(t0*SGSR); if(s0<0||s0>=dst.length||n<=0) return; n=Math.min(n,dst.length-s0);
@@ -1590,7 +1594,7 @@ function sgLowpass(x,s0,s1,fc0,fc1,st){ const chunk=Math.floor(SGSR*.2);
 const sgYield=()=>new Promise(r=>setTimeout(r,0));
 async function sgRender(p){
   const N=Math.ceil((p.total*p.barSec+3)*SGSR), music=new Float32Array(N), bedA=new Float32Array(N), bedB=new Float32Array(N), voice=new Float32Array(N), duck=new Float32Array(N).fill(1), at=b=>b*p.barSec;
-  const need=new Map(); const want=c=>{ if(c&&!need.has(c.id)) need.set(c.id,sgBuf(c)); }; p.drums.forEach(d=>want(d.c)); want(p.bed.c); want(p.bed2&&p.bed2.c); want(p.sub); want(p.crash); want(p.fx); p.hook.forEach(h=>want(h.c)); (p.vocals||[]).forEach(v=>want(v.c)); (p.hits||[]).forEach(h=>want(h)); want(p.fill); want(p.perc2);
+  const need=new Map(); const want=c=>{ if(c&&!need.has(c.id)) need.set(c.id,sgBuf(c)); }; p.drums.forEach(d=>want(d.c)); want(p.bed.c); want(p.bed2&&p.bed2.c); want(p.sub); want(p.crash); want(p.fx); p.hook.forEach(h=>want(h.c)); (p.vocals||[]).forEach(v=>want(v.c)); (p.hits||[]).forEach(h=>want(h)); want(p.fill); want(p.perc2); (p.amb||[]).forEach(want);
   const B={}; for(const [id,pr] of need) B[id]=await pr; const st=sc=>SGSTAT[sc.type]||SGSTAT.verse;
   const tile=(dst,c,rate,Nb,s0,s1,g)=>{ const L=Nb*p.barSec; for(let t=s0;t<s1-.01;t+=L) sgMix(dst,B[c.id],t,g,rate,{dur:Math.min(L,s1-t),fi:.012,fo:.02}); };
   const rate1=Math.pow(2,p.bed.s/12), rate2=p.bed2?p.bed2.rate:1;
@@ -1604,6 +1608,16 @@ async function sgRender(p){
   if(p.flair&&p.flair.pump){ const env=new Float32Array(N).fill(1), kk=p.drums.find(d=>d.role==='kick'), dipN=Math.floor(.22*SGSR);
     if(kk) p.secs.forEach(sc=>{ if(!st(sc).kick) return; for(let b=sc.b0;b<sc.b1;b++) kk.steps.forEach(stp=>{ const s0=Math.floor((at(b)+stp*p.stepSec)*SGSR); for(let i=0;i<dipN&&s0+i<N;i++){ const v=.5+.5*(i/dipN)*(i/dipN); if(v<env[s0+i]) env[s0+i]=v; } }); });
     for(let i=0;i<N;i++){ bedA[i]*=env[i]; bedB[i]*=env[i]; } }
+  { const ramp=(arr,a0,a1,v0,v1)=>{ for(let i=Math.max(0,a0);i<Math.min(N,a1);i++){ const f=(i-a0)/Math.max(1,a1-a0); arr[i]*=v0+(v1-v0)*f; } };
+    p.secs.forEach((sc,i)=>{ const s0=Math.floor(at(sc.b0)*SGSR), s1=Math.floor(at(sc.b1)*SGSR), h=Math.floor((s1-s0)/2);
+      if(sc.type==='intro'){ [bedA,bedB].forEach(a=>ramp(a,s0,s0+Math.floor((s1-s0)*.7),.0,1)); }               // fade the music in
+      if(sc.type==='break'||sc.type==='bridge'){ [bedA,bedB].forEach(a=>{ ramp(a,s0,s0+Math.floor((s1-s0)*.4),1,.45); ramp(a,s0+Math.floor((s1-s0)*.4),s1,.45,1); }); } // thin out in the middle then swell back
+      if(sc.type==='outro'){ [bedA,bedB].forEach(a=>ramp(a,s0,s1+Math.floor(1.5*SGSR),1,.0)); } }); }          // long fade out
+  // ambient pad and texture: wash in over the intro, drift under breaks, tail off at the end
+  (p.amb||[]).forEach((c,ai)=>{ const bf=B[c.id]; if(!bf) return; p.secs.forEach(sc=>{ if(!/intro|break|bridge|outro/.test(sc.type)&&!(ai===1&&sc.type==='verse')) return; const t0=at(sc.b0), t1=at(sc.b1), L=bf.duration; const lv=(sc.type==='intro'||sc.type==='outro'?.55:.42)*(ai?.7:1);
+      for(let t=t0-(sc.type==='intro'?0:1.2);t<t1;t+=Math.max(1.5,L-1.8)){ sgMix(music,bf,Math.max(0,t),lv,ai&&Math.random()<.5?.89:1,{fi:Math.min(2.5,L/3),fo:Math.min(2.5,L/3)}); } }); });
+  // reversed crash / swell leading into each chorus and drop
+  { const rv=p.crash&&B[p.crash.id]; if(rv){ const d=rv.getChannelData(0), r2=new Float32Array(d.length); for(let i=0;i<d.length;i++) r2[i]=d[d.length-1-i]; const rb={getChannelData:()=>r2,sampleRate:rv.sampleRate,duration:rv.duration}; p.secs.forEach(sc=>{ if(!/chorus|drop/.test(sc.type)||sc.b0<2) return; const len=Math.min(rv.duration,p.barSec*1.5); sgMix(music,rb,at(sc.b0)-len,.4,1,{fi:len*.7,fo:.01,dur:len}); }); } }
   for(let i=0;i<N;i++) music[i]=bedA[i]+bedB[i];
   await sgYield();
   const base=p.base, vel=()=>.78+Math.random()*.22;
@@ -1623,14 +1637,14 @@ async function sgRender(p){
       else { const s0=Math.floor(t*SGSR), n=Math.min(N-s0,Math.floor(dur*SGSR)); for(let i=0;i<n;i++){ const e=Math.min(1,i/441,(n-i)/2000); music[s0+i]+=Math.sin(2*Math.PI*hz*i/SGSR)*.7*lv*e; } } }); } });
   if(p.fx&&B[p.fx.id]) p.secs.forEach((sc,i)=>{ const nx=p.secs[i+1]; if(nx&&(sc.type==='build'||sc.type==='break'||sc.type==='bridge')&&/chorus|drop|verse/.test(nx.type)){ const bf=B[p.fx.id], len=Math.min(bf.duration,2*p.barSec); sgMix(music,bf,Math.max(0,at(sc.b1)-len),.35,1,{dur:len,fo:.05}); } });
   if((p.vocals||[]).length){ const dk=(t0,dur)=>{ const a=Math.floor(Math.max(0,t0-.03)*SGSR), up=Math.floor((t0+.05)*SGSR), dn=Math.floor((t0+dur)*SGSR), end=Math.min(N,dn+Math.floor(.3*SGSR)); for(let i=a;i<end;i++){ const v=i<up?1-.3*((i-a)/Math.max(1,up-a)):(i<dn?.7:.7+.3*((i-dn)/Math.max(1,end-dn))); if(v<duck[i]) duck[i]=v; } };
-    let vi=0; p.secs.forEach(sc=>{ if(sc.type!=='chorus'&&sc.type!=='drop'&&sc.type!=='bridge') return; const v=p.vocals[vi++%p.vocals.length], len=v.c.d/v.rate; if(Math.ceil(len/p.barSec)>sc.bars) return; const t0=at(sc.b0+(sc.type==='bridge'?0:1)); sgMix(voice,B[v.c.id],t0,.9,v.rate,{fi:.02,fo:.15}); dk(t0,len);
+    let vi=0; p.secs.forEach(sc=>{ if(sc.type!=='chorus'&&sc.type!=='drop'&&sc.type!=='bridge') return; const v=p.vocals[vi++%p.vocals.length], len=v.c.d/v.rate; if(Math.ceil(len/p.barSec)>sc.bars) return; const t0=at(sc.b0+(sc.type==='bridge'?0:1)); sgMix(voice,B[v.c.id],t0,.9,v.rate,{fi:.02,fo:.15}); sgMix(voice,B[v.c.id],t0+p.stepSec*3,.28,v.rate,{fi:.02,fo:.15}); sgMix(voice,B[v.c.id],t0+p.stepSec*6,.14,v.rate,{fi:.02,fo:.15}); dk(t0,len+p.stepSec*3);
       if(sc.bars>=8){ const v2=p.vocals[vi++%p.vocals.length], l2=v2.c.d/v2.rate, t2=at(sc.b0+Math.floor(sc.bars/2)+1); if(t2+l2<at(sc.b1)){ sgMix(voice,B[v2.c.id],t2,.9,v2.rate,{fi:.02,fo:.15}); dk(t2,l2); } } }); }
   if(p.hook.length){ const slot=Math.max(p.stepSec*4,.52); p.secs.forEach(sc=>{ if(sc.type!=='chorus'&&sc.type!=='drop') return;
     [sc.b0,sc.b0+Math.max(4,Math.floor(sc.bars/2))].forEach(b=>{ if(b+Math.ceil(p.hook.length*slot/p.barSec)>sc.b1) return; const t0=at(b); p.hook.forEach((h,k)=>sgMix(voice,B[h.c.id],t0+k*slot,.9,h.spell?1.12:1));
       const a=Math.floor(Math.max(0,t0-.03)*SGSR), up=Math.floor((t0+.05)*SGSR), dn=Math.floor((t0+p.hook.length*slot)*SGSR), end=Math.min(N,dn+Math.floor(.25*SGSR));
       for(let i=a;i<end&&i<N;i++){ const v=i<up?1-.28*((i-a)/Math.max(1,up-a)):(i<dn?.72:.72+.28*((i-dn)/Math.max(1,end-dn))); if(v<duck[i]) duck[i]=v; } }); }); }
   await sgYield();
-  const out=new Float32Array(N); let pk=0, sq=0; for(let i=0;i<N;i++){ const v=music[i]*duck[i]+voice[i]*.55; out[i]=v; const a=Math.abs(v); if(a>pk) pk=a; sq+=v*v; }
+  const out=new Float32Array(N), fadeN=Math.floor(4*SGSR); let pk=0, sq=0; for(let i=0;i<N;i++){ const fe=N-i<fadeN?(N-i)/fadeN:1, v=(music[i]*duck[i]+voice[i]*.55)*fe; out[i]=v; const a=Math.abs(v); if(a>pk) pk=a; sq+=v*v; }
   const rms=Math.sqrt(sq/N), k=pk>0?Math.min(.9/pk,.16/(rms+1e-9)):1; let pk2=0, sq2=0; for(let i=0;i<N;i++){ const v=Math.tanh(out[i]*k*1.15)/Math.tanh(1.15); out[i]=v; const a=Math.abs(v); if(a>pk2) pk2=a; sq2+=v*v; }
   return {data:out,sr:SGSR,dur:N/SGSR,rms:Math.sqrt(sq2/N),peak:pk2}; }
 // ---- playing songs on the decks, handing over from one to the next ----
