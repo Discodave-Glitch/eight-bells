@@ -25,6 +25,7 @@ input[type=range]{width:100%;accent-color:var(--ink);min-height:28px;margin:0}
 #start p{max-width:480px;color:var(--muted);margin:0}
 #go{min-height:52px;padding:0 34px;font-size:18px;font-weight:700;background:var(--ink);color:var(--bg)}
 #go:disabled{opacity:.45}
+.clkrow{flex:none;text-align:center;font-size:12px;color:var(--muted);line-height:1.1;padding-top:2px}
 .top{position:relative;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 /* the console: deck A, mixer, deck B */
@@ -158,9 +159,8 @@ body.nolbl .bt{display:none}
   .top{flex:none;flex-wrap:nowrap;margin-bottom:4px;gap:6px}
   .top h1{font-size:clamp(15px,2.2vh,24px);white-space:nowrap}.top h1 small{display:none}
   .top .row{flex-wrap:nowrap;gap:5px;align-items:center}.top button,.top select{height:clamp(30px,4vh,46px);min-height:clamp(30px,4vh,46px);box-sizing:border-box;font-size:clamp(12px,1.6vh,17px);padding:0 10px}
-  @media (max-height:560px){ .top select{max-width:clamp(70px,11vw,118px);text-overflow:ellipsis} #autolen{max-width:clamp(62px,9vw,96px)} }
-  @media (max-width:1100px){ .top,.top .row{flex-wrap:wrap} .top{justify-content:flex-start;row-gap:3px} .top>*{max-width:100%} }
-  @media (max-width:900px),(max-height:560px){ #gfx .dp{display:none} #gfx{padding:0 3px!important;font-size:11px} .top button,.top select{padding:0 5px} .top .row{gap:2px} #mkgood,#mkbad{min-width:32px;padding:0 4px} }
+  .top #autoset{max-width:96px;text-overflow:ellipsis}
+  @media (max-width:900px){ #gfx .dp{display:none} #gfx{padding:0 3px!important;font-size:11px} .top button,.top select{padding:0 5px} .top .row{gap:2px} #mkgood,#mkbad{min-width:32px;padding:0 4px} }
   @media (max-width:720px){ .top h1{font-size:13px} .top button,.top select{padding:0 3px;font-size:11px} .top .row{gap:1px} #mkgood,#mkbad{min-width:28px;padding:0 2px} .top{gap:4px} }
   #autost{flex:none;margin:0 0 4px!important;min-height:14px!important;font-size:11px;white-space:nowrap;overflow:hidden;flex-wrap:nowrap}#autost span{min-width:0;overflow:hidden;white-space:nowrap}#autost{gap:0 16px}#autost #auton{flex:1 1 0;width:calc(50% - 8px)}#autost #autonx{flex:1 1 0;width:calc(50% - 8px);text-align:left;margin-left:0}
   .console{flex:1 1 auto;min-height:0;grid-template-columns:minmax(0,1fr) clamp(190px,26vw,420px) minmax(0,1fr);gap:clamp(6px,1vh,14px);--k:clamp(22px,6.6vh,72px);--gb:clamp(28px,4.4vh,60px)}
@@ -214,7 +214,7 @@ body.nolbl .bt{display:none}
 
 <div id="app" hidden>
   <div class="top">
-    <h1>Eight Bells DJ<small>prototype, separate from the main app</small><span id="clk" title="How long music has been playing (resets each time you press Auto DJ; click to reset)" style="margin-left:10px;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--muted);cursor:pointer">0:00</span></h1>
+    <h1>Eight Bells DJ<small>prototype, separate from the main app</small></h1>
     <div class="row"><button id="gfx" title="Change the deck graphic"><span class="dp">Deck: </span>Bell</button><button id="auto" data-ctl="auto" data-kind="btn" aria-pressed="false">Auto DJ: off</button><button id="mkgood" data-ctl="markgood" data-kind="btn" aria-label="Mark this moment as good" title="That was good">👍</button><button id="mkbad" data-ctl="markbad" data-kind="btn" aria-label="Mark this moment as bad" title="That was bad">👎</button><select id="autolen" aria-label="Auto DJ length of each track"><option value="8">8 bars</option><option value="16">16 bars</option><option value="24">24 bars</option><option value="32" selected>32 bars</option><option value="40">40 bars</option><option value="48">48 bars</option><option value="56">56 bars</option><option value="64">64 bars</option><option value="72">72 bars</option><option value="80">80 bars</option><option value="88">88 bars</option><option value="96">96 bars</option></select><select id="autoset" aria-label="Auto DJ set length: endless or stop after a number of tracks"><option value="0" selected>Endless</option><option value="4">4 tracks</option><option value="6">6 tracks</option><option value="10">10 tracks</option><option value="r">Random stop (3-10 tracks)</option><option value="m30">30 min</option><option value="m60">1 hour</option><option value="m120">2 hours</option><option value="m240">4 hours</option></select><button id="bothplay">Play both</button><button id="bothstop">Stop both</button><details class="ctlp" id="ctlp"><summary>Setup</summary><div class="ctlbody">
 <div class="settabs" id="settabs" role="tablist"><button type="button" role="tab" data-sec="music">Music</button><button type="button" role="tab" data-sec="samples">Samples and pads</button><button type="button" role="tab" data-sec="look">Look and layout</button><button type="button" role="tab" data-sec="ctrl">Controller</button><button type="button" role="tab" data-sec="rec">Recording and report</button></div>
     <div class="setsec" data-sec="music"><p class="sechint">What Auto DJ plays and how it sounds.</p>
@@ -248,6 +248,7 @@ body.nolbl .bt{display:none}
     <div class="row"><b class="chip">Mixer knobs</b><select id="knobmode" aria-label="Layout of the mixer knobs"><option value="grid" selected>Compact grid (as now)</option><option value="col">Single column (for desktop)</option></select></div>
     <div class="row"><b class="chip">Custom deck image</b><select id="imgtarget" aria-label="Which deck gets the image"><option value="AB">Both decks</option><option value="A">Deck A</option><option value="B">Deck B</option></select><button id="imgpick">Choose image...</button><button id="imgclear">Remove</button><input type="file" id="imgfile" accept="image/*" hidden><span id="imgmsg" class="chip"></span></div>
     <div class="row"><b class="chip">Screen</b><select id="theme" aria-label="Day or night screen"><option value="night">Night</option><option value="day">Day</option><option value="auto">Match my device</option></select></div>
+    <div class="row"><b class="chip">Audio buffer</b><select id="abuf" aria-label="Audio buffer size"><option value="playback">Safe: bigger buffer (best for CarPlay and Bluetooth)</option><option value="interactive">Fast: lowest delay (may crackle over CarPlay)</option></select><span class="chip" id="abufnote">Reload the page after changing this.</span></div>
     <div class="row"><b class="chip">Long status text</b><select id="sttext" aria-label="What the status line does when its text is too long"><option value="ticker" selected>Scrolling ticker</option><option value="shrink">Shrink to fit</option><option value="still">Cut off</option></select></div>
     <label class="row chip" style="cursor:pointer"><input type="checkbox" id="padlbl"> Show pad labels (A3, B5 and so on) next to the knobs and faders</label>
     </div>
@@ -281,6 +282,8 @@ body.nolbl .bt{display:none}
 'use strict';
 const $=id=>document.getElementById(id);
 // Each deck is a whole copy of Eight Bells running quietly in a hidden frame. Its settings are kept in memory only, so it never touches the real app's saved settings.
+const ABUF=(()=>{ try{ return localStorage.getItem('ebdj.abuf')==='interactive'?'interactive':'playback'; }catch(e){ return 'playback'; } })();
+const audioSess=()=>{ try{ if(navigator.audioSession) navigator.audioSession.type='playback'; }catch(e){} }; audioSess();
 const SHIM='<script>(function(){var m={};var S={getItem:function(k){return Object.prototype.hasOwnProperty.call(m,k)?m[k]:null},setItem:function(k,v){m[k]=String(v)},removeItem:function(k){delete m[k]},clear:function(){m={}},key:function(i){return Object.keys(m)[i]||null}};Object.defineProperty(S,"length",{get:function(){return Object.keys(m).length}});try{Object.defineProperty(window,"localStorage",{value:S,configurable:true});Object.defineProperty(window,"sessionStorage",{value:S,configurable:true});}catch(e){}})();<\/script>';
 const SECS=[['intro','Intro'],['bld','Build-up'],['drop','Drop'],['chorus','Chorus'],['brk','Break'],['bridge','Bridge'],['half','Half'],['outro','Outro']];
 const FXN=['Loop 1/4','Loop 1/8','Stutter','Reverse','Tape stop','Low-pass sweep','High-pass sweep','Echo'];
@@ -302,7 +305,7 @@ function ready(d){ try{ return !!d.win&&d.win.eval("typeof startPlay==='function
 async function boot(){
   let text;
   try{ const r=await fetch('index.html',{cache:'no-cache'}); text=await r.text(); }catch(e){ $('loadmsg').textContent='Could not load Eight Bells (index.html).'; return; }
-  text=text.replace(/<head>/i,'<head>'+SHIM);
+  text=text.replace(/<head>/i,'<head>'+SHIM+'<script>window.__ebLatency='+JSON.stringify(ABUF)+';try{ if(navigator.audioSession) navigator.audioSession.type="playback"; }catch(e){}<\/script>');
   decks.forEach(d=>{ const f=document.createElement('iframe'); f.className='hid'; f.setAttribute('aria-hidden','true'); f.title='Deck '+d.id+' engine'; f.srcdoc=text; document.body.appendChild(f); d.frame=f; });
   const t0=Date.now();
   const wait=setInterval(()=>{
@@ -395,7 +398,7 @@ function buildUI(){
    '<div class="mixer" aria-label="Mixer"><div class="strips">'+stripHTML(decks[0])+stripHTML(decks[1])+'</div>'+
    '<div class="xfw" data-ctl="xf" data-kind="abs"><div class="lbl"><span>Crossfader <i class="bt">A1 B1</i></span></div><div class="xfr"><b class="A">A</b><input type="range" id="xf" min="0" max="100" value="50" aria-label="Crossfader"><b class="B">B</b></div><div class="xfb"><button data-xf="0">All A</button><button data-xf="50">Centre</button><button data-xf="100">All B</button></div></div>'+
    '<div class="xfw pbw"><div class="lbl"><span>Pad buttons</span></div><div class="pbtn"><button data-ctl="prev" data-kind="btn" data-a="prev" aria-label="Sync Deck A to Deck B">&lt; A</button><button data-ctl="next" data-kind="btn" data-a="next" aria-label="Sync Deck B to Deck A">B &gt;</button><button data-ctl="playall" data-kind="btn" data-a="playall">Play</button><button data-ctl="stopall" data-kind="btn" data-a="stopall">Stop</button><button data-ctl="focus" data-kind="btn" data-a="focus" id="focusb">Sync</button></div><div class="chip">&lt; syncs Deck A to Deck B, &gt; syncs Deck B to Deck A. Record also syncs Deck B to Deck A.</div></div>'+
-   '<div class="mvr">'+knobHTML('Master <i class="bt">A2 B2</i>','mv','id="mv"',0,100,85,'mvv','Master volume')+'<button id="rec" class="recb" aria-pressed="false" title="Record the mix to a file"><i class="rdot"></i><span id="rect">Rec</span></button><button id="trk" class="recb trkb" title="Mark where a new track starts while recording" aria-label="Mark a new track" disabled><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" style="flex:none"><path d="M3 1v12M3 2h8.5l-2.2 3 2.2 3H3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="trkt">Track</span></button></div></div>'+
+   '<div class="mvr">'+knobHTML('Master <i class="bt">A2 B2</i>','mv','id="mv"',0,100,85,'mvv','Master volume')+'<button id="rec" class="recb" aria-pressed="false" title="Record the mix to a file"><i class="rdot"></i><span id="rect">Rec</span></button><button id="trk" class="recb trkb" title="Mark where a new track starts while recording" aria-label="Mark a new track" disabled><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" style="flex:none"><path d="M3 1v12M3 2h8.5l-2.2 3 2.2 3H3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="trkt">Track</span></button></div><div class="clkrow">Playing <span id="clk" title="How long music has been playing (resets each time you press Auto DJ; click to reset)" style="font-weight:600;font-variant-numeric:tabular-nums;cursor:pointer">0:00</span></div></div>'+
    deckHTML(decks[1],opts);
   decks.forEach(d=>{ $('deck'+d.id).querySelector('select').value=d.genre; d.page=0; d.held={}; });
   paintPads(); refreshMapped(); setFocus(S.focus);
@@ -570,7 +573,7 @@ async function pkFetchMan(){ // try a few times (second and third try skip the b
   for(let i=0;i<3;i++){ try{ const r=await fetch(PKBASE+'manifest.json'+(i?'?r='+Date.now():''),i?{cache:'reload'}:undefined); if(r.ok){ const m=await r.json(); if(m&&m.groups) return m; PK.err='the pack list looked wrong'; } else PK.err='server said '+r.status; }catch(e){ PK.err=(location.protocol==='file:')?'this page was opened as a file, so the browser blocks the samples folder':'the connection failed'; } await new Promise(z=>setTimeout(z,700*(i+1))); }
   return null; }
 function pkMan(){ if(PK.loading&&PK.failed){ PK.loading=null; PK.failed=false; } if(!PK.loading){ const p=pkFetchMan().then(m=>{ if(m) m.groups.forEach(g=>g.clips.forEach(c=>{ c.grp=g.id; })); PK.man=m; if(!m&&PK.loading===p) PK.failed=true; return m; }).catch(()=>{ if(PK.loading===p) PK.failed=true; return null; }); PK.loading=p; } return PK.loading; }
-let PAC=null; const pkCtx=()=>{ if(!PAC){ const AC=window.AudioContext||window.webkitAudioContext; PAC=new AC(); } return PAC; };
+let PAC=null; const pkCtx=()=>{ if(!PAC){ const AC=window.AudioContext||window.webkitAudioContext; PAC=new AC({latencyHint:ABUF}); } return PAC; };
 async function pkLoad(c){ // fetch and decode one clip, then give each deck its own copy
   if(PK.ready.has(c.id)) return true;
   const r=await fetch(PKBASE+c.f); if(!r.ok) return false; const b=await pkCtx().decodeAudioData(await r.arrayBuffer()), ch=b.getChannelData(0).slice(0);
@@ -1186,7 +1189,7 @@ function bend(d,dir,on){ if(on){ if(d.bendSave==null){ d.bendSave=getBpm(d); set
 const SCR={cur:{},inited:new Set(),ang:{}};
 const scrMode=()=>(($('platmode')&&$('platmode').value)||'scratch')==='scratch';
 function scrInit(d){ if(SCR.inited.has(d.id)) return; SCR.inited.add(d.id); ev(d,`(function(){ if(window.__scr) return; var W=6,N=0,L,R,w=0,sp=null,zg=null,cap=false,S={src:null,g:null,buf:null,rev:null,pos:0,dur:0,rate:0,t:0,dir:1,tm:null,live:true};
-  function cap0(){ if(cap) return; ensureAudio(); N=Math.round(ac.sampleRate*W); L=new Float32Array(N); R=new Float32Array(N); sp=ac.createScriptProcessor(4096,2,2);
+  function cap0(){ if(cap) return; ensureAudio(); N=Math.round(ac.sampleRate*W); L=new Float32Array(N); R=new Float32Array(N); sp=ac.createScriptProcessor(8192,2,2);
     sp.onaudioprocess=function(e){ var a=e.inputBuffer.getChannelData(0), b=e.inputBuffer.numberOfChannels>1?e.inputBuffer.getChannelData(1):a; for(var i=0;i<a.length;i++){ L[w]=a[i]; R[w]=b[i]; if(++w>=N) w=0; } };
     zg=ac.createGain(); zg.gain.value=0; OUTTAP.connect(sp); sp.connect(zg); zg.connect(ac.destination); cap=true; }
   function live(on){ var j=window.__dj; if(!j||!j.el||S.live===on) return; S.live=on; try{ if(on) OUTTAP.connect(j.el); else OUTTAP.disconnect(j.el); }catch(e){} }
@@ -1612,6 +1615,7 @@ function wireUI(){
       apply(v);
       sel.addEventListener('change',()=>{ if(sel.value==='custom') pk.click(); else apply(sel.value); });
       pk.addEventListener('input',()=>apply(pk.value)); }); }
+  $('abuf').value=ABUF; $('abuf').addEventListener('change',()=>{ try{ localStorage.setItem('ebdj.abuf',$('abuf').value); }catch(e){} $('abufnote').textContent='Saved. Reload the page to use it.'; });
   try{ const v=localStorage.getItem('ebdj.sttext'); if(v&&[...$('sttext').options].some(o=>o.value===v)) $('sttext').value=v; }catch(e){}
   const stApply=()=>{ const m=$('sttext').value; const st=$('autost'); st.classList.remove('st-ticker','st-shrink','st-still'); st.classList.add('st-'+m); ['auton','autonx'].forEach(id=>{ const sp=$(id); sp._sc=1; sp.classList.remove('mq','clip'); sp.firstChild.style.fontSize=''; sp.style.removeProperty('--mq'); sp.firstChild.children[1].textContent=''; mqFit(sp,sp.firstChild.children[0].textContent); }); };
   stApply(); $('sttext').addEventListener('change',()=>{ try{ localStorage.setItem('ebdj.sttext',$('sttext').value); }catch(e){} stApply(); });
@@ -1650,7 +1654,7 @@ function wireUI(){
   $('clearmap').addEventListener('click',()=>{ MAP={}; saveMap(); refreshMapped(); $('msg').textContent='All mappings cleared.'; });
 }
 
-$('go').addEventListener('click',()=>{
+$('go').addEventListener('click',()=>{ audioSess();
   if(S.started) return; S.started=true;
   buildUI();
   decks.forEach(d=>{ wireDeck(d); setGenre(d,d.genre); });
