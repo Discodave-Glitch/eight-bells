@@ -233,7 +233,7 @@ body.nolbl .bt{display:none}
     <div class="row"><b class="chip">Starter pack</b><span class="chip" id="pkinfo">Sounds that come with the app. They play when Vocals and samples is set to "voices + samples". Tick what you want; the arrow plays one.</span></div>
     <div id="pkrows"></div>
     <details class="tfam" id="pkcred"><summary>Starter pack credits and licences</summary><div class="chip" id="pkcredt" style="white-space:normal;margin-top:6px"></div></details>
-    <div class="row"><b class="chip">My samples</b><button id="smadd">Add sounds or a zip...</button><label class="chip" style="cursor:pointer"><input type="checkbox" id="smcut" checked> Cut long sounds into phrases</label><button id="smclr">Remove all</button><input type="file" id="smfile" accept="audio/*,.zip,application/zip,.mp3,.wav,.aif,.aiff,.m4a,.ogg,.flac,.opus,.aac" multiple hidden></div>
+    <div class="row"><b class="chip">My samples</b><button id="smadd">Add sounds, a zip or a rar...</button><label class="chip" style="cursor:pointer"><input type="checkbox" id="smcut" checked> Cut long sounds into phrases</label><button id="smclr">Remove all</button><input type="file" id="smfile" accept="audio/*,.zip,.rar,application/zip,application/vnd.rar,application/x-rar-compressed,.mp3,.wav,.aif,.aiff,.m4a,.ogg,.flac,.opus,.aac" multiple hidden></div>
     <div class="chip" id="smmsg">Add your own audio files or a zip of them. They play when Vocals and samples is set to "voices + samples". Tick the ones you want.</div>
     <div id="smlist"></div>
     </div>
@@ -668,18 +668,42 @@ const AUD_RE=/\.(mp3|wav|wave|aif|aiff|m4a|aac|ogg|oga|opus|flac|webm|mp4)$/i;
 const smOff=()=>{ try{ return new Set(JSON.parse(localStorage.getItem('ebdj.smoff')||'[]')); }catch(e){ return new Set(); } };
 const smOffSave=o=>{ try{ localStorage.setItem('ebdj.smoff',JSON.stringify([...o])); }catch(e){} };
 const smDur=()=>{ try{ return JSON.parse(localStorage.getItem('ebdj.smdur')||'{}'); }catch(e){ return {}; } };
-async function unzipAudio(file){ // reads a plain zip (stored or deflated) and returns its audio files
-  const buf=new Uint8Array(await file.arrayBuffer()), dv=new DataView(buf.buffer); let e=-1;
-  for(let i=buf.length-22;i>=Math.max(0,buf.length-65557);i--){ if(dv.getUint32(i,true)===0x06054b50){ e=i; break; } } if(e<0) throw new Error('not a zip');
-  const n=dv.getUint16(e+10,true), dec=new TextDecoder(), out=[]; let p=dv.getUint32(e+16,true);
-  for(let k=0;k<n&&out.length<300;k++){ if(dv.getUint32(p,true)!==0x02014b50) break;
-    const fl=dv.getUint16(p+8,true), meth=dv.getUint16(p+10,true), csz=dv.getUint32(p+20,true), usz=dv.getUint32(p+24,true), nl=dv.getUint16(p+28,true), el=dv.getUint16(p+30,true), cl=dv.getUint16(p+32,true), lo=dv.getUint32(p+42,true), name=dec.decode(buf.subarray(p+46,p+46+nl)); p+=46+nl+el+cl;
-    const base=name.split('/').pop(); if(!base||name.endsWith('/')||/^__MACOSX\//.test(name)||base.charAt(0)==='.'||!AUD_RE.test(base)||usz>80*1048576||(fl&1)) continue;
-    const ds=lo+30+dv.getUint16(lo+26,true)+dv.getUint16(lo+28,true), raw=buf.subarray(ds,ds+csz); let data;
-    if(meth===0) data=raw; else if(meth===8){ if(typeof DecompressionStream==='undefined') throw new Error('This browser cannot open zips. Unzip them first and add the files.'); data=new Uint8Array(await new Response(new Blob([raw]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer()); } else continue;
-    out.push({name:base,blob:new Blob([data])}); }
-  return out;
+const ARC_RE=/\.(zip|rar)$/i, ARC_MAX=1500*1048576, AUD_MAX=250*1048576, ENT_MAX=4000;
+async function sniffArc(file){ // zip or rar by what is inside the file, not its name
+  const h=new Uint8Array(await file.slice(0,8).arrayBuffer());
+  if(h[0]===0x50&&h[1]===0x4b&&(h[2]===3||h[2]===5)) return 'zip';
+  if(h[0]===0x52&&h[1]===0x61&&h[2]===0x72&&h[3]===0x21) return 'rar';
+  return '';
 }
+function unrarStream(file,onItem){ // opens a .rar in a worker (reads it in slices), calls onItem(name,blob) for each audio file or archive inside
+  return new Promise((res,rej)=>{ let w; try{ w=new Worker('vendor/unrar/unrar-worker.js'); }catch(e){ rej(new Error('This browser cannot open rar files. Unzip them first and add the files.')); return; }
+    let q=Promise.resolve();
+    w.onmessage=e=>{ const m=e.data; if(m.name) q=q.then(()=>onItem(m.name.split('/').pop(),new Blob([m.data]))); else if(m.done){ q.then(()=>{ w.terminate(); res(); }); } else if(m.error){ w.terminate(); rej(new Error(m.error)); } };
+    w.onerror=()=>{ w.terminate(); rej(new Error('Could not open the rar. Is vendor/unrar next to this page?')); };
+    w.postMessage({file:file,want:'\\.(mp3|wav|wave|aif|aiff|m4a|aac|ogg|oga|opus|flac|webm|mp4|zip|rar)$',maxEntry:ARC_MAX,maxCount:ENT_MAX}); }); }
+async function unzipStream(file,onItem){ // reads a zip (stored or deflated, zip64 too) in slices; any size
+  const sz=file.size, tail=new Uint8Array(await file.slice(Math.max(0,sz-65600),sz).arrayBuffer()), tv=new DataView(tail.buffer), tb=Math.max(0,sz-65600); let e=-1;
+  for(let i=tail.length-22;i>=0;i--){ if(tv.getUint32(i,true)===0x06054b50){ e=i; break; } } if(e<0) throw new Error('not a zip');
+  let n=tv.getUint16(e+10,true), cdSize=tv.getUint32(e+12,true), cdOff=tv.getUint32(e+16,true);
+  if((n===0xffff||cdOff===0xffffffff||cdSize===0xffffffff)&&e>=20&&tv.getUint32(e-20,true)===0x07064b50){ const z=Number(tv.getBigUint64(e-12,true)), zh=new DataView(await file.slice(z,z+56).arrayBuffer()); if(zh.getUint32(0,true)===0x06064b50){ n=Number(zh.getBigUint64(32,true)); cdSize=Number(zh.getBigUint64(40,true)); cdOff=Number(zh.getBigUint64(48,true)); } }
+  const cd=new Uint8Array(await file.slice(cdOff,cdOff+cdSize).arrayBuffer()), dv=new DataView(cd.buffer), dec=new TextDecoder(); let p=0;
+  for(let k=0;k<n&&p+46<=cd.length;k++){ if(dv.getUint32(p,true)!==0x02014b50) break;
+    const fl=dv.getUint16(p+8,true), meth=dv.getUint16(p+10,true), nl=dv.getUint16(p+28,true), el=dv.getUint16(p+30,true), cl=dv.getUint16(p+32,true); let csz=dv.getUint32(p+20,true), usz=dv.getUint32(p+24,true), lo=dv.getUint32(p+42,true); const name=dec.decode(cd.subarray(p+46,p+46+nl));
+    if(csz===0xffffffff||usz===0xffffffff||lo===0xffffffff){ let q=p+46+nl; const qe=q+el; while(q+4<=qe){ const id=dv.getUint16(q,true), l=dv.getUint16(q+2,true); if(id===1){ let r=q+4; if(usz===0xffffffff){ usz=Number(dv.getBigUint64(r,true)); r+=8; } if(csz===0xffffffff){ csz=Number(dv.getBigUint64(r,true)); r+=8; } if(lo===0xffffffff){ lo=Number(dv.getBigUint64(r,true)); } break; } q+=4+l; } }
+    p+=46+nl+el+cl;
+    const base=name.split('/').pop(); if(!base||name.endsWith('/')||/^__MACOSX\//.test(name)||base.charAt(0)==='.'||(fl&1)||!(AUD_RE.test(base)||ARC_RE.test(base))||usz>(ARC_RE.test(base)?ARC_MAX:AUD_MAX)) continue;
+    const lh=new DataView(await file.slice(lo,lo+30).arrayBuffer()), ds=lo+30+lh.getUint16(26,true)+lh.getUint16(28,true), raw=file.slice(ds,ds+csz); let blob;
+    if(meth===0) blob=raw; else if(meth===8){ if(typeof DecompressionStream==='undefined') throw new Error('This browser cannot open zips. Unzip them first and add the files.'); blob=await new Response(raw.stream().pipeThrough(new DecompressionStream('deflate-raw'))).blob(); } else continue;
+    await onItem(base,blob); }
+}
+async function unpackAudio(file,onItem,depth,st){ // zips, rars, and archives inside archives (up to 4 deep); calls onItem(name,blob) for every audio file found
+  depth=depth||0; st=st||{n:0};
+  const each=async(name,blob)=>{ if(st.n>=ENT_MAX) return;
+    if(ARC_RE.test(name)||(!AUD_RE.test(name))){ if(depth<4){ const kind=await sniffArc(blob); if(kind){ try{ await unpackAudio(new File([blob],name),onItem,depth+1,st); }catch(e){} return; } } if(!AUD_RE.test(name)) return; }
+    st.n++; await onItem(name,blob); };
+  const kind=await sniffArc(file); if(kind==='rar') return unrarStream(file,each); if(kind==='zip') return unzipStream(file,each); throw new Error('not a zip or rar');
+}
+async function unzipAudio(file,depth){ const out=[]; await unpackAudio(file,async(name,blob)=>{ out.push({name:name,blob:blob}); },depth||0); return out; }
 function phrasesJS(x,sr,lo,hi){ // cut a long sound at its quiet gaps into pieces of about lo to hi seconds
   const fn=Math.floor(sr*.02), k=Math.floor(x.length/fn), env=new Float32Array(k);
   for(let i=0;i<k;i++){ let a=0; for(let j=0;j<fn;j++){ const v=x[i*fn+j]; a+=v*v; } env[i]=Math.sqrt(a/fn); }
@@ -709,13 +733,18 @@ async function smAdd(list){ // list of {name, blob}
     }catch(e){ bad++; } }
   try{ localStorage.setItem('ebdj.smdur',JSON.stringify(durs)); }catch(e){} smmSave();
   for(const d of decks){ try{ await d.win.eval('sampLoadAll()'); }catch(e){} }
-  msg((added?'Added '+added+' sound'+(added===1?'':'s')+(cutN?' ('+cutN+' long file'+(cutN===1?'':'s')+' cut into phrases)':'')+'. ':'')+(bad?bad+' could not be read as audio.':'')+(!added&&!bad?'No audio files found.':'')); smBuild(); if(voxMode()==='all') voxPrep();
+  msg((added?'Added '+added+' sound'+(added===1?'':'s')+(cutN?' ('+cutN+' long file'+(cutN===1?'':'s')+' cut into phrases)':'')+'. ':'')+(bad?bad+' could not be read as audio.':'')+(!added&&!bad?'No audio files found.':'')); smBuild(); if(voxMode()==='all') voxPrep(); return added;
 }
 async function smPick(files){
-  const list=[]; let err='';
-  for(const f of files){ try{ if(/\.zip$/i.test(f.name)||f.type==='application/zip'||f.type==='application/x-zip-compressed'){ (await unzipAudio(f)).forEach(x=>list.push(x)); } else if(AUD_RE.test(f.name)||/^audio\//.test(f.type)) list.push({name:f.name,blob:f}); }catch(e){ err=e&&e.message?e.message:'Could not open a zip.'; } }
-  if(!list.length){ $('smmsg').textContent=err||'No audio files found.'; return; }
-  await smAdd(list);
+  const msg=t=>{ const e=$('smmsg'); if(e) e.textContent=t; }; let err='', batch=[], total=0, seen=0, added=0; const FLUSH=24;
+  const flush=async()=>{ if(!batch.length) return; const b=batch; batch=[]; total+=b.length; added+=(await smAdd(b))||0; };
+  for(const f of files){ try{
+      const kind=ARC_RE.test(f.name)||/zip|rar/.test(f.type)?await sniffArc(f):'';
+      if(kind){ msg('Opening '+f.name+'...'); await unpackAudio(f,async(name,blob)=>{ seen++; msg('Opening '+f.name+': found '+seen+' sound'+(seen===1?'':'s')+'...'); batch.push({name:name,blob:blob}); if(batch.length>=FLUSH) await flush(); }); }
+      else if(AUD_RE.test(f.name)||/^audio\//.test(f.type)){ batch.push({name:f.name,blob:f}); if(batch.length>=FLUSH) await flush(); }
+    }catch(e){ err=e&&e.message?e.message:'Could not open that file.'; } }
+  await flush();
+  if(!total) msg(err||'No audio files found.'); else msg('Added '+added+' sound'+(added===1?'':'s')+(total>added?' ('+(total-added)+' could not be read as audio)':'')+'.'+(err?' '+err:''));
 }
 function smBuild(){
   const box=$('smlist'); if(!box) return; let all=[]; try{ all=ev(decks[0],'Array.from(SMETA.values()).map(function(m){return [m.id,m.name]})')||[]; }catch(e){} all=all.filter(a=>!/^sp_/.test(a[0]));
