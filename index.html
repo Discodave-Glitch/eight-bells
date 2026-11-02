@@ -4697,7 +4697,7 @@ const PVOL={v:1}; try{ const q=+localStorage.getItem('eb_vol'); if(Number.isFini
 let OUTTAP=null;
 function ensureAudio(){
   if(ac) return;
-  ac=new (window.AudioContext||window.webkitAudioContext)();
+  ac=new (window.AudioContext||window.webkitAudioContext)(window.__ebLatency?{latencyHint:window.__ebLatency}:undefined);
   const comp=ac.createDynamicsCompressor();
   master=ac.createGain(); master.gain.value=PVOL.v*0.8; masterReal=master;
   const lim=ac.createDynamicsCompressor(); lim.threshold.value=-2; lim.knee.value=0; lim.ratio.value=20; lim.attack.value=0.003; lim.release.value=0.12;
