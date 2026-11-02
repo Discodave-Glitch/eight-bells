@@ -714,7 +714,17 @@ async function smpInit(){
   if(!SLOTS){ const m=await pkMan(); let vl=[]; try{ vl=ev(decks[0],'VOX_LIST')||[]; }catch(e){}
     const G=id=>{ const g=m&&m.groups.find(x=>x.id===id); return g?{t:'grp',g:id,name:gshort(g)}:{t:'none'}; }, V=id=>{ const v=vl.find(x=>x[0]===id); return v?{t:'vox',id:id,name:v[1]}:{t:'none'}; };
     SLOTS=['dk','ds','dc','dh','do','dt','dp','fxs'].map(G).concat(['acap','sing','ssw','sss','gtr','keys'].map(G),[V('hey'),V('yeah')]); slotSave(); }
+  try{ await smpDedupe(); }catch(e){}
   smpPaint(); setTimeout(smpPrefetch,3000);
+}
+async function smpDedupe(){ // no two pads (on either deck) may hold the same sound: swap repeats for unused ones
+  const m=await pkMan(); let vl=[]; try{ vl=ev(decks[0],'VOX_LIST')||[]; }catch(e){}
+  const keyOf=s=>!s||s.t==='none'?null:(s.t==='vox'?'v:'+String(s.name||s.id).toLowerCase():(s.t==='grp'?'g:'+s.g:s.t+':'+s.id)), seen=new Set(); let changed=false;
+  SLOTS.forEach(s=>{ const k=keyOf(s); if(k) seen.add(k); }); const first=new Set();
+  const spare=()=>{ for(const id of ['dk','ds','dc','dh','do','dt','dp','fxs','acap','sing','ssw','sss','gtr','keys','fxe','stb','vcs']){ const g=m&&m.groups.find(x=>x.id===id); if(g&&!seen.has('g:'+id)){ seen.add('g:'+id); return {t:'grp',g:id,name:gshort(g)}; } }
+    for(const v of vl){ const k='v:'+String(v[1]).toLowerCase(); if(!seen.has(k)){ seen.add(k); return {t:'vox',id:v[0],name:v[1]}; } } return null; };
+  SLOTS.forEach((s,i)=>{ const k=keyOf(s); if(!k) return; if(first.has(k)){ const n=spare(); if(n){ SLOTS[i]=n; changed=true; } } else first.add(k); });
+  if(changed) slotSave();
 }
 const SMPR=[]; // clips the pads played lately, shared by both decks so the same sound does not come round twice in a row
 const smpNote=id=>{ SMPR.push(id); while(SMPR.length>24) SMPR.shift(); };
