@@ -105,6 +105,7 @@ body.nolbl .bt{display:none}
 #imged{position:fixed;inset:0;z-index:40;background:#000a;display:flex;align-items:center;justify-content:center;padding:16px}#imged canvas{width:min(100%,56vh,360px);aspect-ratio:1/1;align-self:center;border-radius:10px;cursor:grab}#imged .rpbox{align-items:stretch}
 @media (max-height:560px){#imged .rpbox{max-width:700px;display:grid;grid-template-columns:min(72vh,320px) 1fr;column-gap:14px;row-gap:8px;align-content:center}#imged .rpbox h2,#imged .rpbox p,#imged .rpbox label,#imged .rpbtns{grid-column:2}#imged canvas{grid-column:1;grid-row:1/7;width:min(72vh,320px);align-self:center}}
 #pkrows{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0}.pkg{display:flex;align-items:center;gap:6px;cursor:pointer}.pkg button{min-height:28px;padding:0 8px}
+#smlist{display:flex;flex-direction:column;gap:4px;margin:4px 0;max-height:220px;overflow:auto}.smr{display:flex;align-items:center;gap:6px;font-size:13px}.smr span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.smr button{min-height:28px;padding:0 8px;flex:none}.smr.long span{opacity:.6}
 .tfam{margin:4px 0}.tfam summary{cursor:pointer;display:inline-block;padding:6px 10px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);font-size:13px}#famrows{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}#famrows label{font-size:12px;display:flex;gap:4px;align-items:center}
 #tagbar{position:fixed;left:50%;transform:translateX(-50%);bottom:6px;z-index:30;display:flex;gap:6px;align-items:center;padding:6px 8px;border:1px solid var(--line);border-radius:12px;background:var(--panel2);box-shadow:0 4px 18px #0008;font-size:13px}#tagbar[hidden]{display:none}#tagbar button{min-height:34px;padding:0 10px}
 #recpop{position:fixed;inset:0;z-index:40;background:#000a;display:flex;align-items:center;justify-content:center;padding:16px}#recpop[hidden]{display:none}
@@ -218,6 +219,9 @@ body.nolbl .bt{display:none}
     <div class="row"><b class="chip">Starter pack</b><span class="chip" id="pkinfo">Sounds that come with the app. They play when Vocals and samples is set to "voices + samples". Tick what you want; the arrow plays one.</span></div>
     <div id="pkrows"></div>
     <details class="tfam" id="pkcred"><summary>Starter pack credits and licences</summary><div class="chip" id="pkcredt" style="white-space:normal;margin-top:6px"></div></details>
+    <div class="row"><b class="chip">My samples</b><button id="smadd">Add sounds or a zip...</button><label class="chip" style="cursor:pointer"><input type="checkbox" id="smcut" checked> Cut long sounds into phrases</label><button id="smclr">Remove all</button><input type="file" id="smfile" accept="audio/*,.zip,application/zip,.mp3,.wav,.aif,.aiff,.m4a,.ogg,.flac,.opus,.aac" multiple hidden></div>
+    <div class="chip" id="smmsg">Add your own audio files or a zip of them. They play when Vocals and samples is set to "voices + samples". Tick the ones you want.</div>
+    <div id="smlist"></div>
     <div class="row"><b class="chip">Taste</b><select id="taste" aria-label="How strongly Auto DJ follows what you have marked"><option value="off">Ignore my marks</option><option value="gentle">Gentle</option><option value="normal" selected>Normal</option><option value="strong">Strong</option></select><button id="tasteimp">Learn from a report...</button><button id="tasteexp">Save my taste</button><button id="tastein">Load taste...</button><button id="tasterst">Reset</button><input type="file" id="tasterep" accept=".md,.txt,text/*" multiple hidden><input type="file" id="tastefile" accept=".json,application/json" hidden></div>
     <div class="chip" id="tastesum">Tap thumbs up or down while Auto DJ plays and it learns what you like.</div>
     <details class="tfam" id="fam"><summary>Genre families: more or less of each</summary><div id="famrows"></div></details>
@@ -550,6 +554,70 @@ async function pkBuild(){
     l.appendChild(cb); l.appendChild(document.createTextNode(g.name+' ('+g.clips.length+')')); l.appendChild(pv); box.appendChild(l); });
   $('pkcredt').innerHTML='Acapella phrases: Andres Franco and Snowflake (Emily Richards), from ccMixter, licensed CC BY 3.0 (creativecommons.org/licenses/by/3.0/us/). They were shortened into phrases and converted to small mono files. Speak and Spell groups: Texas Instruments Speak &amp; Spell (1978) sample library produced by Motion Laboratories. Singing, loops and spoken word: SampleSwap vocal sampler (NASA recordings are public domain).';
 }
+// ---- My samples: your own sounds, from audio files or zips; long ones are cut into phrases
+const AUD_RE=/\.(mp3|wav|wave|aif|aiff|m4a|aac|ogg|oga|opus|flac|webm|mp4)$/i;
+const smOff=()=>{ try{ return new Set(JSON.parse(localStorage.getItem('ebdj.smoff')||'[]')); }catch(e){ return new Set(); } };
+const smOffSave=o=>{ try{ localStorage.setItem('ebdj.smoff',JSON.stringify([...o])); }catch(e){} };
+const smDur=()=>{ try{ return JSON.parse(localStorage.getItem('ebdj.smdur')||'{}'); }catch(e){ return {}; } };
+async function unzipAudio(file){ // reads a plain zip (stored or deflated) and returns its audio files
+  const buf=new Uint8Array(await file.arrayBuffer()), dv=new DataView(buf.buffer); let e=-1;
+  for(let i=buf.length-22;i>=Math.max(0,buf.length-65557);i--){ if(dv.getUint32(i,true)===0x06054b50){ e=i; break; } } if(e<0) throw new Error('not a zip');
+  const n=dv.getUint16(e+10,true), dec=new TextDecoder(), out=[]; let p=dv.getUint32(e+16,true);
+  for(let k=0;k<n&&out.length<300;k++){ if(dv.getUint32(p,true)!==0x02014b50) break;
+    const fl=dv.getUint16(p+8,true), meth=dv.getUint16(p+10,true), csz=dv.getUint32(p+20,true), usz=dv.getUint32(p+24,true), nl=dv.getUint16(p+28,true), el=dv.getUint16(p+30,true), cl=dv.getUint16(p+32,true), lo=dv.getUint32(p+42,true), name=dec.decode(buf.subarray(p+46,p+46+nl)); p+=46+nl+el+cl;
+    const base=name.split('/').pop(); if(!base||name.endsWith('/')||/^__MACOSX\//.test(name)||base.charAt(0)==='.'||!AUD_RE.test(base)||usz>80*1048576||(fl&1)) continue;
+    const ds=lo+30+dv.getUint16(lo+26,true)+dv.getUint16(lo+28,true), raw=buf.subarray(ds,ds+csz); let data;
+    if(meth===0) data=raw; else if(meth===8){ if(typeof DecompressionStream==='undefined') throw new Error('This browser cannot open zips. Unzip them first and add the files.'); data=new Uint8Array(await new Response(new Blob([raw]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer()); } else continue;
+    out.push({name:base,blob:new Blob([data])}); }
+  return out;
+}
+function phrasesJS(x,sr,lo,hi){ // cut a long sound at its quiet gaps into pieces of about lo to hi seconds
+  const fn=Math.floor(sr*.02), k=Math.floor(x.length/fn), env=new Float32Array(k);
+  for(let i=0;i<k;i++){ let a=0; for(let j=0;j<fn;j++){ const v=x[i*fn+j]; a+=v*v; } env[i]=Math.sqrt(a/fn); }
+  const srt=Array.from(env).filter(v=>v>1e-4).sort((a,b)=>a-b); if(!srt.length) return []; const ref=srt[Math.floor(srt.length*.9)], cuts=[0];
+  for(let i=0;i<k;){ if(env[i]<ref*.05){ let j=i; while(j<k&&env[j]<ref*.05) j++; if((j-i)*.02>=.28) cuts.push(((i+j)>>1)*fn); i=j; } else i++; } cuts.push(x.length);
+  const segs=[]; for(let i=0;i<cuts.length-1;i++){ let a=cuts[i]; const b=cuts[i+1]; if(b<=a) continue;
+    while((b-a)/sr>hi){ const l=a+Math.floor(sr*3.5), h=a+Math.floor(sr*hi); let bi=Math.floor(l/fn), bv=1e9; for(let q=Math.floor(l/fn);q<Math.min(k,Math.floor(h/fn));q++){ if(env[q]<bv){ bv=env[q]; bi=q; } } const c=bi*fn; if(c<=a) break; segs.push([a,c]); a=c; } segs.push([a,b]); }
+  const mer=[]; let cur=null; segs.forEach(sg=>{ if(!cur) cur=[sg[0],sg[1]]; else if((sg[1]-cur[0])/sr<=hi) cur[1]=sg[1]; else { mer.push(cur); cur=[sg[0],sg[1]]; } }); if(cur) mer.push(cur);
+  const res=[]; mer.forEach(([a,b])=>{ if((b-a)/sr<lo*.7) return; let q=0,m=0; for(let i=a;i<b;i++){ q+=x[i]*x[i]; m=Math.max(m,Math.abs(x[i])); } if(Math.sqrt(q/(b-a))<ref*.18) return;
+    let s0=a, s1=b; const t=m*.006; while(s0<s1&&Math.abs(x[s0])<t) s0++; while(s1>s0&&Math.abs(x[s1-1])<t) s1--; res.push(x.subarray(Math.max(0,s0-Math.floor(sr*.01)),Math.min(x.length,s1+Math.floor(sr*.06)))); });
+  return res;
+}
+function wavOf(x,sr){ // 16-bit mono wav, levelled so cut pieces sit at a similar volume
+  let q=0,m=1e-9; for(let i=0;i<x.length;i++){ q+=x[i]*x[i]; m=Math.max(m,Math.abs(x[i])); } const g=Math.min(Math.pow(10,-20/20)/(Math.sqrt(q/x.length)+1e-9),.93/m), n=x.length, ab=new ArrayBuffer(44+n*2), dv=new DataView(ab), w=(o,t)=>{ for(let i=0;i<t.length;i++) dv.setUint8(o+i,t.charCodeAt(i)); };
+  w(0,'RIFF'); dv.setUint32(4,36+n*2,true); w(8,'WAVE'); w(12,'fmt '); dv.setUint32(16,16,true); dv.setUint16(20,1,true); dv.setUint16(22,1,true); dv.setUint32(24,sr,true); dv.setUint32(28,sr*2,true); dv.setUint16(32,2,true); dv.setUint16(34,16,true); w(36,'data'); dv.setUint32(40,n*2,true);
+  const ed=Math.floor(sr*.008); for(let i=0;i<n;i++){ let v=x[i]*g; if(i<ed) v*=i/ed; else if(n-i<ed) v*=(n-i)/ed; dv.setInt16(44+i*2,Math.max(-1,Math.min(1,v))*32767,true); }
+  return new Blob([ab],{type:'audio/wav'});
+}
+async function smAdd(list){ // list of {name, blob}
+  const msg=t=>{ const e=$('smmsg'); if(e) e.textContent=t; }, cut=$('smcut')&&$('smcut').checked; let added=0, cutN=0, bad=0, done=0; const durs=smDur();
+  for(const it of list){ done++; msg('Adding '+done+' of '+list.length+': '+it.name+'...');
+    try{ const base=it.name.replace(/\.[^.]+$/,'').slice(0,34), ab=await it.blob.arrayBuffer(), buf=await pkCtx().decodeAudioData(ab.slice(0)); let files=[];
+      if(buf.duration>8.5&&cut&&buf.duration<1200){ const oc=new OfflineAudioContext(1,Math.ceil(buf.duration*32000),32000), src=oc.createBufferSource(); src.buffer=buf; src.connect(oc.destination); src.start(); const x=(await oc.startRendering()).getChannelData(0), ph=phrasesJS(x,32000,2,7.6).slice(0,80);
+        if(ph.length){ cutN++; files=ph.map((p,i)=>({f:new File([wavOf(p,32000)],base+' '+String(i+1).padStart(2,'0')+'.wav',{type:'audio/wav'}),d:p.length/32000})); } }
+      if(!files.length) files=[{f:new File([it.blob],it.name),d:buf.duration}];
+      for(const q of files){ const before=new Set(ev(decks[0],'Array.from(SMETA.keys())')); await decks[0].win.sampAdd([q.f]); const now=ev(decks[0],'Array.from(SMETA.keys())'); now.forEach(id=>{ if(!before.has(id)) durs[id]=Math.round(q.d*10)/10; }); added++; }
+    }catch(e){ bad++; } }
+  try{ localStorage.setItem('ebdj.smdur',JSON.stringify(durs)); }catch(e){}
+  for(const d of decks){ try{ await d.win.eval('sampLoadAll()'); }catch(e){} }
+  msg((added?'Added '+added+' sound'+(added===1?'':'s')+(cutN?' ('+cutN+' long file'+(cutN===1?'':'s')+' cut into phrases)':'')+'. ':'')+(bad?bad+' could not be read as audio.':'')+(!added&&!bad?'No audio files found.':'')); smBuild(); if(voxMode()==='all') voxPrep();
+}
+async function smPick(files){
+  const list=[]; let err='';
+  for(const f of files){ try{ if(/\.zip$/i.test(f.name)||f.type==='application/zip'||f.type==='application/x-zip-compressed'){ (await unzipAudio(f)).forEach(x=>list.push(x)); } else if(AUD_RE.test(f.name)||/^audio\//.test(f.type)) list.push({name:f.name,blob:f}); }catch(e){ err=e&&e.message?e.message:'Could not open a zip.'; } }
+  if(!list.length){ $('smmsg').textContent=err||'No audio files found.'; return; }
+  await smAdd(list);
+}
+function smBuild(){
+  const box=$('smlist'); if(!box) return; let all=[]; try{ all=ev(decks[0],'Array.from(SMETA.values()).map(function(m){return [m.id,m.name]})')||[]; }catch(e){} all=all.filter(a=>!/^sp_/.test(a[0]));
+  const off=smOff(), dur=smDur(); box.textContent='';
+  all.forEach(([id,name])=>{ const d=dur[id], r=document.createElement('div'); r.className='smr'+(d>8.1?' long':''); const cb=document.createElement('input'); cb.type='checkbox'; cb.checked=!off.has(id); cb.setAttribute('aria-label','Use '+name);
+    cb.addEventListener('change',()=>{ const o=smOff(); if(cb.checked) o.delete(id); else o.add(id); smOffSave(o); if(voxMode()==='all') voxPrep(); });
+    const sp=document.createElement('span'); sp.textContent=name+(d?' ('+d+' s'+(d>8.1?', too long for hits':'')+')':''); const pv=document.createElement('button'); pv.type='button'; pv.textContent='▶'; pv.setAttribute('aria-label','Hear '+name); pv.addEventListener('click',()=>{ try{ ev(decks[0],"sampBuf('"+id+"').then(function(){ ensureAudio(); samplePlay('"+id+"',null,ac.currentTime+.02,.9,0); })"); }catch(e){} });
+    const rm=document.createElement('button'); rm.type='button'; rm.textContent='Remove'; rm.addEventListener('click',async()=>{ for(const dk of decks){ try{ await dk.win.eval("sampDel('"+id+"')"); }catch(e){} } const o=smOff(); o.delete(id); smOffSave(o); smBuild(); if(voxMode()==='all') voxPrep(); });
+    r.appendChild(cb); r.appendChild(sp); r.appendChild(pv); r.appendChild(rm); box.appendChild(r); });
+  if(!all.length) box.innerHTML='<div class="chip">No sounds of your own yet.</div>';
+}
 function pickGenre(bpm,not){
   if(!AU.gen) AU.gen=decks[0].win.eval('GENRES.map(function(g){return [g.id,g.bpm[0],g.bpm[1]]})');
   let c=AU.gen.filter(g=>not.indexOf(g[0])<0&&g[1]<=bpm+5&&g[2]>=bpm-5); // beginners' tip: stay within about 5 BPM
@@ -664,7 +732,7 @@ const voxMode=()=>($('voxuse')&&$('voxuse').value)||'off', voxFreq=()=>(({rare:.
 function voxPrep(){ // which voices this build of Eight Bells has, which of your samples are short enough, and the starter pack
   try{ VOXOK=new Set(ev(decks[0],'Object.keys(VOXP)')); }catch(e){ VOXOK=new Set(); }
   VOXS=[]; if(voxMode()!=='all'){ pkClear(); return; }
-  try{ const all=(ev(decks[0],'Array.from(SMETA.values()).map(function(m){return [m.id,m.name]})')||[]).filter(a=>!/^sp_/.test(a[0])); all.slice(0,40).forEach(a=>{ decks.forEach(d=>ev(d,"sampBuf('"+a[0]+"')")); });
+  try{ const off=smOff(), all=(ev(decks[0],'Array.from(SMETA.values()).map(function(m){return [m.id,m.name]})')||[]).filter(a=>!/^sp_/.test(a[0])&&!off.has(a[0])).sort(()=>Math.random()-.5).slice(0,40); all.forEach(a=>{ decks.forEach(d=>ev(d,"sampBuf('"+a[0]+"')")); });
     setTimeout(()=>{ VOXS=all.filter(a=>{ const dur=ev(decks[0],"(function(id){var b=SBUF.get(id);return b?b.duration:-1})('"+a[0]+"')"); return dur>0&&dur<=8; }); pkSync(); },1500); }catch(e){}
   pkPrep(true).catch(()=>{});
 }
@@ -1189,7 +1257,9 @@ function wireUI(){
   ['voxuse','voxoften'].forEach(id=>{ try{ const v=localStorage.getItem('ebdj.'+id); if(v&&[...$(id).options].some(o=>o.value===v)) $(id).value=v; }catch(e){} $(id).addEventListener('change',()=>{ try{ localStorage.setItem('ebdj.'+id,$(id).value); }catch(e){} if(id==='voxuse'){ VOXOK=null; voxPrep(); if(voxMode()==='off') voxOffAll(); } }); });
   try{ const v=localStorage.getItem('ebdj.taste.k'); if(v&&[...$('taste').options].some(o=>o.value===v)) $('taste').value=v; }catch(e){} $('taste').addEventListener('change',()=>{ try{ localStorage.setItem('ebdj.taste.k',$('taste').value); }catch(e){} });
   $('tagbar').addEventListener('click',e=>{ const b=e.target.closest('button'); if(b) tagPick(b.dataset.t); });
-  $('fam').addEventListener('toggle',()=>{ if($('fam').open) famBuild(); }); $('ctlp').addEventListener('toggle',()=>{ if($('ctlp').open) pkBuild(); });
+  $('fam').addEventListener('toggle',()=>{ if($('fam').open) famBuild(); }); $('ctlp').addEventListener('toggle',()=>{ if($('ctlp').open){ pkBuild(); smBuild(); } });
+  $('smadd').addEventListener('click',()=>$('smfile').click()); $('smfile').addEventListener('change',()=>{ const f=[...$('smfile').files]; $('smfile').value=''; if(f.length) smPick(f); });
+  { let t=null; $('smclr').addEventListener('click',async()=>{ const b=$('smclr'); if(!t){ b.textContent='Tap again to remove all'; t=setTimeout(()=>{ t=null; b.textContent='Remove all'; },3500); return; } clearTimeout(t); t=null; b.textContent='Remove all'; const ids=(ev(decks[0],'Array.from(SMETA.keys())')||[]).filter(id=>!/^sp_/.test(id)); for(const id of ids) for(const dk of decks){ try{ await dk.win.eval("sampDel('"+id+"')"); }catch(e){} } smOffSave(new Set()); smBuild(); $('smmsg').textContent='Removed '+ids.length+' sound'+(ids.length===1?'':'s')+'.'; if(voxMode()==='all') voxPrep(); }); }
   const tmsg=t=>{ $('tastesum').textContent=t; setTimeout(tasteSum,4000); };
   $('tasteimp').addEventListener('click',()=>$('tasterep').click());
   $('tasterep').addEventListener('change',async()=>{ const fs=[...$('tasterep').files]; $('tasterep').value=''; let n=0, dup=0; for(const f of fs){ try{ const r=tasteFromReport(await f.text()); if(r<0) dup++; else n+=r; }catch(e){} } tmsg(n?'Learned from '+n+' mark'+(n===1?'':'s')+' in your report'+(fs.length>1?'s':'')+'.':(dup?'That report was already counted.':'No thumbs found in that file.')); });
@@ -1222,7 +1292,7 @@ $('go').addEventListener('click',()=>{
 });
 boot();
 // for tests
-window.__djTest={PK:PK,pkPrep:pkPrep,TASTE:()=>TASTE,tasteFromReport:tasteFromReport,tasteLearn:tasteLearn,tagPick:tagPick,wpick:wpick,tw:tw,lenOf:lenOf,setPlay:setPlay,autoOn:autoOn,autoSay:autoSay,voxFire:voxFire,voxLoopEnd:voxLoopEnd,voxOff:voxOff,voxPrep:voxPrep,VOXG:VOXG,VOXS:()=>VOXS,planNext:planNext,LOG:LOG,TRK:TRK,buildReport:buildReport,markSet:markSet,makePlan:makePlan,nowText:nowText,nextText:nextText,warp:warp,rollFade:rollFade,fadeBars:fadeBars,EUPH:EUPH,CLUB:CLUB,bigBuild:bigBuild,lastTrack:lastTrack,matchKey:matchKey,barsOf:barsOf,gstepOf:gstepOf,pickGenre:pickGenre,energyAt:energyAt,SHAPES:SHAPES,GFX:GFX,setGfx:setGfx,startSwell:startSwell,swellTick:swellTick,freshDeck:freshDeck,swapSound:swapSound,autoFlair:autoFlair,autoStepSecs:autoStepSecs,autoMix:autoMix,STYLES:STYLES,AU:AU,autoOn:autoOn,timing:timing,barTime:barTime,PC:PC,stepGenre:stepGenre,decks:decks,S:S,knob:knob,knobB:knobB,onMidi:onMidi,onNote:onNote,applyMix:applyMix,cross:cross,MAP:()=>MAP};
+window.__djTest={smPick:smPick,unzipAudio:unzipAudio,phrasesJS:phrasesJS,PK:PK,pkPrep:pkPrep,TASTE:()=>TASTE,tasteFromReport:tasteFromReport,tasteLearn:tasteLearn,tagPick:tagPick,wpick:wpick,tw:tw,lenOf:lenOf,setPlay:setPlay,autoOn:autoOn,autoSay:autoSay,voxFire:voxFire,voxLoopEnd:voxLoopEnd,voxOff:voxOff,voxPrep:voxPrep,VOXG:VOXG,VOXS:()=>VOXS,planNext:planNext,LOG:LOG,TRK:TRK,buildReport:buildReport,markSet:markSet,makePlan:makePlan,nowText:nowText,nextText:nextText,warp:warp,rollFade:rollFade,fadeBars:fadeBars,EUPH:EUPH,CLUB:CLUB,bigBuild:bigBuild,lastTrack:lastTrack,matchKey:matchKey,barsOf:barsOf,gstepOf:gstepOf,pickGenre:pickGenre,energyAt:energyAt,SHAPES:SHAPES,GFX:GFX,setGfx:setGfx,startSwell:startSwell,swellTick:swellTick,freshDeck:freshDeck,swapSound:swapSound,autoFlair:autoFlair,autoStepSecs:autoStepSecs,autoMix:autoMix,STYLES:STYLES,AU:AU,autoOn:autoOn,timing:timing,barTime:barTime,PC:PC,stepGenre:stepGenre,decks:decks,S:S,knob:knob,knobB:knobB,onMidi:onMidi,onNote:onNote,applyMix:applyMix,cross:cross,MAP:()=>MAP};
 })();
 </script>
 </body>
