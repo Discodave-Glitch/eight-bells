@@ -432,7 +432,7 @@ function setBpm(d,v){ v=Math.max(40,Math.min(240,Math.round(v))); ev(d,"(functio
 function getBpm(d){ return ev(d,'state.bpm'); }
 function newBase(d){ d.base=getBpm(d); }
 function playing(d){ return !!ev(d,'playing'); }
-function togglePlay(d){ exampleStop(); ev(d,"(function(){ if(playing){ stopPlay(); } else { startPlay(); } })()"); }
+function togglePlay(d){ if(SG.on&&SG.cur&&SG.cur.deck===d) return; exampleStop(); ev(d,"(function(){ if(playing){ stopPlay(); } else { startPlay(); } })()"); }
 function setPlay(d,on){ if(playing(d)!==on) togglePlay(d); }
 function setGenre(d,id){ d.genre=id; ev(d,"(function(){ state.section=null; LV.next=null; setGenre('"+id+"'); if(typeof renderAll==='function') renderAll(); })()"); newBase(d); const s=$('deck'+d.id)&&$('deck'+d.id).querySelector('select'); if(s) s.value=id; }
 function randGenre(d){ ev(d,"$('gsurp').click()"); d.genre=ev(d,'state.genre'); $('deck'+d.id).querySelector('select').value=d.genre; newBase(d); }
@@ -1173,12 +1173,14 @@ function paint(){
   decks.forEach(d=>{
     let st; try{ st=JSON.parse(ev(d,"JSON.stringify({p:!!playing,b:state.bpm,s:state.section,n:(typeof LV!=='undefined'&&LV.next)||null,g:genreObj().name,pos:(playing&&ROLL.step>=0)?(ROLL.step%loopLen())/loopLen():-1})")); }catch(e){ return; }
     if(!st) return;
+    // sample songs play through the deck's audio without its own pattern player, so show the song on the deck instead of "stopped"
+    let sgp=-1; if(SG.on&&SG.cur&&SG.cur.deck===d&&SG.cur.s&&SG.cur.s.plan){ const pl=SG.cur.s.plan; let tnow=0; try{ tnow=+ev(d,'ac.currentTime')||0; }catch(e){} if(tnow>=SG.cur.start-.05){ st.p=true; st.b=Math.round(pl.T); st.g=String(pl.g.name).replace(/&amp;/g,'&'); st.s=null; st.n=null; sgp=Math.max(0,Math.min(1,(tnow-SG.cur.start)/(pl.total*pl.barSec))); } }
     const sn={intro:'Intro',bld:'Build-up',drop:'Drop',chorus:'Chorus',brk:'Breakdown',bridge:'Bridge',half:'Half-time',allt:'All tracks',outro:'Outro'};
-    $('st'+d.id).textContent=st.g+' · '+(st.s?sn[st.s]:'full pattern')+(st.n?' · next: '+sn[st.n]:'')+' · '+(st.p?'playing':'stopped');
+    $('st'+d.id).textContent=st.g+' · '+(sgp>=0?'sample song '+SG.cur.n:(st.s?sn[st.s]:'full pattern'))+(st.n?' · next: '+sn[st.n]:'')+' · '+(st.p?'playing':'stopped');
     $('bp'+d.id).textContent=st.b;
     const sl=$('deck'+d.id).querySelector('[data-t]'); if(document.activeElement!==sl) sl.value=st.b;
     { const bm=($('barmode')&&$('barmode').value)||'auto', track=bm==='track'||(bm==='auto'&&AU.on);
-      let pos=st.pos; if(track){ if(!st.p) pos=-1; else { const len=AU.on?(AU.slow&&d.id===AU.cur?AU.len/2:AU.len)+(d.id===AU.cur?(AU.adj||0):0):(+$('autolen').value||64), bars=(AU.on&&d.id!==AU.cur)?gstepOf(d)/16:(AU.on?barsOf(d):gstepOf(d)/16); pos=Math.max(0,Math.min(1,bars/len)); } }
+      let pos=st.pos; if(sgp>=0){ /* song progress set below */ } else if(track){ if(!st.p) pos=-1; else { const len=AU.on?(AU.slow&&d.id===AU.cur?AU.len/2:AU.len)+(d.id===AU.cur?(AU.adj||0):0):(+$('autolen').value||64), bars=(AU.on&&d.id!==AU.cur)?gstepOf(d)/16:(AU.on?barsOf(d):gstepOf(d)/16); pos=Math.max(0,Math.min(1,bars/len)); } } if(sgp>=0) pos=sgp;
       $('pos'+d.id).style.width=(pos<0?0:Math.round(pos*100))+'%'; $('pos'+d.id).parentNode.title=track?'Progress through the whole track':'Progress through this loop'; }
     $('pl'+d.id).textContent=st.p?'PAUSE':'PLAY'; $('pl'+d.id).classList.toggle('on',st.p);
     $('deck'+d.id).classList.toggle('playing',st.p||(d===decks[0]&&!!(EX.a||EX.spin)));
