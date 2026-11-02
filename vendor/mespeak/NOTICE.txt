@@ -1,0 +1,9 @@
+Third-party software: robot voice for the DJ page
+
+ESpeak.js, index.js, mespeak_config.json and en-us.json in this folder are the meSpeak text-to-speech engine:
+- eSpeak speech synthesizer by Jonathan Duddington (GNU GPL v3 or later)
+- meSpeak.js (Modular eSpeak) by Norbert Landsteiner, https://www.masswerk.at/mespeak/ (GNU GPL)
+- CommonJS packaging by Mikola Lysenko, https://github.com/mikolalysenko/mespeak (version 2.0.2, GPL)
+
+They are unmodified copies, loaded by dj.html only when a robot voice is needed. The rest of Eight Bells is MIT licensed (see /LICENSE).
+Full corresponding source for these files is available at the links above. The GNU General Public License: https://www.gnu.org/licenses/gpl-3.0.html
