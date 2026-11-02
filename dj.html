@@ -108,7 +108,7 @@ body.nolbl .bt{display:none}
 @media (hover:hover) and (pointer:fine){.sp .smk{display:block}body.smpnokeys .sp .smk{display:none}}
 .smpr{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:3px 0;font-size:13px}.smpr b{min-width:34px}.smpr select{max-width:48vw}.smpr button{min-height:28px;padding:0 8px}
 #pkrows{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0}.pkg{display:flex;align-items:center;gap:6px;cursor:pointer}.pkg button{min-height:28px;padding:0 8px}
-#smlist{display:flex;flex-direction:column;gap:4px;margin:4px 0;max-height:220px;overflow:auto}.smr{display:flex;align-items:center;gap:6px;font-size:13px}.smr span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.smr button{min-height:28px;padding:0 8px;flex:none}.smr select{min-height:28px;font-size:12px;flex:none}.smr input[type=number]{min-height:28px}.smr.long span{opacity:.6}
+#smlist{display:flex;flex-direction:column;gap:4px;margin:4px 0;max-height:50vh;overflow:auto}#smlist details.smpk{border:1px solid #fff2;border-radius:8px;padding:2px 6px}#smlist details.smfd{margin-left:12px;border-left:2px solid #fff2;padding-left:6px}#smlist summary{display:flex;align-items:center;gap:6px;cursor:pointer;min-height:30px;font-size:13px}#smlist summary .smt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}#smlist summary button{min-height:26px;padding:0 8px}#smlist .smb{display:flex;flex-direction:column;gap:4px;padding:2px 0 6px}.smr{display:flex;align-items:center;gap:6px;font-size:13px}.smr span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.smr button{min-height:28px;padding:0 8px;flex:none}.smr select{min-height:28px;font-size:12px;flex:none}.smr input[type=number]{min-height:28px}.smr.long span{opacity:.6}
 .tfam{margin:4px 0}.tfam summary{cursor:pointer;display:inline-block;padding:6px 10px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);font-size:13px}#famrows{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}#famrows label{font-size:12px;display:flex;gap:4px;align-items:center}
 #tagbar{position:fixed;left:50%;transform:translateX(-50%);bottom:6px;z-index:30;display:flex;gap:6px;align-items:center;padding:6px 8px;border:1px solid var(--line);border-radius:12px;background:var(--panel2);box-shadow:0 4px 18px #0008;font-size:13px}#tagbar[hidden]{display:none}#tagbar button{min-height:34px;padding:0 10px}
 #recpop{position:fixed;inset:0;z-index:40;background:#000a;display:flex;align-items:center;justify-content:center;padding:16px}#recpop[hidden]{display:none}
@@ -235,6 +235,7 @@ body.nolbl .bt{display:none}
     <details class="tfam" id="pkcred"><summary>Starter pack credits and licences</summary><div class="chip" id="pkcredt" style="white-space:normal;margin-top:6px"></div></details>
     <div class="row"><b class="chip">My samples</b><button id="smadd">Add sounds, a zip, rar or iso...</button><label class="chip" style="cursor:pointer"><input type="checkbox" id="smcut" checked> Cut long sounds into phrases</label><button id="smclr">Remove all</button><input type="file" id="smfile" accept="audio/*,.zip,.rar,.iso,application/x-iso9660-image,application/zip,application/vnd.rar,application/x-rar-compressed,.mp3,.wav,.aif,.aiff,.m4a,.ogg,.flac,.opus,.aac" multiple hidden></div>
     <div class="chip" id="smmsg">Add your own audio files or a zip of them. They play when Vocals and samples is set to "voices + samples". Tick the ones you want.</div>
+    <input type="search" id="smq" placeholder="Search your sounds, packs and folders..." aria-label="Search your sounds" style="width:100%;margin:4px 0">
     <div id="smlist"></div>
     </div>
     <div class="setsec" data-sec="look" hidden><p class="sechint">Colours, screen layout and deck graphics.</p>
@@ -675,6 +676,7 @@ function smartSample(c){ // pick a sound that suits where the music is now
 const AUD_RE=/\.(mp3|wav|wave|aif|aiff|m4a|aac|ogg|oga|opus|flac|webm|mp4)$/i;
 const smOff=()=>{ try{ return new Set(JSON.parse(localStorage.getItem('ebdj.smoff')||'[]')); }catch(e){ return new Set(); } };
 const smOffSave=o=>{ try{ localStorage.setItem('ebdj.smoff',JSON.stringify([...o])); }catch(e){} };
+const smGrp=()=>{ if(!smGrp.m){ try{ smGrp.m=JSON.parse(localStorage.getItem('ebdj.smgrp')||'{}'); }catch(e){ smGrp.m={}; } } return smGrp.m; }, smGrpSave=()=>{ try{ localStorage.setItem('ebdj.smgrp',JSON.stringify(smGrp.m||{})); }catch(e){} };
 const smDur=()=>{ try{ return JSON.parse(localStorage.getItem('ebdj.smdur')||'{}'); }catch(e){ return {}; } };
 const ARC_RE=/\.(zip|rar|iso)$/i, ARC_MAX=1500*1048576, AUD_MAX=250*1048576, ENT_MAX=4000;
 async function sniffArc(file){ // zip or rar by what is inside the file, not its name
@@ -687,7 +689,7 @@ async function sniffArc(file){ // zip or rar by what is inside the file, not its
 function unrarStream(file,onItem){ // opens a .rar in a worker (reads it in slices), calls onItem(name,blob) for each audio file or archive inside
   return new Promise((res,rej)=>{ let w; try{ w=new Worker('vendor/unrar/unrar-worker.js'); }catch(e){ rej(new Error('This browser cannot open rar files. Unzip them first and add the files.')); return; }
     let q=Promise.resolve();
-    w.onmessage=e=>{ const m=e.data; if(m.name) q=q.then(()=>onItem(m.name.split('/').pop(),new Blob([m.data]))); else if(m.done){ q.then(()=>{ w.terminate(); res(); }); } else if(m.error){ w.terminate(); rej(new Error(m.error)); } };
+    w.onmessage=e=>{ const m=e.data; if(m.name) q=q.then(()=>onItem(m.name.split('/').pop(),new Blob([m.data]),m.name)); else if(m.done){ q.then(()=>{ w.terminate(); res(); }); } else if(m.error){ w.terminate(); rej(new Error(m.error)); } };
     w.onerror=()=>{ w.terminate(); rej(new Error('Could not open the rar. Is vendor/unrar next to this page?')); };
     w.postMessage({file:file,want:'\\.(mp3|wav|wave|aif|aiff|m4a|aac|ogg|oga|opus|flac|webm|mp4|zip|rar)$',maxEntry:ARC_MAX,maxCount:ENT_MAX}); }); }
 async function unzipStream(file,onItem){ // reads a zip (stored or deflated, zip64 too) in slices; any size
@@ -703,7 +705,7 @@ async function unzipStream(file,onItem){ // reads a zip (stored or deflated, zip
     const base=name.split('/').pop(); if(!base||name.endsWith('/')||/^__MACOSX\//.test(name)||base.charAt(0)==='.'||(fl&1)||!(AUD_RE.test(base)||ARC_RE.test(base))||usz>(ARC_RE.test(base)?ARC_MAX:AUD_MAX)) continue;
     const lh=new DataView(await file.slice(lo,lo+30).arrayBuffer()), ds=lo+30+lh.getUint16(26,true)+lh.getUint16(28,true), raw=file.slice(ds,ds+csz); let blob;
     if(meth===0) blob=raw; else if(meth===8){ if(typeof DecompressionStream==='undefined') throw new Error('This browser cannot open zips. Unzip them first and add the files.'); blob=await new Response(raw.stream().pipeThrough(new DecompressionStream('deflate-raw'))).blob(); } else continue;
-    await onItem(base,blob); }
+    await onItem(base,blob,name); }
 }
 async function isoStream(file,onItem){ // reads a disc image (.iso, ISO 9660 with Joliet long names) in slices; any size
   const rd=async(o,n)=>new DataView(await file.slice(o,o+n).arrayBuffer());
@@ -719,17 +721,17 @@ async function isoStream(file,onItem){ // reads a disc image (.iso, ISO 9660 wit
       if(self) continue;
       if(fl&2){ await walk(ext,sz,depth+1,path+nm+'/'); continue; }
       nm=nm.replace(/;\d+$/,''); if(!(AUD_RE.test(nm)||ARC_RE.test(nm))||sz>(ARC_RE.test(nm)?ARC_MAX:AUD_MAX)) continue;
-      await onItem(nm,file.slice(ext*2048,ext*2048+sz)); } };
+      await onItem(nm,file.slice(ext*2048,ext*2048+sz),path+nm); } };
   await walk(root.lba,root.len,0,'');
 }
 async function unpackAudio(file,onItem,depth,st){ // zips, rars, and archives inside archives (up to 4 deep); calls onItem(name,blob) for every audio file found
   depth=depth||0; st=st||{n:0};
-  const each=async(name,blob)=>{ if(st.n>=ENT_MAX) return;
-    if(ARC_RE.test(name)||(!AUD_RE.test(name))){ if(depth<4){ const kind=await sniffArc(blob); if(kind){ try{ await unpackAudio(new File([blob],name),onItem,depth+1,st); }catch(e){} return; } } if(!AUD_RE.test(name)) return; }
-    st.n++; await onItem(name,blob); };
+  const each=async(name,blob,path)=>{ if(st.n>=ENT_MAX) return; path=path||name;
+    if(ARC_RE.test(name)||(!AUD_RE.test(name))){ if(depth<4){ const kind=await sniffArc(blob); if(kind){ try{ const an=name.replace(/\.[^.]+$/,''); await unpackAudio(new File([blob],name),(n,b,p)=>onItem(n,b,an+'/'+(p||n)),depth+1,st); }catch(e){} return; } } if(!AUD_RE.test(name)) return; }
+    st.n++; await onItem(name,blob,path); };
   const kind=await sniffArc(file); if(kind==='rar') return unrarStream(file,each); if(kind==='zip') return unzipStream(file,each); if(kind==='iso') return isoStream(file,each); throw new Error('not a zip, rar or iso');
 }
-async function unzipAudio(file,depth){ const out=[]; await unpackAudio(file,async(name,blob)=>{ out.push({name:name,blob:blob}); },depth||0); return out; }
+async function unzipAudio(file,depth){ const out=[]; await unpackAudio(file,async(name,blob,path)=>{ out.push({name:name,blob:blob,path:path}); },depth||0); return out; }
 function phrasesJS(x,sr,lo,hi){ // cut a long sound at its quiet gaps into pieces of about lo to hi seconds
   const fn=Math.floor(sr*.02), k=Math.floor(x.length/fn), env=new Float32Array(k);
   for(let i=0;i<k;i++){ let a=0; for(let j=0;j<fn;j++){ const v=x[i*fn+j]; a+=v*v; } env[i]=Math.sqrt(a/fn); }
@@ -755,9 +757,9 @@ async function smAdd(list){ // list of {name, blob}
       if(buf.duration>8.5&&cut&&buf.duration<1200){ const oc=new OfflineAudioContext(1,Math.ceil(buf.duration*32000),32000), src=oc.createBufferSource(); src.buffer=buf; src.connect(oc.destination); src.start(); const x=(await oc.startRendering()).getChannelData(0), ph=phrasesJS(x,32000,2,7.6).slice(0,80);
         if(ph.length){ cutN++; files=ph.map((p,i)=>({f:new File([wavOf(p,32000)],base+' '+String(i+1).padStart(2,'0')+'.wav',{type:'audio/wav'}),d:p.length/32000,m:anaData(p,32000,bpmHint(base))})); } }
       if(!files.length) files=[{f:new File([it.blob],it.name),d:buf.duration,m:anaBuf(buf,bpmHint(it.name))}];
-      for(const q of files){ const before=new Set(ev(decks[0],'Array.from(SMETA.keys())')); await decks[0].win.sampAdd([q.f]); const now=ev(decks[0],'Array.from(SMETA.keys())'); now.forEach(id=>{ if(!before.has(id)){ durs[id]=Math.round(q.d*10)/10; if(q.m) smmeta()[id]=q.m; } }); added++; }
+      for(const q of files){ const before=new Set(ev(decks[0],'Array.from(SMETA.keys())')); await decks[0].win.sampAdd([q.f]); const now=ev(decks[0],'Array.from(SMETA.keys())'); now.forEach(id=>{ if(!before.has(id)){ smGrp()[id]=[it.pack||'Single files',it.folder||'']; durs[id]=Math.round(q.d*10)/10; if(q.m) smmeta()[id]=q.m; } }); added++; }
     }catch(e){ bad++; } }
-  try{ localStorage.setItem('ebdj.smdur',JSON.stringify(durs)); }catch(e){} smmSave();
+  try{ localStorage.setItem('ebdj.smdur',JSON.stringify(durs)); }catch(e){} smmSave(); smGrpSave();
   for(const d of decks){ try{ await d.win.eval('sampLoadAll()'); }catch(e){} }
   msg((added?'Added '+added+' sound'+(added===1?'':'s')+(cutN?' ('+cutN+' long file'+(cutN===1?'':'s')+' cut into phrases)':'')+'. ':'')+(bad?bad+' could not be read as audio.':'')+(!added&&!bad?'No audio files found.':'')); smBuild(); if(voxMode()==='all') voxPrep(); return added;
 }
@@ -766,25 +768,38 @@ async function smPick(files){
   const flush=async()=>{ if(!batch.length) return; const b=batch; batch=[]; total+=b.length; added+=(await smAdd(b))||0; };
   for(const f of files){ try{
       const kind=ARC_RE.test(f.name)||/\.iso$/i.test(f.name)||/zip|rar/.test(f.type)?await sniffArc(f):'';
-      if(kind){ msg('Opening '+f.name+'...'); await unpackAudio(f,async(name,blob)=>{ seen++; msg('Opening '+f.name+': found '+seen+' sound'+(seen===1?'':'s')+'...'); batch.push({name:name,blob:blob}); if(batch.length>=FLUSH) await flush(); }); }
-      else if(AUD_RE.test(f.name)||/^audio\//.test(f.type)){ batch.push({name:f.name,blob:f}); if(batch.length>=FLUSH) await flush(); }
+      if(kind){ msg('Opening '+f.name+'...'); await unpackAudio(f,async(name,blob,path)=>{ seen++; msg('Opening '+f.name+': found '+seen+' sound'+(seen===1?'':'s')+'...'); const parts=(path||name).split('/'); parts.pop(); batch.push({name:name,blob:blob,pack:f.name.replace(/\.[^.]+$/,''),folder:parts.join(' / ')}); if(batch.length>=FLUSH) await flush(); }); }
+      else if(AUD_RE.test(f.name)||/^audio\//.test(f.type)){ batch.push({name:f.name,blob:f,pack:'Single files',folder:''}); if(batch.length>=FLUSH) await flush(); }
     }catch(e){ err=e&&e.message?e.message:'Could not open that file.'; } }
   await flush();
   if(!total) msg(err||'No audio files found.'); else msg('Added '+added+' sound'+(added===1?'':'s')+(total>added?' ('+(total-added)+' could not be read as audio)':'')+'.'+(err?' '+err:''));
 }
+const SMOPEN=new Set();
 function smBuild(){
   const box=$('smlist'); if(!box) return; let all=[]; try{ all=ev(decks[0],'Array.from(SMETA.values()).map(function(m){return [m.id,m.name]})')||[]; }catch(e){} all=all.filter(a=>!/^sp_/.test(a[0]));
-  const off=smOff(), dur=smDur(); box.textContent='';
-  all.forEach(([id,name])=>{ const d=dur[id], r=document.createElement('div'); r.className='smr'+(d>8.1?' long':''); const cb=document.createElement('input'); cb.type='checkbox'; cb.checked=!off.has(id); cb.setAttribute('aria-label','Use '+name);
+  const off=smOff(), dur=smDur(), gr=smGrp(), qe=$('smq'), q=qe?qe.value.trim().toLowerCase():''; box.textContent='';
+  const rmIds=async ids=>{ for(const id of ids){ for(const dk of decks){ try{ await dk.win.eval("sampDel('"+id+"')"); }catch(e){} } delete smGrp()[id]; } const o=smOff(); ids.forEach(i=>o.delete(i)); smOffSave(o); smGrpSave(); smBuild(); if(voxMode()==='all') voxPrep(); };
+  const mkRow=(id,name)=>{ const d=dur[id], r=document.createElement('div'); r.className='smr'+(d>8.1?' long':''); const cb=document.createElement('input'); cb.type='checkbox'; cb.checked=!off.has(id); cb.setAttribute('aria-label','Use '+name);
     cb.addEventListener('change',()=>{ const o=smOff(); if(cb.checked) o.delete(id); else o.add(id); smOffSave(o); if(voxMode()==='all') voxPrep(); });
     const sp=document.createElement('span'); sp.textContent=name+(d?' ('+d+' s'+(d>8.1?', too long for hits':'')+')':''); const mt=smmeta()[id];
       const ks=document.createElement('select'); ks.setAttribute('aria-label','What kind of sound is '+name); [['','Analysing...'],['hit','Hit'],['word','Word'],['phrase','Phrase'],['sung','Sung'],['loop','Loop']].forEach(o=>{ const op=document.createElement('option'); op.value=o[0]; op.textContent=o[1]; if(!o[0]) op.disabled=true; ks.appendChild(op); }); ks.value=mt?mt.k:'';
       const bi=document.createElement('input'); bi.type='number'; bi.min=60; bi.max=200; bi.placeholder='BPM'; bi.style.width='58px'; bi.value=mt&&mt.b?mt.b:''; bi.hidden=!(mt&&mt.k==='loop'); bi.setAttribute('aria-label','Tempo of '+name);
-      ks.addEventListener('change',()=>{ const q=smmeta()[id]||(smmeta()[id]={g:1,e:.5,p:0}); q.k=ks.value; bi.hidden=q.k!=='loop'; smmSave(); }); bi.addEventListener('change',()=>{ const q=smmeta()[id]; if(q){ q.b=+bi.value||0; smmSave(); } }); const pv=document.createElement('button'); pv.type='button'; pv.textContent='▶'; pv.setAttribute('aria-label','Hear '+name); pv.addEventListener('click',()=>{ try{ ev(decks[0],"sampBuf('"+id+"').then(function(){ ensureAudio(); samplePlay('"+id+"',null,ac.currentTime+.02,.9,0); })"); }catch(e){} });
-    const rm=document.createElement('button'); rm.type='button'; rm.textContent='Remove'; rm.addEventListener('click',async()=>{ for(const dk of decks){ try{ await dk.win.eval("sampDel('"+id+"')"); }catch(e){} } const o=smOff(); o.delete(id); smOffSave(o); smBuild(); if(voxMode()==='all') voxPrep(); });
-    r.appendChild(cb); r.appendChild(sp); r.appendChild(ks); r.appendChild(bi); r.appendChild(pv); r.appendChild(rm); box.appendChild(r); });
+      ks.addEventListener('change',()=>{ const q2=smmeta()[id]||(smmeta()[id]={g:1,e:.5,p:0}); q2.k=ks.value; bi.hidden=q2.k!=='loop'; smmSave(); }); bi.addEventListener('change',()=>{ const q2=smmeta()[id]; if(q2){ q2.b=+bi.value||0; smmSave(); } }); const pv=document.createElement('button'); pv.type='button'; pv.textContent='▶'; pv.setAttribute('aria-label','Hear '+name); pv.addEventListener('click',()=>{ try{ ev(decks[0],"sampBuf('"+id+"').then(function(){ ensureAudio(); samplePlay('"+id+"',null,ac.currentTime+.02,.9,0); })"); }catch(e){} });
+    const rm=document.createElement('button'); rm.type='button'; rm.textContent='Remove'; rm.addEventListener('click',()=>rmIds([id]));
+    r.appendChild(cb); r.appendChild(sp); r.appendChild(ks); r.appendChild(bi); r.appendChild(pv); r.appendChild(rm); return r; };
+  const head=(label,ids,key)=>{ const sm=document.createElement('summary'), cb=document.createElement('input'); cb.type='checkbox'; const on=ids.filter(i=>!off.has(i)).length; cb.checked=on===ids.length; cb.indeterminate=on>0&&on<ids.length; cb.setAttribute('aria-label','Use all of '+label);
+    cb.addEventListener('click',e=>e.stopPropagation()); cb.addEventListener('change',()=>{ const o=smOff(); ids.forEach(i=>{ if(cb.checked) o.delete(i); else o.add(i); }); smOffSave(o); if(voxMode()==='all') voxPrep(); smBuild(); });
+    const sp=document.createElement('span'); sp.className='smt'; sp.textContent=label+' ('+ids.length+')'; const rm=document.createElement('button'); rm.type='button'; rm.textContent='Remove'; let t=null;
+    rm.addEventListener('click',e=>{ e.preventDefault(); e.stopPropagation(); if(!t){ rm.textContent='Tap again'; t=setTimeout(()=>{ t=null; rm.textContent='Remove'; },3000); return; } clearTimeout(t); rmIds(ids); });
+    sm.appendChild(cb); sm.appendChild(sp); sm.appendChild(rm); return sm; };
+  const group=(label,items,key,cls,fillFn)=>{ const d=document.createElement('details'); d.className=cls; d.open=!!q||SMOPEN.has(key); const ids=items.map(a=>a[0]); d.appendChild(head(label,ids,key)); const body=document.createElement('div'); body.className='smb'; d.appendChild(body); let built=false;
+    const fill=()=>{ if(built||!d.open) return; built=true; if(fillFn) fillFn(body); else items.forEach(([id,name])=>body.appendChild(mkRow(id,name))); }; d.addEventListener('toggle',()=>{ if(!q){ if(d.open) SMOPEN.add(key); else SMOPEN.delete(key); } fill(); }); fill(); return d; };
+  const tree=new Map(); all.forEach(a=>{ const g=gr[a[0]]||['Earlier sounds',''], pk=g[0], fd=g[1]; if(q&&!(a[1].toLowerCase().includes(q)||pk.toLowerCase().includes(q)||fd.toLowerCase().includes(q))) return; if(!tree.has(pk)) tree.set(pk,new Map()); const fm=tree.get(pk); if(!fm.has(fd)) fm.set(fd,[]); fm.get(fd).push(a); });
+  const packs=[...tree.keys()].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
+  packs.forEach(pk=>{ const fm=tree.get(pk), fds=[...fm.keys()].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true})), items=[].concat(...fds.map(f=>fm.get(f)));
+    box.appendChild(group(pk+(fds.length>1?' \u00b7 '+fds.length+' folders':''),items,'p:'+pk,'smpk',fds.length>1?(body=>{ fds.forEach(f=>body.appendChild(group(f||'(top level)',fm.get(f),'f:'+pk+'|'+f,'smfd'))); }):null)); });
+  if(!packs.length) box.innerHTML='<div class="chip">'+(q?'Nothing matches that.':'No sounds of your own yet.')+'</div>';
   if(all.some(a=>!smmeta()[a[0]])) smAnalyseMissing().then(n=>{ if(n&&$('smlist')&&$('ctlp').open) smBuild(); }).catch(()=>{});
-  if(!all.length) box.innerHTML='<div class="chip">No sounds of your own yet.</div>';
 }
 // ---- Sampler: 16 pads (8 on each deck) for playing sounds by hand
 const SKEYS={A:['Digit1','Digit2','Digit3','Digit4','Digit5','Digit6','Digit7','Digit8'],B:['KeyQ','KeyW','KeyE','KeyR','KeyT','KeyY','KeyU','KeyI']};
@@ -1605,8 +1620,8 @@ function wireUI(){
   $('smpset').addEventListener('toggle',async()=>{ if($('smpset').open){ await pkMan(); smpBuild(); } });
   $('smpfill').addEventListener('click',smpSurprise);
   { let t=null; $('smprst').addEventListener('click',()=>{ const b=$('smprst'); if(!t){ b.textContent='Tap again to empty'; t=setTimeout(()=>{ t=null; b.textContent='Empty all'; },3500); return; } clearTimeout(t); t=null; b.textContent='Empty all'; SLOTS=SLOTS.map(()=>({t:'none'})); slotSave(true); smpPaint(); smpBuild(); }); }
-  $('smadd').addEventListener('click',()=>$('smfile').click()); $('smfile').addEventListener('change',()=>{ const f=[...$('smfile').files]; $('smfile').value=''; if(f.length) smPick(f); });
-  { let t=null; $('smclr').addEventListener('click',async()=>{ const b=$('smclr'); if(!t){ b.textContent='Tap again to remove all'; t=setTimeout(()=>{ t=null; b.textContent='Remove all'; },3500); return; } clearTimeout(t); t=null; b.textContent='Remove all'; const ids=(ev(decks[0],'Array.from(SMETA.keys())')||[]).filter(id=>!/^sp_/.test(id)); for(const id of ids) for(const dk of decks){ try{ await dk.win.eval("sampDel('"+id+"')"); }catch(e){} } smOffSave(new Set()); smBuild(); $('smmsg').textContent='Removed '+ids.length+' sound'+(ids.length===1?'':'s')+'.'; if(voxMode()==='all') voxPrep(); }); }
+  $('smq').addEventListener('input',()=>smBuild()); $('smadd').addEventListener('click',()=>$('smfile').click()); $('smfile').addEventListener('change',()=>{ const f=[...$('smfile').files]; $('smfile').value=''; if(f.length) smPick(f); });
+  { let t=null; $('smclr').addEventListener('click',async()=>{ const b=$('smclr'); if(!t){ b.textContent='Tap again to remove all'; t=setTimeout(()=>{ t=null; b.textContent='Remove all'; },3500); return; } clearTimeout(t); t=null; b.textContent='Remove all'; const ids=(ev(decks[0],'Array.from(SMETA.keys())')||[]).filter(id=>!/^sp_/.test(id)); for(const id of ids) for(const dk of decks){ try{ await dk.win.eval("sampDel('"+id+"')"); }catch(e){} } smOffSave(new Set()); smGrp.m={}; smGrpSave(); smBuild(); $('smmsg').textContent='Removed '+ids.length+' sound'+(ids.length===1?'':'s')+'.'; if(voxMode()==='all') voxPrep(); }); }
   const tmsg=t=>{ $('tastesum').textContent=t; setTimeout(tasteSum,4000); };
   $('tasteimp').addEventListener('click',()=>$('tasterep').click());
   $('tasterep').addEventListener('change',async()=>{ const fs=[...$('tasterep').files]; $('tasterep').value=''; let n=0, dup=0; for(const f of fs){ try{ const r=tasteFromReport(await f.text()); if(r<0) dup++; else n+=r; }catch(e){} } tmsg(n?'Learned from '+n+' mark'+(n===1?'':'s')+' in your report'+(fs.length>1?'s':'')+'.':(dup?'That report was already counted.':'No thumbs found in that file.')); });
