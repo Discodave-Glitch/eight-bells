@@ -599,6 +599,14 @@ async function pkBuild(){
 // ---- Sample analysis: what each sound is (hit, word, phrase, sung, loop), how bright and busy it is, its pitch and, for loops, tempo
 function anaFFT(re,im){ const n=re.length; for(let i=1,j=0;i<n;i++){ let b=n>>1; for(;j&b;b>>=1) j^=b; j^=b; if(i<j){ let t=re[i]; re[i]=re[j]; re[j]=t; t=im[i]; im[i]=im[j]; im[j]=t; } }
   for(let len=2;len<=n;len<<=1){ const a=-2*Math.PI/len, wr=Math.cos(a), wi=Math.sin(a), h=len>>1; for(let i=0;i<n;i+=len){ let cr=1,ci=0; for(let j=0;j<h;j++){ const ur=re[i+j], ui=im[i+j], xr=re[i+j+h]*cr-im[i+j+h]*ci, xi=re[i+j+h]*ci+im[i+j+h]*cr; re[i+j]=ur+xr; im[i+j]=ui+xi; re[i+j+h]=ur-xr; im[i+j+h]=ui-xi; const t=cr*wr-ci*wi; ci=cr*wi+ci*wr; cr=t; } } } }
+function estBpm(env,ne,dur){ // tempo of a loop with no BPM in its name: the whole file is a few bars, so try every bar count and keep the tempo whose beat grid lines up best with the hits
+  if(ne<150) return 0; const o=new Float32Array(ne); let tot=0, hits=0; for(let i=1;i<ne;i++){ o[i]=Math.max(0,env[i]-env[i-1]); tot+=o[i]; } const mean=tot/ne; if(mean<=0) return 0;
+  for(let i=1;i<ne;i++) if(o[i]>mean*3) hits++; if(hits<4) return 0;
+  let best=0, bsc=0;
+  [1,2,4,8,16,32].forEach(N=>{ const bpm=240*N/dur; if(bpm<70||bpm>185) return; const L=6000/bpm; let top=0;
+    for(let ph=0;ph<L;ph+=.5){ let a=0, c=0; for(let t=ph;t<ne-1;t+=L){ const i=Math.round(t); a+=Math.max(o[i],o[i-1]||0,o[i+1]||0); c++; } if(c>=3&&a/c>top) top=a/c; }
+    let sc=top/mean; if(bpm>=88&&bpm<=178) sc*=1.06; if(sc>bsc){ bsc=sc; best=bpm; } });
+  return bsc>=2.0?Math.round(best*10)/10:0; }
 function anaData(x,sr,hint,fullDur){
   hint=hint||{}; const n=x.length, dur=fullDur||n/sr; if(n<sr*.08) return null;
   const r=Math.max(1,Math.round(sr/11025)), m=Math.floor(n/r), y=new Float32Array(m), s2=sr/r; for(let i=0;i<m;i++){ let a=0; for(let j=0;j<r;j++) a+=x[i*r+j]; y[i]=a/r; }
@@ -614,7 +622,7 @@ function anaData(x,sr,hint,fullDur){
   const v=act?vc/act:0; let f=0, hold=0; if(f0s.length>=4){ const so=f0s.slice().sort((a,b)=>a-b); f=Math.round(so[so.length>>1]); let h=0; for(let i=1;i<f0s.length;i++) if(Math.abs(f0s[i]-f0s[i-1])<.6) h++; hold=h/(f0s.length-1); }
   const idx=Array.from(env.keys()).sort((a,b)=>env[b]-env[a]).slice(0,6); let cs=0, cw=0; const N=512, re=new Float32Array(N), im=new Float32Array(N);
   idx.forEach(i=>{ const st=Math.min(Math.max(0,m-N),i*hop); for(let j=0;j<N;j++){ re[j]=(y[st+j]||0)*(.5-.5*Math.cos(2*Math.PI*j/(N-1))); im[j]=0; } anaFFT(re,im); for(let b=1;b<N/2;b++){ const mg=Math.hypot(re[b],im[b]); cs+=mg*b*s2/N; cw+=mg; } });
-  const cen=cw?cs/cw:0, bpm=hint.bpm||0; let k;
+  const cen=cw?cs/cw:0; let bpm=hint.bpm||0; if(!bpm&&dur>=1.5&&dur<=60&&!(v>.5&&hold>.72)) bpm=estBpm(env,ne,dur); let k;
   if(bpm) k='loop'; else if(dur<.9&&attack<80) k='hit'; else if(dur<1.7) k=v>.25?'word':'hit'; else if(v>.5&&hold>.72) k='sung'; else k='phrase';
   const cl=(q,a,b)=>Math.max(a,Math.min(b,q)), e=cl(.35*cl(cen/3500,0,1)+.35*cl(onsetRate/5,0,1)+.3*cl(1-attack/150,0,1),0,1), g=Math.min(cl(Math.pow(10,(-20-rmsDb)/20),.5,2),.95/peak), rd=(q,p)=>Math.round(q*p)/p;
   return {k:k,e:rd(e,100),p:v>.4?f:0,v:rd(v,100),h:rd(hold,100),c:Math.round(cen),a:Math.round(attack),g:rd(g,100),b:bpm,d:rd(dur,100)};
