@@ -158,7 +158,9 @@ body.nolbl .bt{display:none}
   .top{flex:none;flex-wrap:nowrap;margin-bottom:4px;gap:6px}
   .top h1{font-size:clamp(15px,2.2vh,24px);white-space:nowrap}.top h1 small{display:none}
   .top .row{flex-wrap:nowrap;gap:5px;align-items:center}.top button,.top select{height:clamp(30px,4vh,46px);min-height:clamp(30px,4vh,46px);box-sizing:border-box;font-size:clamp(12px,1.6vh,17px);padding:0 10px}
-  @media (max-width:900px){ #gfx .dp{display:none} #gfx{padding:0 3px!important;font-size:11px} .top button,.top select{padding:0 5px} .top .row{gap:2px} #mkgood,#mkbad{min-width:32px;padding:0 4px} }
+  @media (max-height:560px){ .top select{max-width:clamp(70px,11vw,118px);text-overflow:ellipsis} #autolen{max-width:clamp(62px,9vw,96px)} }
+  @media (max-width:1100px){ .top,.top .row{flex-wrap:wrap} .top{justify-content:flex-start;row-gap:3px} .top>*{max-width:100%} }
+  @media (max-width:900px),(max-height:560px){ #gfx .dp{display:none} #gfx{padding:0 3px!important;font-size:11px} .top button,.top select{padding:0 5px} .top .row{gap:2px} #mkgood,#mkbad{min-width:32px;padding:0 4px} }
   @media (max-width:720px){ .top h1{font-size:13px} .top button,.top select{padding:0 3px;font-size:11px} .top .row{gap:1px} #mkgood,#mkbad{min-width:28px;padding:0 2px} .top{gap:4px} }
   #autost{flex:none;margin:0 0 4px!important;min-height:14px!important;font-size:11px;white-space:nowrap;overflow:hidden;flex-wrap:nowrap}#autost span{min-width:0;overflow:hidden;white-space:nowrap}#autost{gap:0 16px}#autost #auton{flex:1 1 0;width:calc(50% - 8px)}#autost #autonx{flex:1 1 0;width:calc(50% - 8px);text-align:left;margin-left:0}
   .console{flex:1 1 auto;min-height:0;grid-template-columns:minmax(0,1fr) clamp(190px,26vw,420px) minmax(0,1fr);gap:clamp(6px,1vh,14px);--k:clamp(22px,6.6vh,72px);--gb:clamp(28px,4.4vh,60px)}
