@@ -26,7 +26,6 @@ input[type=range]{width:100%;accent-color:var(--ink);min-height:28px;margin:0}
 #go{min-height:52px;padding:0 34px;font-size:18px;font-weight:700;background:var(--ink);color:var(--bg)}
 #go:disabled{opacity:.45}
 .clkrow{flex:none;text-align:center;font-size:12px;color:var(--muted);line-height:1.1;padding-top:2px}
-.car #autolen,.car #autoset{display:none!important}
 .top{position:relative;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 /* the console: deck A, mixer, deck B */
@@ -304,12 +303,15 @@ try{ const ms=navigator.mediaSession; if(ms){
   ms.setActionHandler('previoustrack',()=>{ if(CARON) carRestart(); else dg('car: back (live mode, not wired)'); });
   try{ ms.setActionHandler('seekforward',()=>{ dg('car: seek forward button'); if(CARON) carSkip(); else mediaSkip(); }); ms.setActionHandler('seekbackward',()=>{ dg('car: seek back button'); if(CARON) carRestart(); }); ms.setActionHandler('seekto',()=>{ dg('car: seek ignored'); }); }catch(e){} } }catch(e){}
 
-setInterval(()=>{ try{ const b=$('auto'); if(!b) return; const on=!!(SG.on||AU.on||BOTH.t), t=b.textContent; if(on&&/:\s*off/.test(t)){ b.textContent='Auto DJ: on'+(SG.on?' (sample songs)':''); b.classList.add('on'); b.setAttribute('aria-pressed','true'); } else if(!on&&/:\s*on/.test(t)&&!/\.\.\./.test(t)){ b.textContent='Auto DJ: off'; b.classList.remove('on'); b.setAttribute('aria-pressed','false'); } }catch(e){} },500);
+setInterval(()=>{ try{ const b=$('auto'); if(!b) return; const on=!!(SG.on||AU.on||BOTH.t), t=b.textContent; if(on&&/:\s*off/.test(t)){ b.textContent='Auto DJ: on'; b.classList.add('on'); b.setAttribute('aria-pressed','true'); } else if(!on&&/:\s*on/.test(t)&&!/\.\.\./.test(t)){ b.textContent='Auto DJ: off'; b.classList.remove('on'); b.setAttribute('aria-pressed','false'); } }catch(e){} },500);
 let MART=null, MTIT='Eight Bells DJ';
 const mediaTitle=t=>{ try{ if(t) MTIT=t; if('mediaSession' in navigator&&window.MediaMetadata) navigator.mediaSession.metadata=new MediaMetadata({title:MTIT,artist:'Eight Bells DJ',artwork:MART||[]}); }catch(e){} };
 // The picture on the car screen and lock screen is the current deck graphic.
 window.__ebArt=()=>mediaArt();
-async function mediaArt(){ try{ if(!('mediaSession' in navigator)||!window.MediaMetadata) return null; let svg=gfxFor('A'); svg=svg.replace(/<svg /,'<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="512" height="512" ');
+async function mediaArt(){ try{ if(!('mediaSession' in navigator)||!window.MediaMetadata) return null; let svg; const live=document.querySelector('#deckA .plat svg');
+  if(live){ const cl=live.cloneNode(true), sa=[live].concat([...live.querySelectorAll('*')]), da=[cl].concat([...cl.querySelectorAll('*')]), props=['fill','stroke','stroke-width','opacity','fill-opacity','stroke-opacity','stroke-dasharray','stroke-linecap','stroke-linejoin','display','visibility','color']; // copy what the page's styling does to the picture, so the car shows what you see
+    sa.forEach((e,i)=>{ try{ const cs=getComputedStyle(e), d=da[i]; props.forEach(p=>{ const v=cs.getPropertyValue(p); if(v) d.style.setProperty(p,v); }); }catch(x){} }); cl.setAttribute('width','512'); cl.setAttribute('height','512'); if(!cl.getAttribute('xmlns')) cl.setAttribute('xmlns','http://www.w3.org/2000/svg'); cl.setAttribute('xmlns:xlink','http://www.w3.org/1999/xlink'); svg=new XMLSerializer().serializeToString(cl); }
+  else { svg=gfxFor('A'); svg=svg.replace(/<svg /,'<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="512" height="512" '); }
   const url=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'})), img=new Image(); await new Promise((ok,no)=>{ img.onload=ok; img.onerror=no; img.src=url; }); const c=document.createElement('canvas'); c.width=c.height=512; const g=c.getContext('2d'); g.fillStyle='#0b1020'; g.fillRect(0,0,512,512); g.drawImage(img,16,16,480,480); try{ URL.revokeObjectURL(url); }catch(e){}
   const png=c.toDataURL('image/png'); MART=[{src:png,sizes:'512x512',type:'image/png'}]; mediaTitle(); return png; }catch(e){ return null; } }
 const audioSess=()=>{ try{ if(navigator.audioSession) navigator.audioSession.type='playback'; }catch(e){} }; audioSess();
@@ -1292,10 +1294,10 @@ function paint(){
     let st; try{ st=JSON.parse(ev(d,"JSON.stringify({p:!!playing,b:state.bpm,s:state.section,n:(typeof LV!=='undefined'&&LV.next)||null,g:genreObj().name,pos:(playing&&ROLL.step>=0)?(ROLL.step%loopLen())/loopLen():-1})")); }catch(e){ return; }
     if(!st) return;
     // sample songs play through the deck's audio without its own pattern player, so show the song on the deck instead of "stopped"
-    let sgp=-1; if(SG.on&&SG.cur&&SG.cur.deck===d&&SG.cur.s&&SG.cur.s.plan){ const pl=SG.cur.s.plan; let tnow=0; try{ tnow=+ev(d,'ac.currentTime')||0; }catch(e){} if(tnow>=SG.cur.start-.05){ st.p=true; st.b=Math.round(pl.T); st.g=String(pl.g.name).replace(/&amp;/g,'&'); st.s=null; st.n=null; sgp=Math.max(0,Math.min(1,(tnow-SG.cur.start)/(pl.total*pl.barSec))); } }
+    let sgp=-1, sgn=SG.cur&&SG.cur.n; if(CARON&&SG.on&&CAR.cur){ const v=carView(d); if(v){ const pl=v.m.song.plan; st.p=!CAR.el.paused; st.b=Math.round(pl.T); st.g=String(pl.g.name).replace(/&amp;/g,'&'); st.s=null; st.n=null; sgp=v.pr; sgn=v.m.no; } } else if(SG.on&&SG.cur&&SG.cur.deck===d&&SG.cur.s&&SG.cur.s.plan){ const pl=SG.cur.s.plan; let tnow=0; try{ tnow=+ev(d,'ac.currentTime')||0; }catch(e){} if(tnow>=SG.cur.start-.05){ st.p=true; st.b=Math.round(pl.T); st.g=String(pl.g.name).replace(/&amp;/g,'&'); st.s=null; st.n=null; sgp=Math.max(0,Math.min(1,(tnow-SG.cur.start)/(pl.total*pl.barSec))); } }
     if(S.apaused&&(SG.on||AU.on)) st.p=false; else if(S.apaused) autoResume();
     const sn={intro:'Intro',bld:'Build-up',drop:'Drop',chorus:'Chorus',brk:'Breakdown',bridge:'Bridge',half:'Half-time',allt:'All tracks',outro:'Outro'};
-    $('st'+d.id).textContent=st.g+' · '+(sgp>=0?'sample song '+SG.cur.n:(st.s?sn[st.s]:'full pattern'))+(st.n?' · next: '+sn[st.n]:'')+' · '+(st.p?'playing':'stopped');
+    $('st'+d.id).textContent=st.g+' · '+(sgp>=0?'sample song '+sgn:(st.s?sn[st.s]:'full pattern'))+(st.n?' · next: '+sn[st.n]:'')+' · '+(st.p?'playing':'stopped');
     $('bp'+d.id).textContent=st.b;
     const sl=$('deck'+d.id).querySelector('[data-t]'); if(document.activeElement!==sl) sl.value=st.b;
     { const bm=($('barmode')&&$('barmode').value)||'auto', track=bm==='track'||(bm==='auto'&&AU.on);
@@ -1353,6 +1355,7 @@ function stopNow(){ autoResume(); clearTimeout(S.spT); S.spend=false; stopLabel(
 function stopBothPress(){
   const auto=!!(BOTH.t||SG.on||AU.on);
   if(!auto){ clearTimeout(S.spT); S.spend=false; stopLabel('Stop both'); exampleStop(); bothStop(); return; }
+  if(CARON&&SG.on){ stopNow(); return; }
   if(S.spend){ stopNow(); return; }
   S.spend=true; stopLabel('Stop now'); bothModeStop();
   if(SG.on&&SG.cur){ SG.stopEnd=true; clearTimeout(SG.wait); clearInterval(SG.xfT); const cur=SG.cur; let ms=8000; try{ ms=Math.max(800,(cur.start+cur.s.dur-0.4-sgNow(cur.deck))*1000); }catch(e){} S.spT=setTimeout(stopNow,ms); try{ sgSay('Stopping after this song. Press Stop now to stop straight away.'); }catch(e){} }
@@ -1905,7 +1908,7 @@ async function sgRender(p){
 // ---- playing songs on the decks, handing over from one to the next ----
 const sgNow=d=>+ev(d,'ac.currentTime')||0;
 // ---- Car mode: songs are mixed ahead of time (same overlap, bass swap and tempo ramp as the live mix) and played as real audio files, like the intro song. Nothing goes through Web Audio, which breaks up over CarPlay.
-const CAR={el:null,url:null,ended:false,cur:null,next:null,idx:-1,gen:0,building:false};
+const CAR={el:null,url:null,ended:false,cur:null,next:null,idx:-1,gen:0,building:false,count:0,made:0,max:0,endAt:0};
 window.__ebCar=()=>CAR;
 function carWav(data,sr){ const n=data.length, b=new ArrayBuffer(44+n*2), v=new DataView(b), w=(o,t)=>{ for(let i=0;i<t.length;i++) v.setUint8(o+i,t.charCodeAt(i)); };
   w(0,'RIFF'); v.setUint32(4,36+n*2,true); w(8,'WAVE'); w(12,'fmt '); v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,1,true); v.setUint32(24,sr,true); v.setUint32(28,sr*2,true); v.setUint16(32,2,true); v.setUint16(34,16,true); w(36,'data'); v.setUint32(40,n*2,true);
@@ -1914,9 +1917,9 @@ function carEl(){ if(!CAR.el){ const a=new Audio(); a.setAttribute('playsinline'
 function carUnlock(){ try{ const a=carEl(); if(a.src) return; a.src=URL.createObjectURL(carWav(new Float32Array(4410),44100)); const p=a.play(); if(p&&p.catch) p.catch(()=>{}); }catch(e){} } // played inside the tap so later files may start on their own
 const carSS=(x,lo,hi)=>{ const t=Math.min(1,Math.max(0,(x-lo)/(hi-lo))); return t*t*(3-2*t); };
 async function carMix(songs){ // lay the songs on one timeline, crossfading like the live handover
-  const sr=songs[0].sr, n=songs.length, P=[{s:songs[0],shift:0,startNext:0,ramp:0,rate0:1,consumed:0,ovx:0}], meta=[{song:songs[0],start:0,mid:0}];
+  const sr=songs[0].sr, n=songs.length, P=[{s:songs[0],shift:0,startNext:0,ramp:0,rate0:1,consumed:0,ovx:0}], meta=[{song:songs[0],start:0,mid:0,ov:0}];
   for(let i=1;i<n;i++){ const cur=songs[i-1], nx=songs[i], pc=cur.plan, pn=nx.plan, bar=pc.barSec, ov=Math.min(pc.ovBars,pn.ovBars)*bar, k=Math.floor((cur.dur-3-ov)/bar), tN=Math.max(1,k)*bar, ovAct=Math.max(bar,pc.total*bar-tN), ovx=Math.min(ovAct,ov*1.6), rate0=sgClamp(pc.T/pn.T,.9,1.1), ramp=Math.max(.01,Math.min(ovx,bar*pn.ovBars)), consumed=(rate0+1)/2*ramp, startNext=P[i-1].shift+tN;
-    P.push({s:nx,shift:startNext+ramp-consumed,startNext,ramp,rate0,consumed,ovx}); meta.push({song:nx,start:startNext,mid:startNext+ovx/2}); }
+    P.push({s:nx,shift:startNext+ramp-consumed,startNext,ramp,rate0,consumed,ovx}); meta.push({song:nx,start:startNext,mid:startNext+ovx/2,ov:ovx}); }
   const last=P[n-1], N=Math.ceil((last.shift+last.s.dur+.5)*sr), out=new Float32Array(N), al=1-Math.exp(-2*Math.PI*200/sr);
   for(let i=0;i<n;i++){ const p=P[i], d=p.s.data, dl=d.length, nxt=P[i+1]; let lp=0;
     const j0=i>0?Math.ceil(p.startNext*sr):0;
@@ -1930,16 +1933,25 @@ async function carMix(songs){ // lay the songs on one timeline, crossfading like
       if((j&0x3ffff)===0) await sgYield(); } }
   return {data:out,sr,dur:N/sr,meta}; }
 async function carMakeSongs(cnt,prevSong,gen){ const out=[]; let prev=prevSong&&prevSong.plan; for(let i=0;i<cnt;i++){ const s=await sgMake(prev); if(!SG.on||gen!==CAR.gen) return []; if(!s) break; out.push(s); prev=s.plan; } return out; }
-function carPlayBatch(b){ const a=carEl(), old=CAR.url; CAR.ended=false; CAR.cur=b; CAR.idx=-1; CAR.url=URL.createObjectURL(carWav(b.data,b.sr)); a.src=CAR.url; const p=a.play(); if(p&&p.catch) p.catch(e=>dg('car play blocked: '+e.name)); if(old) setTimeout(()=>{ try{ URL.revokeObjectURL(old); }catch(e){} },5000); dg('car file: '+b.meta.length+' songs, '+Math.round(b.dur)+' s'); carWatch(); }
-function carWatch(){ const b=CAR.cur, a=CAR.el; if(!b||!a||!SG.on) return; const t=a.currentTime||0; let idx=0; for(let i=0;i<b.meta.length;i++) if(b.meta[i].mid<=t) idx=i; if(idx===CAR.idx) return; CAR.idx=idx; const m=b.meta[idx], nm=b.meta[idx+1]; SG.n++; const n=SG.n; const d=decks[0]; SG.cur={deck:d,start:sgNow(d),s:m.song,n:n}; sgLog('track','Song '+n+' (car mode): '+m.song.plan.name+sgDetail(m.song.plan)); sgSay('Song '+n+': '+m.song.plan.name,nm?'Next: '+nm.song.plan.name:(CAR.next?'Next: '+CAR.next.b.meta[0].song.plan.name:'')); }
-async function carPrepare(prevSong,cnt){ if(CAR.building) return; CAR.building=true; const gen=CAR.gen; try{ const songs=await carMakeSongs(cnt,prevSong,gen); if(!songs.length||gen!==CAR.gen||!SG.on){ CAR.building=false; return; } const b=await carMix(songs); if(gen!==CAR.gen||!SG.on){ CAR.building=false; return; } CAR.next={b,last:songs[songs.length-1]}; }catch(e){ console.warn('car batch failed',e); } CAR.building=false; if(CAR.ended) carAdvance(); }
-function carAdvance(){ clearTimeout(SG.wait); if(!SG.on||!CARON) return; if(CAR.next){ const nx=CAR.next; CAR.next=null; carPlayBatch(nx.b); carPrepare(nx.last,3); } else { SG.wait=setTimeout(carAdvance,500); if(!CAR.building&&CAR.cur) carPrepare(CAR.cur.meta[CAR.cur.meta.length-1].song,3); } }
-async function carStart(){ const gen=++CAR.gen; CAR.next=null; CAR.cur=null; CAR.building=false; SG.busy=true; sgSay('Making the first songs…'); const songs=await carMakeSongs(2,null,gen); SG.busy=false; if(!SG.on||gen!==CAR.gen) return; if(!songs.length){ sgSay('Could not make a song (library not loaded?).'); songOn(false); return; }
+function carPlayBatch(b){ const a=carEl(), old=CAR.url; try{ if(CAR.tail){ CAR.tail.pause(); CAR.tail=null; } }catch(e){} CAR.ended=false; CAR.cur=b; CAR.idx=-1; b.meta.forEach(m=>{ m.no=++CAR.count; }); CAR.url=URL.createObjectURL(carWav(b.data,b.sr)); a.src=CAR.url; const p=a.play(); if(p&&p.catch) p.catch(e=>dg('car play blocked: '+e.name)); if(old) setTimeout(()=>{ try{ URL.revokeObjectURL(old); }catch(e){} },5000); dg('car file: '+b.meta.length+' songs, '+Math.round(b.dur)+' s'); carWatch(); }
+function carWatch(){ const b=CAR.cur, a=CAR.el; if(!b||!a||!SG.on) return; const idx=carAt(); if(idx===CAR.idx) return; CAR.idx=idx; const m=b.meta[idx], nm=b.meta[idx+1]; SG.n=m.no; const d=decks[(m.no-1)%2]; SG.cur={deck:d,start:0,s:m.song,n:m.no}; sgLog('track','Song '+m.no+' (car mode): '+m.song.plan.name+sgDetail(m.song.plan)); sgSay('Song '+m.no+': '+m.song.plan.name,nm?'Next: '+nm.song.plan.name:(CAR.next?'Next: '+CAR.next.b.meta[0].song.plan.name:'')); }
+const carDeckOf=k=>decks[(CAR.cur.meta[k].no-1)%2];
+function carView(d){ const b=CAR.cur, a=CAR.el; if(!b||!a) return null; const t=a.currentTime||0, i=carAt(), cand=[i]; if(i>0&&t<b.meta[i].start+b.meta[i].ov) cand.push(i-1); for(const k of cand){ if(carDeckOf(k)===d){ const m=b.meta[k], pl=m.song.plan; return {m,pr:Math.max(0,Math.min(1,(t-m.start)/(pl.total*pl.barSec)))}; } } return null; }
+let CARUI='';
+function carUI(){ if(!CARON||!SG.on||!CAR.cur||!CAR.el) return; try{ const b=CAR.cur, t=CAR.el.currentTime||0, i=carAt(), m=b.meta[i], dn=carDeckOf(i); let xf=dn.id==='A'?0:100, ea=0, eb=0;
+  if(i>0&&t<m.start+m.ov){ const q=Math.max(0,Math.min(1,(t-m.start)/m.ov)), dp=carDeckOf(i-1), from=dp.id==='A'?0:100; xf=Math.round(from+(xf-from)*q); const kd=q<.5?-100:0, kp=q<.5?0:-100; if(dn.id==='A') ea=kd; else eb=kd; if(dp.id==='A') ea=kp; else eb=kp; }
+  const key=xf+'|'+ea+'|'+eb; if(key===CARUI) return; CARUI=key; S.xf=xf; D('A').eq.l=ea; D('B').eq.l=eb; applyMix(); }catch(e){} }
+setInterval(carUI,100);
+async function carPrepare(prevSong,cnt){ if(CAR.building) return; if(CAR.max) cnt=Math.min(cnt,CAR.max-CAR.made); if(cnt<=0||(CAR.endAt&&Date.now()>CAR.endAt)) return; CAR.building=true; const gen=CAR.gen; try{ const songs=await carMakeSongs(cnt,prevSong,gen); if(!songs.length||gen!==CAR.gen||!SG.on){ CAR.building=false; return; } const b=await carMix(songs); if(gen!==CAR.gen||!SG.on){ CAR.building=false; return; } CAR.made+=songs.length; CAR.next={b,last:songs[songs.length-1]}; }catch(e){ console.warn('car batch failed',e); } CAR.building=false; if(CAR.ended) carAdvance(); }
+function carAdvance(){ clearTimeout(SG.wait); if(!SG.on||!CARON) return; if(!CAR.next&&((CAR.max&&CAR.made>=CAR.max)||(CAR.endAt&&Date.now()>CAR.endAt))){ sgSay('Finished the set.'); songOn(false); return; } if(CAR.next){ const nx=CAR.next; CAR.next=null; carPlayBatch(nx.b); carPrepare(nx.last,3); } else { SG.wait=setTimeout(carAdvance,500); if(!CAR.building&&CAR.cur) carPrepare(CAR.cur.meta[CAR.cur.meta.length-1].song,3); } }
+async function carStart(){ const gen=++CAR.gen; CAR.count=0; CAR.made=0; CAR.endAt=0; CAR.max=0; { const v=($('autoset')&&$('autoset').value)||'0'; if(/^m/.test(v)) CAR.endAt=Date.now()+(+v.slice(1)||60)*60000; else if(v==='r') CAR.max=3+Math.floor(Math.random()*8); else CAR.max=+v||0; } CAR.next=null; CAR.cur=null; CAR.building=false; SG.busy=true; sgSay('Making the first songs…'); const songs=await carMakeSongs(CAR.max?Math.min(2,CAR.max):2,null,gen); CAR.made=songs.length; SG.busy=false; if(!SG.on||gen!==CAR.gen) return; if(!songs.length){ sgSay('Could not make a song (library not loaded?).'); songOn(false); return; }
   SG.n=0; SG.t0=Date.now(); const b=await carMix(songs); if(!SG.on||gen!==CAR.gen) return; carPlayBatch(b); carPrepare(songs[songs.length-1],3); }
 const carAt=()=>{ const b=CAR.cur, a=CAR.el; let i=0; if(b&&a){ const t=(a.currentTime||0)+.05; for(let k=0;k<b.meta.length;k++) if(b.meta[k].start<=t) i=k; } return i; };
 function carSkip(){ const b=CAR.cur, a=CAR.el; if(!b||!a) return; const i=carAt(); try{ if(i+1<b.meta.length) a.currentTime=b.meta[i+1].start; else a.currentTime=Math.max(0,a.duration-.4); }catch(e){} dg('car: next song'); }
 function carRestart(){ const b=CAR.cur, a=CAR.el; if(!b||!a) return; const i=carAt(); try{ a.currentTime=i>0?b.meta[i].start:0; }catch(e){} dg('car: restart song'); }
-function carStop(){ CAR.gen++; clearTimeout(SG.wait); CAR.next=null; CAR.cur=null; try{ if(CAR.el) CAR.el.pause(); }catch(e){} }
+function carFadeStop(){ try{ const b=CAR.cur, a=CAR.el; if(!b||!a||a.paused||!b.data) return; const sr=b.sr, n=Math.floor(2.2*sr), st=Math.floor((a.currentTime+.25)*sr), out=new Float32Array(n); for(let i=0;i<n;i++){ const k=st+i; if(k>=b.data.length) break; const q=Math.min(1,i/(2*sr)); out[i]=b.data[k]*(1-q)*(1-q); }
+  const url=URL.createObjectURL(carWav(out,sr)), t=new Audio(url); CAR.tail=t; t.addEventListener('playing',()=>{ try{ a.pause(); }catch(e){} },{once:true}); t.addEventListener('ended',()=>{ CAR.tail=null; try{ URL.revokeObjectURL(url); }catch(e){} }); const p=t.play(); if(p&&p.catch) p.catch(()=>{ CAR.tail=null; try{ a.pause(); }catch(e){} }); }catch(e){} } // iPhone cannot change an audio file's volume, so play a copy of the next 2 seconds that already fades out
+function carStop(){ CAR.gen++; clearTimeout(SG.wait); CAR.next=null; CAR.cur=null; try{ if(CAR.el&&!CAR.tail) CAR.el.pause(); }catch(e){} }
 setInterval(()=>{ if(!CARON) return; try{ if(SHAC&&SHAC.state==='running') SHAC.suspend(); decks.forEach(d=>{ try{ d.win.eval("if(typeof ac!=='undefined'&&ac&&ac.state==='running') ac.suspend()"); }catch(e){} }); }catch(e){} },400);
 function sgPlayFn(d){ return d.win.eval("(function(data,sr,when,rate0,ramp){ ensureAudio(); ac.resume(); var b=ac.createBuffer(1,data.length,sr); b.copyToChannel(data,0); var src=ac.createBufferSource(), g=ac.createGain(); src.buffer=b; src.connect(g); g.connect(master); var t=ac.currentTime+Math.max(0.03,when); if(rate0&&rate0!==1&&ramp>0){ src.playbackRate.setValueAtTime(rate0,t); src.playbackRate.linearRampToValueAtTime(1,t+ramp); } window.__SGS=window.__SGS||[]; var h={src:src,g:g}; window.__SGS.push(h); src.onended=function(){ var i=window.__SGS.indexOf(h); if(i>=0) window.__SGS.splice(i,1); }; src.start(t); return t; })"); }
 function sgStopDeck(d,fade){ try{ d.win.eval("(function(f){ var a=window.__SGS||[]; a.forEach(function(h){ try{ h.g.gain.setTargetAtTime(0.0001,ac.currentTime,f/4); h.src.stop(ac.currentTime+f); }catch(e){} }); window.__SGS=[]; })")(fade||.3); }catch(e){} }
@@ -1973,9 +1985,9 @@ function sgHandover(tN,ov){ const cur=SG.cur, nxt=SG.next; if(!SG.on||!cur||!nxt
     if(q>=1){ clearInterval(SG.xfT); sgStopDeck(d,.2); d.eq={l:0,m:0,h:0}; applyMix(); try{ window.__recMark&&window.__recMark('out',d); }catch(e){} } },70);
   SG.cur={deck:dn,start:t,s:nxt,n:n}; SG.next=null; sgSay('Song '+n+': '+nxt.plan.name); sgSchedule(); }
 function songOn(on){
-  const b=$('auto'); SG.on=on; b.textContent='Auto DJ: '+(on?'on (sample songs)':'off'); b.classList.toggle('on',on); b.setAttribute('aria-pressed',on?'true':'false'); const sk=$('sgskip'); if(sk) sk.disabled=!on;
+  const b=$('auto'); SG.on=on; b.textContent='Auto DJ: '+(on?'on':'off'); b.classList.toggle('on',on); b.setAttribute('aria-pressed',on?'true':'false'); const sk=$('sgskip'); if(sk) sk.disabled=!on;
   clearTimeout(SG.wait); clearInterval(SG.xfT);
-  if(!on){ if(CARON) carStop(); decks.forEach(d=>sgStopDeck(d,.6)); setTimeout(()=>{ decks.forEach(d=>{ d.eq={l:0,m:0,h:0}; d.filt=0; d.vol=85; }); applyMix(); },700); SG.cur=null; SG.next=null; sgSay(''); wakeOn(false); return; }
+  if(!on){ if(CARON){ carFadeStop(); carStop(); } decks.forEach(d=>sgStopDeck(d,.6)); setTimeout(()=>{ decks.forEach(d=>{ d.eq={l:0,m:0,h:0}; d.filt=0; d.vol=85; }); applyMix(); },700); SG.cur=null; SG.next=null; sgSay(''); wakeOn(false); return; }
   if(AU.on) autoOn(false); SG.stopEnd=false; SG.n=0; SG.recent=[]; SG.beds=[]; SG.skip=false; LOG.length=0; TRK.length=0; SG.t0=Date.now(); AU.tStart=SG.t0; wakeOn(true); decks.forEach(d=>setPlay(d,false)); sgStartFirst();
 }
 const autoToggle0=0;
