@@ -313,12 +313,12 @@ setInterval(()=>{ try{ const c=SHAC; const on=!!((typeof AU!=='undefined'&&AU.on
 document.addEventListener('visibilitychange',()=>dg('page '+document.visibilityState));
 try{ if(navigator.audioSession) navigator.audioSession.addEventListener('statechange',()=>dg('session '+navigator.audioSession.state)); }catch(e){}
 // Car / lock-screen buttons: play, pause and next track control the DJ.
-const mediaSkip=()=>{ try{ if(SG.on){ sgSkip(); } else if(AU.on&&AU.phase==='play'){ const c=D(AU.cur), fn=AU.slow?Math.max(4,Math.floor(fadeBars()/2)):fadeBars(), left=lenOf()-fn-barsOf(c); if(left>2) AU.adj=(AU.adj||0)-(left-2); } }catch(e){} };
+const mediaSkip=()=>{ try{ if(CARON){ carSkip(); } else if(SG.on){ sgSkip(); } else if(AU.on&&AU.phase==='play'){ const c=D(AU.cur), fn=AU.slow?Math.max(4,Math.floor(fadeBars()/2)):fadeBars(), left=lenOf()-fn-barsOf(c); if(left>2) AU.adj=(AU.adj||0)-(left-2); } }catch(e){} };
 try{ const ms=navigator.mediaSession; if(ms){
   ms.setActionHandler('play',()=>{ try{ if(CARON&&CAR.el){ CAR.el.play(); dg('car: play'); return; } if(!(SG.on||AU.on||BOTH.t)) autoToggle(); else autoResume(); window.__ebMediaStart(); ms.playbackState='playing'; dg('car: play'); }catch(e){} });
   ms.setActionHandler('pause',()=>{ try{ if(CARON&&CAR.el){ CAR.el.pause(); dg('car: pause'); return; } if((SG.on||AU.on||BOTH.t)&&!S.apaused) autoPause(); if(MEL) MEL.pause(); ms.playbackState='paused'; dg('car: pause'); }catch(e){} });
   ms.setActionHandler('nexttrack',()=>{ mediaSkip(); dg('car: next'); });
-  ms.setActionHandler('previoustrack',()=>{ dg('car: back (not wired yet)'); });
+  ms.setActionHandler('previoustrack',()=>{ if(CARON) carRestart(); else dg('car: back (live mode, not wired)'); });
   ['seekbackward','seekforward'].forEach(a=>{ try{ ms.setActionHandler(a,null); }catch(e){} }); } }catch(e){}
 // CarPlay test: does plain Web Audio break up in the car, even with none of the DJ engine running?
 let TST={a:null,c:null,s:null};
@@ -1923,18 +1923,42 @@ async function sgRender(p){
   return {data:out,sr:SGSR,dur:N/SGSR,rms:Math.sqrt(sq2/N),peak:pk2}; }
 // ---- playing songs on the decks, handing over from one to the next ----
 const sgNow=d=>+ev(d,'ac.currentTime')||0;
-// ---- Car mode: each sample song is turned into a real audio file and played like the intro song. Nothing goes through Web Audio, which breaks up over CarPlay.
-const CAR={el:null,url:null,ended:false};
+// ---- Car mode: songs are mixed ahead of time (same overlap, bass swap and tempo ramp as the live mix) and played as real audio files, like the intro song. Nothing goes through Web Audio, which breaks up over CarPlay.
+const CAR={el:null,url:null,ended:false,cur:null,next:null,idx:-1,gen:0,building:false};
+window.__ebCar=()=>CAR;
 function carWav(data,sr){ const n=data.length, b=new ArrayBuffer(44+n*2), v=new DataView(b), w=(o,t)=>{ for(let i=0;i<t.length;i++) v.setUint8(o+i,t.charCodeAt(i)); };
   w(0,'RIFF'); v.setUint32(4,36+n*2,true); w(8,'WAVE'); w(12,'fmt '); v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,1,true); v.setUint32(24,sr,true); v.setUint32(28,sr*2,true); v.setUint16(32,2,true); v.setUint16(34,16,true); w(36,'data'); v.setUint32(40,n*2,true);
   for(let i=0;i<n;i++){ const x=Math.max(-1,Math.min(1,data[i])); v.setInt16(44+i*2,x<0?x*32768:x*32767,true); } return new Blob([b],{type:'audio/wav'}); }
-window.__ebCar=()=>CAR;
-function carEl(){ if(!CAR.el){ const a=new Audio(); a.setAttribute('playsinline',''); a.preload='auto'; ['pause','play','ended','stalled','waiting','error'].forEach(n=>a.addEventListener(n,()=>dg('car player '+n))); a.addEventListener('ended',()=>{ CAR.ended=true; if(SG.on) carAdvance(); }); CAR.el=a; } return CAR.el; }
-function carUnlock(){ try{ const a=carEl(); if(a.src) return; a.src=URL.createObjectURL(carWav(new Float32Array(4410),44100)); const p=a.play(); if(p&&p.catch) p.catch(()=>{}); }catch(e){} } // played inside the tap so later songs may start on their own
-function carPlay(s){ const a=carEl(), old=CAR.url; CAR.ended=false; CAR.url=URL.createObjectURL(carWav(s.data,s.sr)); a.src=CAR.url; const p=a.play(); if(p&&p.catch) p.catch(e=>dg('car play blocked: '+e.name)); if(old) setTimeout(()=>{ try{ URL.revokeObjectURL(old); }catch(e){} },5000); dg('car song, '+Math.round(s.dur)+' s'); }
-function carAdvance(){ clearTimeout(SG.wait); if(!SG.on||!CARON) return; if(SG.next) carHandover(); else SG.wait=setTimeout(carAdvance,500); }
-function carHandover(){ const cur=SG.cur, nxt=SG.next; if(!SG.on||!cur||!nxt) return; carPlay(nxt); SG.n++; const n=SG.n; sgLog('mix','Song '+n+' (car mode): '+nxt.plan.name+sgDetail(nxt.plan)); SG.cur={deck:cur.deck,start:sgNow(cur.deck),s:nxt,n:n}; SG.next=null; sgSay('Song '+n+': '+nxt.plan.name); sgSchedule(); }
-function carStop(){ clearTimeout(SG.wait); try{ if(CAR.el){ CAR.el.pause(); } }catch(e){} }
+function carEl(){ if(!CAR.el){ const a=new Audio(); a.setAttribute('playsinline',''); a.preload='auto'; ['pause','play','ended','stalled','error'].forEach(n=>a.addEventListener(n,()=>dg('car player '+n))); a.addEventListener('ended',()=>{ CAR.ended=true; if(SG.on) carAdvance(); }); a.addEventListener('timeupdate',carWatch); CAR.el=a; } return CAR.el; }
+function carUnlock(){ try{ const a=carEl(); if(a.src) return; a.src=URL.createObjectURL(carWav(new Float32Array(4410),44100)); const p=a.play(); if(p&&p.catch) p.catch(()=>{}); }catch(e){} } // played inside the tap so later files may start on their own
+const carSS=(x,lo,hi)=>{ const t=Math.min(1,Math.max(0,(x-lo)/(hi-lo))); return t*t*(3-2*t); };
+async function carMix(songs){ // lay the songs on one timeline, crossfading like the live handover
+  const sr=songs[0].sr, n=songs.length, P=[{s:songs[0],shift:0,startNext:0,ramp:0,rate0:1,consumed:0,ovx:0}], meta=[{song:songs[0],start:0,mid:0}];
+  for(let i=1;i<n;i++){ const cur=songs[i-1], nx=songs[i], pc=cur.plan, pn=nx.plan, bar=pc.barSec, ov=Math.min(pc.ovBars,pn.ovBars)*bar, k=Math.floor((cur.dur-3-ov)/bar), tN=Math.max(1,k)*bar, ovAct=Math.max(bar,pc.total*bar-tN), ovx=Math.min(ovAct,ov*1.6), rate0=sgClamp(pc.T/pn.T,.9,1.1), ramp=Math.max(.01,Math.min(ovx,bar*pn.ovBars)), consumed=(rate0+1)/2*ramp, startNext=P[i-1].shift+tN;
+    P.push({s:nx,shift:startNext+ramp-consumed,startNext,ramp,rate0,consumed,ovx}); meta.push({song:nx,start:startNext,mid:startNext+ovx/2}); }
+  const last=P[n-1], N=Math.ceil((last.shift+last.s.dur+.5)*sr), out=new Float32Array(N), al=1-Math.exp(-2*Math.PI*200/sr);
+  for(let i=0;i<n;i++){ const p=P[i], d=p.s.data, dl=d.length, nxt=P[i+1]; let lp=0;
+    const j0=i>0?Math.ceil(p.startNext*sr):0;
+    for(let j=j0;j<N;j++){ const tl=j/sr; let sec;
+      if(i>0){ const tt=tl-p.startNext; sec=tt<p.ramp?p.rate0*tt+(1-p.rate0)*tt*tt/(2*p.ramp):p.consumed+(tt-p.ramp); } else sec=tl;
+      const pos=Math.max(0,sec*sr), k0=Math.floor(pos); if(k0>=dl-1) break; const f=pos-k0, x=d[k0]*(1-f)+d[k0+1]*f;
+      let gin=1, lin=1, gout=1, lout=1;
+      if(i>0){ const tt=tl-p.startNext; if(tt<p.ovx){ const q=tt/p.ovx; gin=Math.sin(q*Math.PI/2); lin=carSS(q,.45,.55); } }
+      if(nxt){ const to=tl-nxt.startNext; if(to>=nxt.ovx) break; if(to>=0){ const q=to/nxt.ovx; gout=Math.cos(q*Math.PI/2); lout=1-carSS(q,.45,.55); } }
+      lp+=al*(x-lp); out[j]+=((x-lp)+lp*lin*lout)*gin*gout;
+      if((j&0x3ffff)===0) await sgYield(); } }
+  return {data:out,sr,dur:N/sr,meta}; }
+async function carMakeSongs(cnt,prevSong,gen){ const out=[]; let prev=prevSong&&prevSong.plan; for(let i=0;i<cnt;i++){ const s=await sgMake(prev); if(!SG.on||gen!==CAR.gen) return []; if(!s) break; out.push(s); prev=s.plan; } return out; }
+function carPlayBatch(b){ const a=carEl(), old=CAR.url; CAR.ended=false; CAR.cur=b; CAR.idx=-1; CAR.url=URL.createObjectURL(carWav(b.data,b.sr)); a.src=CAR.url; const p=a.play(); if(p&&p.catch) p.catch(e=>dg('car play blocked: '+e.name)); if(old) setTimeout(()=>{ try{ URL.revokeObjectURL(old); }catch(e){} },5000); dg('car file: '+b.meta.length+' songs, '+Math.round(b.dur)+' s'); carWatch(); }
+function carWatch(){ const b=CAR.cur, a=CAR.el; if(!b||!a||!SG.on) return; const t=a.currentTime||0; let idx=0; for(let i=0;i<b.meta.length;i++) if(b.meta[i].mid<=t) idx=i; if(idx===CAR.idx) return; CAR.idx=idx; const m=b.meta[idx], nm=b.meta[idx+1]; SG.n++; const n=SG.n; const d=decks[0]; SG.cur={deck:d,start:sgNow(d),s:m.song,n:n}; sgLog('track','Song '+n+' (car mode): '+m.song.plan.name+sgDetail(m.song.plan)); sgSay('Song '+n+': '+m.song.plan.name,nm?'Next: '+nm.song.plan.name:(CAR.next?'Next: '+CAR.next.b.meta[0].song.plan.name:'')); }
+async function carPrepare(prevSong,cnt){ if(CAR.building) return; CAR.building=true; const gen=CAR.gen; try{ const songs=await carMakeSongs(cnt,prevSong,gen); if(!songs.length||gen!==CAR.gen||!SG.on){ CAR.building=false; return; } const b=await carMix(songs); if(gen!==CAR.gen||!SG.on){ CAR.building=false; return; } CAR.next={b,last:songs[songs.length-1]}; }catch(e){ console.warn('car batch failed',e); } CAR.building=false; if(CAR.ended) carAdvance(); }
+function carAdvance(){ clearTimeout(SG.wait); if(!SG.on||!CARON) return; if(CAR.next){ const nx=CAR.next; CAR.next=null; carPlayBatch(nx.b); carPrepare(nx.last,3); } else { SG.wait=setTimeout(carAdvance,500); if(!CAR.building&&CAR.cur) carPrepare(CAR.cur.meta[CAR.cur.meta.length-1].song,3); } }
+async function carStart(){ const gen=++CAR.gen; CAR.next=null; CAR.cur=null; CAR.building=false; SG.busy=true; sgSay('Making the first songs…'); const songs=await carMakeSongs(2,null,gen); SG.busy=false; if(!SG.on||gen!==CAR.gen) return; if(!songs.length){ sgSay('Could not make a song (library not loaded?).'); songOn(false); return; }
+  SG.n=0; SG.t0=Date.now(); const b=await carMix(songs); if(!SG.on||gen!==CAR.gen) return; carPlayBatch(b); carPrepare(songs[songs.length-1],3); }
+const carAt=()=>{ const b=CAR.cur, a=CAR.el; let i=0; if(b&&a){ const t=(a.currentTime||0)+.05; for(let k=0;k<b.meta.length;k++) if(b.meta[k].start<=t) i=k; } return i; };
+function carSkip(){ const b=CAR.cur, a=CAR.el; if(!b||!a) return; const i=carAt(); try{ if(i+1<b.meta.length) a.currentTime=b.meta[i+1].start; else a.currentTime=Math.max(0,a.duration-.4); }catch(e){} dg('car: next song'); }
+function carRestart(){ const b=CAR.cur, a=CAR.el; if(!b||!a) return; const i=carAt(); try{ a.currentTime=i>0?b.meta[i].start:0; }catch(e){} dg('car: restart song'); }
+function carStop(){ CAR.gen++; clearTimeout(SG.wait); CAR.next=null; CAR.cur=null; try{ if(CAR.el) CAR.el.pause(); }catch(e){} }
 setInterval(()=>{ if(!CARON) return; try{ if(SHAC&&SHAC.state==='running') SHAC.suspend(); decks.forEach(d=>{ try{ d.win.eval("if(typeof ac!=='undefined'&&ac&&ac.state==='running') ac.suspend()"); }catch(e){} }); }catch(e){} },400);
 function sgPlayFn(d){ return d.win.eval("(function(data,sr,when,rate0,ramp){ ensureAudio(); ac.resume(); var b=ac.createBuffer(1,data.length,sr); b.copyToChannel(data,0); var src=ac.createBufferSource(), g=ac.createGain(); src.buffer=b; src.connect(g); g.connect(master); var t=ac.currentTime+Math.max(0.03,when); if(rate0&&rate0!==1&&ramp>0){ src.playbackRate.setValueAtTime(rate0,t); src.playbackRate.linearRampToValueAtTime(1,t+ramp); } window.__SGS=window.__SGS||[]; var h={src:src,g:g}; window.__SGS.push(h); src.onended=function(){ var i=window.__SGS.indexOf(h); if(i>=0) window.__SGS.splice(i,1); }; src.start(t); return t; })"); }
 function sgStopDeck(d,fade){ try{ d.win.eval("(function(f){ var a=window.__SGS||[]; a.forEach(function(h){ try{ h.g.gain.setTargetAtTime(0.0001,ac.currentTime,f/4); h.src.stop(ac.currentTime+f); }catch(e){} }); window.__SGS=[]; })")(fade||.3); }catch(e){} }
@@ -1942,9 +1966,10 @@ function sgLog(kind,text){ LOG.push({t:Date.now()-SG.t0,kind:kind,text:text,tr:S
 function sgSay(t,nx){ try{ autoSay(t,nx); }catch(e){} }
 async function sgMake(prev){ for(let i=0;i<3;i++){ try{ const p=await sgPlan(prev), r=await sgRender(p); r.plan=p; return r; }catch(e){ SG.err++; console.warn('song failed',e); } } return null; }
 async function sgStartFirst(){
+  if(CARON) return carStart();
   SG.busy=true; sgSay('Making the first song…'); const s=await sgMake(null); SG.busy=false; if(!SG.on) return; if(!s){ sgSay('Could not make a song (library not loaded?).'); songOn(false); return; }
   const d=D('A'), other=D('B'); decks.forEach(x=>{ x.eq={l:0,m:0,h:0}; x.filt=0; x.vol=85; }); S.xf=0; applyMix();
-  let t; if(CARON){ carPlay(s); t=sgNow(d); } else t=sgPlayFn(d)(s.data,s.sr,.2,1,0); SG.n=1; SG.t0=Date.now();
+  const t=sgPlayFn(d)(s.data,s.sr,.2,1,0); SG.n=1; SG.t0=Date.now();
   SG.cur={deck:d,start:t,s:s,n:1}; sgLog('track','Song 1 on Deck A: '+s.plan.name+sgDetail(s.plan)); try{ window.__recMark&&window.__recMark('in',d); }catch(e){}
   sgSay('Song 1: '+s.plan.name); sgSchedule();
 }
@@ -1953,7 +1978,7 @@ async function sgSchedule(){ // while this song plays, make the next one, then s
   const cur=SG.cur; if(!cur||!SG.on) return; SG.busy=true; const nxt=await sgMake(cur.s.plan); SG.busy=false; if(!SG.on||SG.cur!==cur) return;
   if(!nxt){ sgSay('Could not make the next song; letting this one finish.'); return; }
   SG.next=nxt; sgSay('Song '+cur.n+': '+cur.s.plan.name,'Next: '+nxt.plan.name); sgArm(); }
-function sgArm(){ clearTimeout(SG.wait); const cur=SG.cur, nxt=SG.next; if(!cur||!nxt||!SG.on||SG.stopEnd) return; if(CARON){ if(CAR.ended||SG.skip){ SG.skip=false; carHandover(); } return; }
+function sgArm(){ clearTimeout(SG.wait); const cur=SG.cur, nxt=SG.next; if(!cur||!nxt||!SG.on||SG.stopEnd) return; if(CARON) return;
   const d=cur.deck, now=sgNow(d), p=cur.s.plan, end=cur.start+cur.s.dur-3, ov=Math.min(p.ovBars,nxt.plan.ovBars)*p.barSec;
   let k=Math.floor((end-ov-cur.start)/p.barSec), tN=cur.start+Math.max(1,k)*p.barSec; if(SG.skip){ const kk=Math.ceil((now+.6-cur.start)/p.barSec); tN=cur.start+kk*p.barSec; SG.skip=false; }
   const ovAct=Math.max(p.barSec,cur.start+p.total*p.barSec-tN), wait=Math.max(0,(tN-now-1.2)*1000); SG.wait=setTimeout(()=>sgHandover(tN,Math.min(ovAct,ov*1.6)),wait); }
@@ -1984,7 +2009,7 @@ const autoToggle=()=>{ if(CARON){ carUnlock(); const m=$('musicsrc'); if(m&&m.va
   if(['both','random'].includes($('musicsrc')&&$('musicsrc').value)){ if(BOTH.t||SG.on||AU.on){ bothModeStop(); if(SG.on) songOn(false); if(AU.on) autoOn(false); } else bothRun(Math.random()<.5?'songs':'eb'); return; }
   bothModeStop();
   if(($('musicsrc')&&$('musicsrc').value)==='songs') songOn(!SG.on); else { if(SG.on) songOn(false); autoOn(!AU.on); } };
-function sgSkip(){ if(!SG.on||!SG.cur) return; if(SG.next){ SG.skip=true; sgArm(); } else sgSay('The next song is still being made…'); }
+function sgSkip(){ if(CARON){ if(SG.on) carSkip(); return; } if(!SG.on||!SG.cur) return; if(SG.next){ SG.skip=true; sgArm(); } else sgSay('The next song is still being made…'); }
 
 
 // ---- sample volume, example song, saved settings for the sample-song controls
