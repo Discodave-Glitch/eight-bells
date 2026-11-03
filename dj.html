@@ -248,7 +248,7 @@ body.nolbl .bt{display:none}
     <div class="row"><b class="chip">Mixer knobs</b><select id="knobmode" aria-label="Layout of the mixer knobs"><option value="grid" selected>Compact grid (as now)</option><option value="col">Single column (for desktop)</option></select></div>
     <div class="row"><b class="chip">Custom deck image</b><select id="imgtarget" aria-label="Which deck gets the image"><option value="AB">Both decks</option><option value="A">Deck A</option><option value="B">Deck B</option></select><button id="imgpick">Choose image...</button><button id="imgclear">Remove</button><input type="file" id="imgfile" accept="image/*" hidden><span id="imgmsg" class="chip"></span></div>
     <div class="row"><b class="chip">Screen</b><select id="theme" aria-label="Day or night screen"><option value="night">Night</option><option value="day">Day</option><option value="auto">Match my device</option></select></div>
-    <div class="row"><b class="chip">Audio output</b><select id="ashare" aria-label="One shared audio output or one per deck"><option value="1">One shared output (best for CarPlay)</option><option value="0">One per deck (old way)</option></select><span class="chip" id="asharenote">Reload the page after changing this.</span></div>
+    <div class="row"><b class="chip">Audio output</b><select id="ashare" aria-label="How the sound leaves the app"><option value="m">Media player (best for CarPlay)</option><option value="1">Direct, one shared output</option><option value="0">Direct, one per deck (old way)</option></select><span class="chip" id="asharenote">Reload the page after changing this.</span></div>
     <div class="row"><b class="chip">Audio buffer</b><select id="abuf" aria-label="Audio buffer size"><option value="playback">Safe: bigger buffer (best for CarPlay and Bluetooth)</option><option value="interactive">Fast: lowest delay (may crackle over CarPlay)</option></select><span class="chip" id="abufnote">Reload the page after changing this.</span></div>
     <div class="row"><b class="chip">Long status text</b><select id="sttext" aria-label="What the status line does when its text is too long"><option value="ticker" selected>Scrolling ticker</option><option value="shrink">Shrink to fit</option><option value="still">Cut off</option></select></div>
     <label class="row chip" style="cursor:pointer"><input type="checkbox" id="padlbl"> Show pad labels (A3, B5 and so on) next to the knobs and faders</label>
@@ -284,8 +284,12 @@ body.nolbl .bt{display:none}
 const $=id=>document.getElementById(id);
 // Each deck is a whole copy of Eight Bells running quietly in a hidden frame. Its settings are kept in memory only, so it never touches the real app's saved settings.
 const ABUF=(()=>{ try{ return localStorage.getItem('ebdj.abuf')==='interactive'?'interactive':'playback'; }catch(e){ return 'playback'; } })();
-const ASHARE=(()=>{ try{ return localStorage.getItem('ebdj.ashare')!=='0'; }catch(e){ return true; } })();
-let SHAC=null; window.__ebSharedAC=()=>{ if(!ASHARE) return null; if(!SHAC){ const AC=window.AudioContext||window.webkitAudioContext; SHAC=new AC({latencyHint:ABUF}); } return SHAC; };
+const AMODE=(()=>{ try{ const v=localStorage.getItem('ebdj.ashare'); return v==='0'||v==='1'?v:'m'; }catch(e){ return 'm'; } })();
+let SHAC=null, MDEST=null, MEL=null; window.__ebSharedAC=()=>{ if(AMODE==='0') return null; if(!SHAC){ const AC=window.AudioContext||window.webkitAudioContext; SHAC=new AC({latencyHint:ABUF}); } return SHAC; };
+// Media player route: the mix goes into a stream that a normal audio element plays, the same way the intro song does, which is steadier over CarPlay.
+window.__ebOut=(ctx)=>{ if(AMODE!=='m'||ctx!==SHAC) return ctx.destination; try{ if(!MDEST){ MDEST=ctx.createMediaStreamDestination(); MEL=new Audio(); MEL.setAttribute('playsinline',''); MEL.srcObject=MDEST.stream; } return MDEST; }catch(e){ return ctx.destination; } };
+window.__ebMedia=()=>MEL; window.__ebMediaStart=()=>{ try{ if(AMODE==='m'){ const c=window.__ebSharedAC(); if(c) window.__ebOut(c); } if(MEL&&MEL.paused){ const p=MEL.play(); if(p&&p.catch) p.catch(()=>{}); } }catch(e){} }; document.addEventListener('click',()=>window.__ebMediaStart(),true);
+const mediaTitle=t=>{ try{ if('mediaSession' in navigator&&window.MediaMetadata) navigator.mediaSession.metadata=new MediaMetadata({title:t||'Eight Bells DJ',artist:'Eight Bells DJ'}); }catch(e){} };
 const audioSess=()=>{ try{ if(navigator.audioSession) navigator.audioSession.type='playback'; }catch(e){} }; audioSess();
 const SHIM='<script>(function(){var m={};var S={getItem:function(k){return Object.prototype.hasOwnProperty.call(m,k)?m[k]:null},setItem:function(k,v){m[k]=String(v)},removeItem:function(k){delete m[k]},clear:function(){m={}},key:function(i){return Object.keys(m)[i]||null}};Object.defineProperty(S,"length",{get:function(){return Object.keys(m).length}});try{Object.defineProperty(window,"localStorage",{value:S,configurable:true});Object.defineProperty(window,"sessionStorage",{value:S,configurable:true});}catch(e){}})();<\/script>';
 const SECS=[['intro','Intro'],['bld','Build-up'],['drop','Drop'],['chorus','Chorus'],['brk','Break'],['bridge','Bridge'],['half','Half'],['outro','Outro']];
@@ -416,7 +420,7 @@ function paintPads(){ return; /* on-screen pads removed */
 
 /* ---------- audio ---------- */
 function wireDeck(d){
-  ev(d,"(function(){ ensureAudio(); ac.resume(); var g=ac.createGain(), lp=ac.createBiquadFilter(), hp=ac.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=20000; hp.type='highpass'; hp.frequency.value=20; var el=ac.createBiquadFilter(), em=ac.createBiquadFilter(), eh=ac.createBiquadFilter(); el.type='lowshelf'; el.frequency.value=250; em.type='peaking'; em.frequency.value=1000; em.Q.value=0.7; eh.type='highshelf'; eh.frequency.value=4000; OUTTAP.disconnect(); OUTTAP.connect(el); el.connect(em); em.connect(eh); eh.connect(hp); hp.connect(lp); lp.connect(g); g.connect(ac.destination); var rd=ac.createMediaStreamDestination(); g.connect(rd); window.__dj={g:g,lp:lp,hp:hp,el:el,em:em,eh:eh,rec:rd}; })()");
+  ev(d,"(function(){ ensureAudio(); ac.resume(); var g=ac.createGain(), lp=ac.createBiquadFilter(), hp=ac.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=20000; hp.type='highpass'; hp.frequency.value=20; var el=ac.createBiquadFilter(), em=ac.createBiquadFilter(), eh=ac.createBiquadFilter(); el.type='lowshelf'; el.frequency.value=250; em.type='peaking'; em.frequency.value=1000; em.Q.value=0.7; eh.type='highshelf'; eh.frequency.value=4000; OUTTAP.disconnect(); OUTTAP.connect(el); el.connect(em); em.connect(eh); eh.connect(hp); hp.connect(lp); lp.connect(g); g.connect((window.parent.__ebOut?window.parent.__ebOut(ac):ac.destination)); var rd=ac.createMediaStreamDestination(); g.connect(rd); window.__dj={g:g,lp:lp,hp:hp,el:el,em:em,eh:eh,rec:rd}; })()");
   d.vol=85; d.filt=0; d.bendSave=null; d.eq={l:0,m:0,h:0}; d.page=0; d.held={};
 }
 function cross(id){ const x=S.xf/100; return id==='A'?Math.cos(x*Math.PI/2):Math.sin(x*Math.PI/2); }
@@ -498,7 +502,7 @@ function mqFit(sp,txt){ // long status text: a continuous ticker, or shrink it t
     else { if(sp._sc&&sp._sc!==1){ sp._sc=1; i.style.fontSize=''; } sp.classList.toggle('clip',over); }
   }
 }
-function autoSay(t,nx){ if(t&&!/^(Synths|Samples) \u00b7 /.test(t)) t=(SG.on?'Samples':(AU.on?'Synths':''))+(SG.on||AU.on?' \u00b7 ':'')+t; const a=$('auton'), b=$('autonx'); if(!a||!b){ const e=$('autost'); if(e) e.textContent=t; return; } const n=nx!==undefined?nx:''; a.firstChild.children[0].textContent=t; b.firstChild.children[0].textContent=n; mqFit(a,t); mqFit(b,n); }
+function autoSay(t,nx){ try{ if(t) mediaTitle(String(t).slice(0,80)); }catch(e){}  if(t&&!/^(Synths|Samples) \u00b7 /.test(t)) t=(SG.on?'Samples':(AU.on?'Synths':''))+(SG.on||AU.on?' \u00b7 ':'')+t; const a=$('auton'), b=$('autonx'); if(!a||!b){ const e=$('autost'); if(e) e.textContent=t; return; } const n=nx!==undefined?nx:''; a.firstChild.children[0].textContent=t; b.firstChild.children[0].textContent=n; mqFit(a,t); mqFit(b,n); }
 // ---- Taste memory: thumbs teach Auto DJ what to play more or less of (kept on this device)
 const TK='ebdj.taste', TMAX=3;
 let TASTE={v:1,g:{},grp:{},sty:{},open:{},eng:{},vox:{},sec:{},man:{},imp:[],up:0,down:0};
@@ -1618,7 +1622,7 @@ function wireUI(){
       apply(v);
       sel.addEventListener('change',()=>{ if(sel.value==='custom') pk.click(); else apply(sel.value); });
       pk.addEventListener('input',()=>apply(pk.value)); }); }
-  $('ashare').value=ASHARE?'1':'0'; $('ashare').addEventListener('change',()=>{ try{ localStorage.setItem('ebdj.ashare',$('ashare').value); }catch(e){} $('asharenote').textContent='Saved. Reload the page to use it.'; }); $('abuf').value=ABUF; $('abuf').addEventListener('change',()=>{ try{ localStorage.setItem('ebdj.abuf',$('abuf').value); }catch(e){} $('abufnote').textContent='Saved. Reload the page to use it.'; });
+  $('ashare').value=AMODE; $('ashare').addEventListener('change',()=>{ try{ localStorage.setItem('ebdj.ashare',$('ashare').value); }catch(e){} $('asharenote').textContent='Saved. Reload the page to use it.'; }); $('abuf').value=ABUF; $('abuf').addEventListener('change',()=>{ try{ localStorage.setItem('ebdj.abuf',$('abuf').value); }catch(e){} $('abufnote').textContent='Saved. Reload the page to use it.'; });
   try{ const v=localStorage.getItem('ebdj.sttext'); if(v&&[...$('sttext').options].some(o=>o.value===v)) $('sttext').value=v; }catch(e){}
   const stApply=()=>{ const m=$('sttext').value; const st=$('autost'); st.classList.remove('st-ticker','st-shrink','st-still'); st.classList.add('st-'+m); ['auton','autonx'].forEach(id=>{ const sp=$(id); sp._sc=1; sp.classList.remove('mq','clip'); sp.firstChild.style.fontSize=''; sp.style.removeProperty('--mq'); sp.firstChild.children[1].textContent=''; mqFit(sp,sp.firstChild.children[0].textContent); }); };
   stApply(); $('sttext').addEventListener('change',()=>{ try{ localStorage.setItem('ebdj.sttext',$('sttext').value); }catch(e){} stApply(); });
@@ -1657,7 +1661,7 @@ function wireUI(){
   $('clearmap').addEventListener('click',()=>{ MAP={}; saveMap(); refreshMapped(); $('msg').textContent='All mappings cleared.'; });
 }
 
-$('go').addEventListener('click',()=>{ audioSess();
+$('go').addEventListener('click',()=>{ audioSess(); window.__ebMediaStart&&window.__ebMediaStart();
   if(S.started) return; S.started=true;
   buildUI();
   decks.forEach(d=>{ wireDeck(d); setGenre(d,d.genre); });
