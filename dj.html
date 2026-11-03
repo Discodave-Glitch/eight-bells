@@ -1908,7 +1908,7 @@ async function sgRender(p){
     for(let i=0;i<N;i++){ bedA[i]*=env[i]; bedB[i]*=env[i]; } }
   { const ramp=(arr,a0,a1,v0,v1)=>{ for(let i=Math.max(0,a0);i<Math.min(N,a1);i++){ const f=(i-a0)/Math.max(1,a1-a0); arr[i]*=v0+(v1-v0)*f; } };
     p.secs.forEach((sc,i)=>{ const s0=Math.floor(at(sc.b0)*SGSR), s1=Math.floor(at(sc.b1)*SGSR), h=Math.floor((s1-s0)/2);
-      if(sc.type==='intro'){ [bedA,bedB].forEach(a=>ramp(a,s0,s0+Math.floor((s1-s0)*.7),.0,1)); }               // fade the music in
+      if(sc.type==='intro'){ [bedA,bedB].forEach(a=>ramp(a,s0,s0+Math.floor((s1-s0)*.5),.35,1)); }               // fade the music in
       if(sc.type==='break'||sc.type==='bridge'){ [bedA,bedB].forEach(a=>{ ramp(a,s0,s0+Math.floor((s1-s0)*.4),1,.45); ramp(a,s0+Math.floor((s1-s0)*.4),s1,.45,1); }); } // thin out in the middle then swell back
       if(sc.type==='outro'){ [bedA,bedB].forEach(a=>ramp(a,s0,s1+Math.floor(1.5*SGSR),1,.0)); } }); }          // long fade out
   // ambient pad and texture: wash in over the intro, drift under breaks, tail off at the end
@@ -1962,29 +1962,42 @@ async function sgRender(p){
 const sgNow=d=>+ev(d,'ac.currentTime')||0;
 // ---- Car mode: songs are mixed ahead of time (same overlap, bass swap and tempo ramp as the live mix) and played as real audio files, like the intro song. Nothing goes through Web Audio, which breaks up over CarPlay.
 const CAR={el:null,url:null,ended:false,cur:null,next:null,idx:-1,gen:0,building:false,count:0,made:0,max:0,endAt:0};
-window.__ebCar=()=>CAR; window.__ebPlan=(p)=>sgPlan(p); window.__ebAll={SGTEMPL,sgJitter,sgSections,sgRender,TASTE};
+window.__ebCar=()=>CAR; window.__ebPlan=(p)=>sgPlan(p); window.__ebAll={SGTEMPL,sgJitter,sgSections,sgRender,TASTE,carMix,sgMake};
 function carWav(data,sr){ const n=data.length, b=new ArrayBuffer(44+n*2), v=new DataView(b), w=(o,t)=>{ for(let i=0;i<t.length;i++) v.setUint8(o+i,t.charCodeAt(i)); };
   w(0,'RIFF'); v.setUint32(4,36+n*2,true); w(8,'WAVE'); w(12,'fmt '); v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,1,true); v.setUint32(24,sr,true); v.setUint32(28,sr*2,true); v.setUint16(32,2,true); v.setUint16(34,16,true); w(36,'data'); v.setUint32(40,n*2,true);
   for(let i=0;i<n;i++){ const x=Math.max(-1,Math.min(1,data[i])); v.setInt16(44+i*2,x<0?x*32768:x*32767,true); } return new Blob([b],{type:'audio/wav'}); }
 function carEl(){ if(!CAR.el){ const a=new Audio(); a.setAttribute('playsinline',''); a.preload='auto'; ['pause','play','ended','stalled','error'].forEach(n=>a.addEventListener(n,()=>dg('car player '+n))); a.addEventListener('ended',()=>{ CAR.ended=true; if(SG.on) carAdvance(); }); a.addEventListener('timeupdate',carWatch); CAR.el=a; } return CAR.el; }
 function carUnlock(){ try{ const a=carEl(); if(a.src) return; a.src=URL.createObjectURL(carWav(new Float32Array(4410),44100)); const p=a.play(); if(p&&p.catch) p.catch(()=>{}); }catch(e){} } // played inside the tap so later files may start on their own
 const carSS=(x,lo,hi)=>{ const t=Math.min(1,Math.max(0,(x-lo)/(hi-lo))); return t*t*(3-2*t); };
-async function carMix(songs){ // lay the songs on one timeline, crossfading like the live handover
-  const sr=songs[0].sr, n=songs.length, P=[{s:songs[0],shift:0,startNext:0,ramp:0,rate0:1,consumed:0,ovx:0}], meta=[{song:songs[0],start:0,mid:0,ov:0}];
-  for(let i=1;i<n;i++){ const cur=songs[i-1], nx=songs[i], pc=cur.plan, pn=nx.plan, bar=pc.barSec, ov=Math.min(pc.ovBars,pn.ovBars)*bar, k=Math.floor((cur.dur-3-ov)/bar), tN=Math.max(1,k)*bar, ovAct=Math.max(bar,pc.total*bar-tN), ovx=Math.min(ovAct,ov*1.6), rate0=sgClamp(pc.T/pn.T,.9,1.1), ramp=Math.max(.01,Math.min(ovx,bar*pn.ovBars)), consumed=(rate0+1)/2*ramp, startNext=P[i-1].shift+tN;
-    P.push({s:nx,shift:startNext+ramp-consumed,startNext,ramp,rate0,consumed,ovx}); meta.push({song:nx,start:startNext,mid:startNext+ovx/2,ov:ovx}); }
-  const last=P[n-1], N=Math.ceil((last.shift+last.s.dur+.5)*sr), out=new Float32Array(N), al=1-Math.exp(-2*Math.PI*200/sr);
-  for(let i=0;i<n;i++){ const p=P[i], d=p.s.data, dl=d.length, nxt=P[i+1]; let lp=0;
+// Transition styles: each changeover differs in length, where the bass swaps, how fast the fade moves and whether the old song is filtered away
+const CARSTY={blend:{w:.35,bars:[4,4,6],sp:[.45,.55],sw:.05,e:[.9,1.1],filt:0},long:{w:.15,bars:[6,8],sp:[.4,.6],sw:.18,e:[.85,1.15],filt:0},quick:{w:.15,bars:[1,2,2],sp:[.45,.55],sw:.02,e:[.8,1.2],filt:0},late:{w:.15,bars:[4,6],sp:[.62,.78],sw:.06,e:[1.1,1.5],filt:0},filter:{w:.2,bars:[4,6,8],sp:[.5,.65],sw:.08,e:[.9,1.2],filt:1}};
+function carPickSty(){ const ks=Object.keys(CARSTY); let r=Math.random()*ks.reduce((a,k)=>a+CARSTY[k].w,0); let k=ks[0]; for(const x of ks){ r-=CARSTY[x].w; if(r<=0){ k=x; break; } } const c=CARSTY[k]; return {name:k,bars:sgPick(c.bars),sp:c.sp[0]+Math.random()*(c.sp[1]-c.sp[0]),sw:c.sw,e:c.e[0]+Math.random()*(c.e[1]-c.e[0]),filt:c.filt}; }
+async function carMix(songs,opt){ // lay the songs on one timeline, crossfading like the live handover
+  opt=opt||{}; const sr=songs[0].sr, n=songs.length, P=[{s:songs[0],shift:0,startNext:0,ramp:0,rate0:1,consumed:0,ovx:0}], meta=[{song:songs[0],start:0,mid:0,ov:0}];
+  for(let i=1;i<n;i++){ const cur=songs[i-1], nx=songs[i], pc=cur.plan, pn=nx.plan, bar=pc.barSec, sty=(opt.stys&&opt.stys[i])||carPickSty(), ov=Math.min(sty.bars*bar,16), ob=pc.secs[pc.secs.length-1], obars=Math.max(1,ob.b1-ob.b0), sb=Math.max(1,Math.min(Math.round(ob.b0+.25*obars-ov/bar/2),Math.floor((cur.dur-3-ov)/bar))), tN=sb*bar, ovAct=Math.max(bar,pc.total*bar-tN), ovx=Math.min(ovAct,ov), /* start while the old song's outro is still loud, not at its quiet very end */ rate0=sgClamp(pc.T/pn.T,.9,1.1), ramp=Math.max(.01,Math.min(ovx,bar*sty.bars)), consumed=(rate0+1)/2*ramp, startNext=P[i-1].shift+tN;
+    P.push({s:nx,shift:startNext+ramp-consumed,startNext,ramp,rate0,consumed,ovx,sty}); meta.push({song:nx,start:startNext,mid:startNext+ovx/2,ov:ovx,sp:sty.sp,sty:sty.name}); }
+  const stys=P.map(p=>p.sty), last=P[n-1], N=Math.ceil((last.shift+last.s.dur+.5)*sr), out=new Float32Array(N), al=1-Math.exp(-2*Math.PI*200/sr);
+  for(let i=0;i<n;i++){ const p=P[i], d=p.s.data, dl=d.length, nxt=P[i+1]; let lp=0, lf=0;
     const j0=i>0?Math.ceil(p.startNext*sr):0;
     for(let j=j0;j<N;j++){ const tl=j/sr; let sec;
       if(i>0){ const tt=tl-p.startNext; sec=tt<p.ramp?p.rate0*tt+(1-p.rate0)*tt*tt/(2*p.ramp):p.consumed+(tt-p.ramp); } else sec=tl;
-      const pos=Math.max(0,sec*sr), k0=Math.floor(pos); if(k0>=dl-1) break; const f=pos-k0, x=d[k0]*(1-f)+d[k0+1]*f;
+      const pos=Math.max(0,sec*sr), k0=Math.floor(pos); if(k0>=dl-1) break; const f=pos-k0; let x=d[k0]*(1-f)+d[k0+1]*f;
       let gin=1, lin=1, gout=1, lout=1;
-      if(i>0){ const tt=tl-p.startNext; if(tt<p.ovx){ const q=tt/p.ovx; gin=Math.sin(q*Math.PI/2); lin=carSS(q,.45,.55); } }
-      if(nxt){ const to=tl-nxt.startNext; if(to>=nxt.ovx) break; if(to>=0){ const q=to/nxt.ovx; gout=Math.cos(q*Math.PI/2); lout=1-carSS(q,.45,.55); } }
+      if(i>0){ const tt=tl-p.startNext; if(tt<p.ovx){ const q=tt/p.ovx, sy=p.sty; gin=Math.sin(Math.pow(q,sy.e)*Math.PI/2); lin=carSS(q,sy.sp-sy.sw,sy.sp+sy.sw); } }
+      if(nxt){ const to=tl-nxt.startNext; if(to>=nxt.ovx) break; if(to>=0){ const q=to/nxt.ovx, sy=nxt.sty; gout=Math.cos(Math.pow(q,sy.e)*Math.PI/2); lout=1-carSS(q,sy.sp-sy.sw,sy.sp+sy.sw);
+        if(sy.filt){ const fc=9000*Math.pow(260/9000,q); lf+=(1-Math.exp(-2*Math.PI*fc/sr))*(x-lf); x=lf; } else lf=x; } }
       lp+=al*(x-lp); out[j]+=((x-lp)+lp*lin*lout)*gin*gout;
       if((j&0x3ffff)===0) await sgYield(); } }
-  return {data:out,sr,dur:N/sr,meta}; }
+  if(opt.comp!==false) carLevel(out,sr,P);
+  return {data:out,sr,dur:N/sr,meta,stys}; }
+function carLevel(out,sr,P){ // each song fades itself in and out, so two overlapping songs can leave a quiet dip: lift the changeover back up to the level of the songs around it (never past clipping)
+  const w=Math.floor(.12*sr), nw=Math.ceil(out.length/w), rms=new Float32Array(nw), pk=new Float32Array(nw);
+  for(let k=0;k<nw;k++){ let a=0,m=0; const e=Math.min(out.length,(k+1)*w); for(let j=k*w;j<e;j+=3){ const v=out[j]; a+=v*v; const av=Math.abs(v); if(av>m) m=av; } rms[k]=Math.sqrt(a/Math.max(1,(e-k*w)/3)); pk[k]=m; }
+  const body=Array.from(rms).filter(v=>v>.01).sort((a,b)=>a-b), ref=body.length?body[Math.floor(body.length*.5)]:0; if(!ref) return;
+  for(let i=1;i<P.length;i++){ const p=P[i], k0=Math.max(0,Math.floor((p.startNext-.6)*sr/w)), k1=Math.min(nw-1,Math.ceil((p.startNext+p.ovx+.6)*sr/w)), g=new Float32Array(nw).fill(1);
+    for(let k=k0;k<=k1;k++){ let pm=0; for(let q=-2;q<=2;q++){ const kk=Math.min(nw-1,Math.max(0,k+q)); if(pk[kk]>pm) pm=pk[kk]; } const want=Math.min(6,Math.max(1,ref*1.0/Math.max(rms[k],1e-4))), lim=1.7/Math.max(pm,1e-3); g[k]=Math.max(1,Math.min(want,lim)); }
+    const sm=new Float32Array(nw).fill(1); for(let k=k0;k<=k1;k++){ let a=0,c=0; for(let q=-2;q<=2;q++){ const kk=Math.min(nw-1,Math.max(0,k+q)); a+=g[kk]; c++; } sm[k]=a/c; }
+    for(let k=k0;k<=k1;k++){ const nxtG=k<nw-1?sm[k+1]:sm[k], e=Math.min(out.length,(k+1)*w); for(let j=k*w;j<e;j++){ const t=(j-k*w)/w, gg=sm[k]+(nxtG-sm[k])*t; const y=out[j]*gg, ay=Math.abs(y); out[j]=ay<.8?y:(y<0?-1:1)*(.8+.19*Math.tanh((ay-.8)/.19)); } } } }
 async function carMakeSongs(cnt,prevSong,gen){ const out=[]; let prev=prevSong&&prevSong.plan; for(let i=0;i<cnt;i++){ const s=await sgMake(prev); if(!SG.on||gen!==CAR.gen) return []; if(!s) break; out.push(s); prev=s.plan; } return out; }
 function carPlayBatch(b){ const a=carEl(), old=CAR.url; try{ if(CAR.tail){ CAR.tail.pause(); CAR.tail=null; } }catch(e){} CAR.ended=false; CAR.cur=b; CAR.idx=-1; b.meta.forEach(m=>{ m.no=++CAR.count; }); CAR.url=URL.createObjectURL(carWav(b.data,b.sr)); a.src=CAR.url; const p=a.play(); if(p&&p.catch) p.catch(e=>dg('car play blocked: '+e.name)); if(old) setTimeout(()=>{ try{ URL.revokeObjectURL(old); }catch(e){} },5000); dg('car file: '+b.meta.length+' songs, '+Math.round(b.dur)+' s'); carWatch(); }
 function carWatch(){ const b=CAR.cur, a=CAR.el; if(!b||!a||!SG.on) return; const idx=carAt(); if(idx===CAR.idx) return; CAR.idx=idx; const m=b.meta[idx], nm=b.meta[idx+1]; SG.n=m.no; const d=decks[(m.no-1)%2]; SG.cur={deck:d,start:0,s:m.song,n:m.no}; sgLog('track','Song '+m.no+' (car mode): '+m.song.plan.name+sgDetail(m.song.plan)); sgSay('Song '+m.no+': '+m.song.plan.name,nm?'Next: '+nm.song.plan.name:(CAR.next?'Next: '+CAR.next.b.meta[0].song.plan.name:'')); }
@@ -1992,7 +2005,7 @@ const carDeckOf=k=>decks[(CAR.cur.meta[k].no-1)%2];
 function carView(d){ const b=CAR.cur, a=CAR.el; if(!b||!a) return null; const t=a.currentTime||0, i=carAt(), cand=[i]; if(i>0&&t<b.meta[i].start+b.meta[i].ov) cand.push(i-1); for(const k of cand){ if(carDeckOf(k)===d){ const m=b.meta[k], pl=m.song.plan; return {m,pr:Math.max(0,Math.min(1,(t-m.start)/(pl.total*pl.barSec)))}; } } return null; }
 let CARUI='';
 function carUI(){ if(!CARON||!SG.on||!CAR.cur||!CAR.el) return; try{ const b=CAR.cur, t=CAR.el.currentTime||0, i=carAt(), m=b.meta[i], dn=carDeckOf(i); let xf=dn.id==='A'?0:100, ea=0, eb=0;
-  if(i>0&&t<m.start+m.ov){ const q=Math.max(0,Math.min(1,(t-m.start)/m.ov)), dp=carDeckOf(i-1), from=dp.id==='A'?0:100; xf=Math.round(from+(xf-from)*q); const kd=q<.5?-100:0, kp=q<.5?0:-100; if(dn.id==='A') ea=kd; else eb=kd; if(dp.id==='A') ea=kp; else eb=kp; }
+  if(i>0&&t<m.start+m.ov){ const q=Math.max(0,Math.min(1,(t-m.start)/m.ov)), dp=carDeckOf(i-1), from=dp.id==='A'?0:100; xf=Math.round(from+(xf-from)*q); const sp=m.sp||.5, kd=q<sp?-100:0, kp=q<sp?0:-100; if(dn.id==='A') ea=kd; else eb=kd; if(dp.id==='A') ea=kp; else eb=kp; }
   const K={A:{l:0,m:0,h:0,f:0},B:{l:0,m:0,h:0,f:0}}; [i,i-1].forEach(k=>{ if(k<0||k>=b.meta.length) return; if(k!==i&&!(i>0&&t<m.start+m.ov)) return; const mk=b.meta[k], pl=mk.song.plan; K[carDeckOf(k).id]=sgKnobs(pl,(t-mk.start)/pl.barSec); });
   if(ea) K.A.l=ea; if(eb) K.B.l=eb;
   const key=xf+'|'+['A','B'].map(x=>[K[x].l,K[x].m,K[x].h,K[x].f].join(',')).join('|'); if(key===CARUI) return; CARUI=key; S.xf=xf; ['A','B'].forEach(x=>{ const d=D(x); d.eq.l=K[x].l; d.eq.m=K[x].m; d.eq.h=K[x].h; d.filt=K[x].f; }); applyMix(); }catch(e){} }
