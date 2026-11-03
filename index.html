@@ -4443,7 +4443,7 @@ function fxBuild(master,comp){
   ecFb.gain.value=0.45; ecWet.gain.value=0; ec.delayTime.value=0.375; mixC.connect(ec); ec.connect(ecFb); ecFb.connect(ec); ec.connect(ecWet);
   mixC.connect(gate); ecWet.connect(gate); gate.connect(comp); loopOut.connect(comp);
   // capture of the last few seconds of the mix, for the loop / reverse / stutter family
-  const sr=c.sampleRate, N=Math.floor(sr*4), capL=new Float32Array(N), capR=new Float32Array(N), sp=c.createScriptProcessor(2048,2,2), mute=c.createGain(); mute.gain.value=0;
+  const sr=c.sampleRate, N=Math.floor(sr*4), capL=new Float32Array(N), capR=new Float32Array(N), sp=c.createScriptProcessor((window.__ebLatency&&window.__ebLatency!=='interactive')?16384:2048,2,2), mute=c.createGain(); mute.gain.value=0; // in the DJ page (Safe buffer) use the biggest chunk so a busy phone cannot make it miss its deadline
   const cap={w:0,N,capL,capR,sp,mute,on:false};
   sp.onaudioprocess=e=>{ if(!cap.on) return; const a=e.inputBuffer.getChannelData(0), b=e.inputBuffer.getChannelData(e.inputBuffer.numberOfChannels>1?1:0); for(let i=0;i<a.length;i++){ capL[cap.w]=a[i]; capR[cap.w]=b[i]; cap.w=(cap.w+1)%N; } };
   FXB={c,lo,mid,hi,hp,lp,crushDry,crushWet,shaper,monoDry,monoWet,pan,panD,panL,md,mdDry,mdWet,mdFb,mdL,mdD,ec,ecFb,ecWet,gate,loopOut,cap,rec:new Map()};
