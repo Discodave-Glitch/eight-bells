@@ -27,6 +27,7 @@ jobs:
       - run: |
           mkdir site
           cp index.html dj.html logo.svg manifest.webmanifest sw.js site/
+          if [ -f dj-next.html ]; then cp dj-next.html site/; fi
           cp -r icons site/
           cp -r samples site/
           cp -r vendor site/
