@@ -26,6 +26,7 @@ input[type=range]{width:100%;accent-color:var(--ink);min-height:28px;margin:0}
 #go{min-height:52px;padding:0 34px;font-size:18px;font-weight:700;background:var(--ink);color:var(--bg)}
 #go:disabled{opacity:.45}
 .clkrow{flex:none;text-align:center;font-size:12px;color:var(--muted);line-height:1.1;padding-top:2px}
+.car #autolen,.car #autoset{display:none!important}
 .top{position:relative;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 /* the console: deck A, mixer, deck B */
@@ -220,6 +221,7 @@ body.nolbl .bt{display:none}
     <div class="setsec" data-sec="music"><p class="sechint">What Auto DJ plays and how it sounds.</p>
     <div class="row"><b class="chip">Intro music</b><label class="chip" style="cursor:pointer"><input type="checkbox" id="exauto" checked> Play the Eight Bells example song when the page opens (untick for silence at start)</label></div>
     <div class="row"><b class="chip">Music made by</b><select id="musicsrc" aria-label="What Auto DJ plays"><option value="eb">Eight Bells sounds (synth tunes)</option><option value="songs">Sample songs (built from the sample library)</option><option value="both">Both (takes turns: sample songs, then Eight Bells tunes)</option><option value="random" selected>Random (DJ's choice: mixes it up, random order and lengths)</option></select><select id="sglen" aria-label="How long each sample song is"><option value="short">Short songs (about 1 to 1.5 min)</option><option value="medium" selected>Medium songs (about 2 to 3 min)</option><option value="long">Long songs (about 3 to 4 min)</option><option value="test" hidden>Test (20 s)</option></select><label class="chip">Hook words <input id="sghook" type="text" value="EIGHT BELLS" maxlength="120" size="22" aria-label="Words said in the choruses of sample songs. Separate different hooks with commas. Leave empty for none"></label><select id="sghookv" aria-label="Voice for the hook words"><option value="mix" selected>Hook voice: Speak &amp; Spell words, robot for any other word</option><option value="robot">Hook voice: robot voice for every word</option><option value="ss">Hook voice: Speak &amp; Spell only (spells other words)</option></select><button id="sghear" type="button" title="Hear the hook words">▶ Hear hook</button><label class="chip" hidden></label><select id="sgvox" aria-label="Vocals in sample songs"><option value="mix">Vocals: mixed (sung samples, Speak &amp; Spell, or none)</option><option value="sung">Vocals: sung samples only</option><option value="ss">Vocals: Speak &amp; Spell hook only</option><option value="none">Vocals: none</option><option value="mixns">Vocals: mixed, Speak &amp; Spell off (sung samples or none)</option><option value="dj" selected>Vocals: DJ's choice (random each song)</option></select><label class="chip"><input type="checkbox" id="sgmine" checked> Use my samples too</label><button id="sgskip" type="button" disabled>Next song</button></div>
+    <div class="row"><label class="chip" style="cursor:pointer;white-space:normal"><input type="checkbox" id="carmode"> <b>Car mode</b>: plays sample songs as ready-made audio so CarPlay and car Bluetooth do not break up. Turn it off at home to use the live mix, pads and synth tunes.</label><span class="chip" id="carnote">Reload the page after changing this.</span></div>
     <div class="chip" style="white-space:normal">Hook words: type what the choruses should say. Put a comma between different hooks and the DJ picks one for each song (for example: EIGHT BELLS DJ, PARTY TIME, ONE TWO THREE). Speak &amp; Spell only knows about 160 real words and the numbers. Any other word is said by the robot voice (or spelled out letter by letter if you choose Speak &amp; Spell only in the Hook voice menu). You can also make one say a word with your own voice: add a short recording of it in My samples and name the file after the word (BELLS.wav says BELLS).</div>
     <div class="chip">Sample songs: every song picks a genre, a tempo and key that fit together, real drum kits playing that genre's rhythm, a sub bass tuned to the key, chord loops from the library, and the hook words in the choruses. Songs hand over into each other and the tempo wanders slowly. Choose "Sample songs", then press Auto DJ.</div>
     <div class="row"><b class="chip">Vocals and samples</b><select id="voxuse" aria-label="Vocals and samples Auto DJ may use"><option value="off">Off</option><option value="voices">Built-in voices</option><option value="all">Built-in voices + samples (starter pack and mine)</option><option value="samples">Samples only (starter pack and mine, no built-in voices)</option><option value="dj" selected>DJ's choice (random mix, changes every few minutes)</option></select><select id="voxoften" aria-label="How often Auto DJ uses vocals and samples"><option value="rare">Rarely</option><option value="some">Now and then</option><option value="often">Often (every 6-10 bars)</option><option value="lots">Very often (every 3-6 bars)</option><option value="max">Non-stop (every 2-4 bars)</option><option value="dj" selected>DJ's choice (random, changes every few minutes)</option></select><label class="chip"><input type="checkbox" id="voxrep" checked> Repeat favourite phrases</label></div>
@@ -248,12 +250,6 @@ body.nolbl .bt{display:none}
     <div class="row"><b class="chip">Mixer knobs</b><select id="knobmode" aria-label="Layout of the mixer knobs"><option value="grid" selected>Compact grid (as now)</option><option value="col">Single column (for desktop)</option></select></div>
     <div class="row"><b class="chip">Custom deck image</b><select id="imgtarget" aria-label="Which deck gets the image"><option value="AB">Both decks</option><option value="A">Deck A</option><option value="B">Deck B</option></select><button id="imgpick">Choose image...</button><button id="imgclear">Remove</button><input type="file" id="imgfile" accept="image/*" hidden><span id="imgmsg" class="chip"></span></div>
     <div class="row"><b class="chip">Screen</b><select id="theme" aria-label="Day or night screen"><option value="night">Night</option><option value="day">Day</option><option value="auto">Match my device</option></select></div>
-    <div class="row"><b class="chip">Audio output</b><select id="ashare" aria-label="How the sound leaves the app"><option value="m">Media player (best for CarPlay)</option><option value="1">Direct, one shared output</option><option value="0">Direct, one per deck (old way)</option></select><span class="chip" id="asharenote">Reload the page after changing this.</span></div>
-    <div class="row"><b class="chip">Sound quality</b><select id="aq" aria-label="Full or light sound quality"><option value="f">Full</option><option value="l">Light (uses less processing, a little duller)</option></select><span class="chip" id="aqnote">Reload the page after changing this.</span></div>
-    <div class="row"><label class="chip" style="cursor:pointer"><input type="checkbox" id="carmode"> <b>Car mode</b>: plays sample songs as real audio files so CarPlay does not break up (pads and live effects are off)</label><span class="chip" id="carnote">Reload the page after changing this.</span></div>
-    <div class="row"><b class="chip">CarPlay test</b><button id="tst1">1: Plain file</button><button id="tst2">2: Web Audio</button><button id="tst3">3: 48 kHz</button><button id="tst4">4: Via player</button><button id="tst5">5: Huge buffer</button><button id="tst0">Stop</button><span class="chip">Play each for a minute in the car and tell me which one breaks up.</span></div>
-    <div class="row"><b class="chip">Audio log</b><span class="chip" id="adiag" style="white-space:pre-wrap;font-size:11px;max-width:100%">(nothing yet)</span></div>
-    <div class="row"><b class="chip">Audio buffer</b><select id="abuf" aria-label="Audio buffer size"><option value="playback">Safe: bigger buffer (best for CarPlay and Bluetooth)</option><option value="interactive">Fast: lowest delay (may crackle over CarPlay)</option></select><span class="chip" id="abufnote">Reload the page after changing this.</span></div>
     <div class="row"><b class="chip">Long status text</b><select id="sttext" aria-label="What the status line does when its text is too long"><option value="ticker" selected>Scrolling ticker</option><option value="shrink">Shrink to fit</option><option value="still">Cut off</option></select></div>
     <label class="row chip" style="cursor:pointer"><input type="checkbox" id="padlbl"> Show pad labels (A3, B5 and so on) next to the knobs and faders</label>
     </div>
@@ -287,50 +283,35 @@ body.nolbl .bt{display:none}
 'use strict';
 const $=id=>document.getElementById(id);
 // Each deck is a whole copy of Eight Bells running quietly in a hidden frame. Its settings are kept in memory only, so it never touches the real app's saved settings.
-const ABUF=(()=>{ try{ return localStorage.getItem('ebdj.abuf')==='interactive'?'interactive':'playback'; }catch(e){ return 'playback'; } })();
-const AQ=(()=>{ try{ return localStorage.getItem('ebdj.aq')==='l'?'l':'f'; }catch(e){ return 'f'; } })();
-const CARON=(()=>{ try{ return localStorage.getItem('ebdj.car')==='1'; }catch(e){ return false; } })();
-const AMODE=CARON?'1':(()=>{ try{ const v=localStorage.getItem('ebdj.ashare'); return v==='0'||v==='1'?v:'m'; }catch(e){ return 'm'; } })();
-let SHAC=null, MDEST=null, MEL=null; window.__ebSharedAC=()=>{ if(AMODE==='0') return null; if(!SHAC){ const AC=window.AudioContext||window.webkitAudioContext; SHAC=AQ==='l'?new AC({latencyHint:ABUF,sampleRate:32000}):new AC({latencyHint:ABUF}); try{ dg('audio '+SHAC.sampleRate+' Hz, buffer '+Math.round((SHAC.baseLatency||0)*1000)+' ms'); }catch(e){} } return SHAC; };
-// Media player route: the mix goes into a stream that a normal audio element plays, the same way the intro song does, which is steadier over CarPlay.
-window.__ebOut=(ctx)=>{ if(AMODE!=='m'||ctx!==SHAC) return ctx.destination; try{ if(!MDEST){ MDEST=ctx.createMediaStreamDestination(); MEL=new Audio(); MEL.setAttribute('playsinline',''); ['pause','play','stalled','waiting','ended','error'].forEach(n=>MEL.addEventListener(n,()=>dg('player '+n))); ctx.addEventListener('statechange',()=>dg('audio '+ctx.state)); MEL.srcObject=MDEST.stream; } return MDEST; }catch(e){ return ctx.destination; } };
-window.__ebMedia=()=>MEL; window.__ebMediaStart=()=>{ try{ if(CARON) return; if(AMODE==='m'){ const c=window.__ebSharedAC(); if(c) window.__ebOut(c); } if(MEL&&MEL.paused){ const p=MEL.play(); if(p&&p.catch) p.catch(()=>{}); } }catch(e){} }; document.addEventListener('click',()=>window.__ebMediaStart(),true);
+const ABUF='playback';
+const CARON=(()=>{ try{ const v=localStorage.getItem('ebdj.car'); return v==='1'||(v!=='0'&&!navigator.webdriver); }catch(e){ return !navigator.webdriver; } })();
+document.documentElement.classList.toggle('car',CARON);
+let SHAC=null; window.__ebSharedAC=()=>{ if(!SHAC){ const AC=window.AudioContext||window.webkitAudioContext; SHAC=new AC({latencyHint:ABUF}); } return SHAC; };
 const DG=[]; const DG0=Date.now(); function dg(m){ try{ const t=Math.round((Date.now()-DG0)/1000); DG.push(Math.floor(t/60)+':'+String(t%60).padStart(2,'0')+' '+m); while(DG.length>14) DG.shift(); const e=document.getElementById('adiag'); if(e) e.textContent=DG.join('\n'); }catch(e){} }
 window.__ebDg=dg;
-// Watchdog: the phone (or CarPlay) can pause the audio when the other media element stops or the route changes. While the DJ is meant to be playing, wake everything back up.
-let WDN=0;
+// Watchdog: if the phone suspends the audio while the DJ is meant to be playing (live mode), wake it back up.
 setInterval(()=>{ try{
   const on=!CARON&&!!((typeof AU!=='undefined'&&AU.on)||(typeof SG!=='undefined'&&SG.on)||(typeof BOTH!=='undefined'&&BOTH.t))&&!(typeof S!=='undefined'&&S.apaused); if(!on) return;
-  try{ if('mediaSession' in navigator) navigator.mediaSession.playbackState='playing'; }catch(e){}
-  if(MEL&&MEL.paused){ dg('player was paused, restarting'); window.__ebMediaStart(); WDN++; }
   const cs=[]; if(SHAC) cs.push(SHAC); try{ decks.forEach(d=>{ const a=d.win&&d.win.eval('ac'); if(a&&cs.indexOf(a)<0) cs.push(a); }); }catch(e){}
-  cs.forEach(c=>{ if(c.state!=='running'){ dg('audio was '+c.state+', resuming'); try{ c.resume(); }catch(e){} WDN++; } });
+  cs.forEach(c=>{ if(c.state!=='running'){ try{ c.resume(); }catch(e){} } });
 }catch(e){} },700);
-let LC=null, OLOG=false;
-setInterval(()=>{ try{ const c=SHAC; const on=!!((typeof AU!=='undefined'&&AU.on)||(typeof SG!=='undefined'&&SG.on)||(typeof BOTH!=='undefined'&&BOTH.t)); if(!c||c.state!=='running'||!on||document.hidden){ LC=null; return; }
-  if(!OLOG){ OLOG=true; dg('output delay '+Math.round((c.outputLatency||0)*1000)+' ms'); }
-  const now=performance.now(); if(LC){ const dr=now-LC.p, da=(c.currentTime-LC.a)*1000; if(dr>1000) dg('page froze '+Math.round(dr)+' ms'); else if(da<dr-150) dg('sound fell behind by '+Math.round(dr-da)+' ms'); } LC={p:now,a:c.currentTime}; }catch(e){} },400);
-document.addEventListener('visibilitychange',()=>dg('page '+document.visibilityState));
-try{ if(navigator.audioSession) navigator.audioSession.addEventListener('statechange',()=>dg('session '+navigator.audioSession.state)); }catch(e){}
 // Car / lock-screen buttons: play, pause and next track control the DJ.
 const mediaSkip=()=>{ try{ if(CARON){ carSkip(); } else if(SG.on){ sgSkip(); } else if(AU.on&&AU.phase==='play'){ const c=D(AU.cur), fn=AU.slow?Math.max(4,Math.floor(fadeBars()/2)):fadeBars(), left=lenOf()-fn-barsOf(c); if(left>2) AU.adj=(AU.adj||0)-(left-2); } }catch(e){} };
 try{ const ms=navigator.mediaSession; if(ms){
-  ms.setActionHandler('play',()=>{ try{ if(CARON&&CAR.el){ CAR.el.play(); dg('car: play'); return; } if(!(SG.on||AU.on||BOTH.t)) autoToggle(); else autoResume(); window.__ebMediaStart(); ms.playbackState='playing'; dg('car: play'); }catch(e){} });
-  ms.setActionHandler('pause',()=>{ try{ if(CARON&&CAR.el){ CAR.el.pause(); dg('car: pause'); return; } if((SG.on||AU.on||BOTH.t)&&!S.apaused) autoPause(); if(MEL) MEL.pause(); ms.playbackState='paused'; dg('car: pause'); }catch(e){} });
+  ms.setActionHandler('play',()=>{ try{ if(CARON&&CAR.el){ CAR.el.play(); dg('car: play'); return; } if(!(SG.on||AU.on||BOTH.t)) autoToggle(); else autoResume(); ms.playbackState='playing'; dg('car: play'); }catch(e){} });
+  ms.setActionHandler('pause',()=>{ try{ if(CARON&&CAR.el){ CAR.el.pause(); dg('car: pause'); return; } if((SG.on||AU.on||BOTH.t)&&!S.apaused) autoPause(); ms.playbackState='paused'; dg('car: pause'); }catch(e){} });
   ms.setActionHandler('nexttrack',()=>{ mediaSkip(); dg('car: next'); });
   ms.setActionHandler('previoustrack',()=>{ if(CARON) carRestart(); else dg('car: back (live mode, not wired)'); });
   try{ ms.setActionHandler('seekforward',()=>{ dg('car: seek forward button'); if(CARON) carSkip(); else mediaSkip(); }); ms.setActionHandler('seekbackward',()=>{ dg('car: seek back button'); if(CARON) carRestart(); }); ms.setActionHandler('seekto',()=>{ dg('car: seek ignored'); }); }catch(e){} } }catch(e){}
-// CarPlay test: does plain Web Audio break up in the car, even with none of the DJ engine running?
-let TST={a:null,c:null,s:null};
-window.__ebTest=async(n)=>{ try{ if(TST.a){ TST.a.pause(); TST.a=null; } if(TST.s){ try{ TST.s.stop(); }catch(e){} TST.s=null; } if(TST.c){ try{ TST.c.close(); }catch(e){} TST.c=null; }
-  if(n===0){ dg('test stopped'); return; }
-  const url='samples/demo/eight_bells_example.mp3';
-  if(n===1){ TST.a=new Audio(url); await TST.a.play(); dg('test 1: plain file playing'); }
-  if(n>=2){ const AC=window.AudioContext||window.webkitAudioContext; const cfg={2:undefined,3:{latencyHint:'playback',sampleRate:48000},4:{latencyHint:'playback'},5:{latencyHint:0.5}}[n];
-    TST.c=cfg?new AC(cfg):new AC(); await TST.c.resume(); const b=await TST.c.decodeAudioData(await (await fetch(url)).arrayBuffer()); TST.s=TST.c.createBufferSource(); TST.s.buffer=b;
-    if(n===4){ const md=TST.c.createMediaStreamDestination(); TST.s.connect(md); TST.a=new Audio(); TST.a.srcObject=md.stream; await TST.a.play(); } else TST.s.connect(TST.c.destination);
-    TST.s.start(); dg('test '+n+': '+TST.c.sampleRate+' Hz, buffer '+Math.round((TST.c.baseLatency||0)*1000)+' ms, delay '+Math.round((TST.c.outputLatency||0)*1000)+' ms'); } }catch(e){ dg('test failed: '+e.message); } };
-const mediaTitle=t=>{ try{ if('mediaSession' in navigator&&window.MediaMetadata) navigator.mediaSession.metadata=new MediaMetadata({title:t||'Eight Bells DJ',artist:'Eight Bells DJ'}); }catch(e){} };
+
+setInterval(()=>{ try{ const b=$('auto'); if(!b) return; const on=!!(SG.on||AU.on||BOTH.t), t=b.textContent; if(on&&/:\s*off/.test(t)){ b.textContent='Auto DJ: on'+(SG.on?' (sample songs)':''); b.classList.add('on'); b.setAttribute('aria-pressed','true'); } else if(!on&&/:\s*on/.test(t)&&!/\.\.\./.test(t)){ b.textContent='Auto DJ: off'; b.classList.remove('on'); b.setAttribute('aria-pressed','false'); } }catch(e){} },500);
+let MART=null, MTIT='Eight Bells DJ';
+const mediaTitle=t=>{ try{ if(t) MTIT=t; if('mediaSession' in navigator&&window.MediaMetadata) navigator.mediaSession.metadata=new MediaMetadata({title:MTIT,artist:'Eight Bells DJ',artwork:MART||[]}); }catch(e){} };
+// The picture on the car screen and lock screen is the current deck graphic.
+window.__ebArt=()=>mediaArt();
+async function mediaArt(){ try{ if(!('mediaSession' in navigator)||!window.MediaMetadata) return null; let svg=gfxFor('A'); svg=svg.replace(/<svg /,'<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="512" height="512" ');
+  const url=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'})), img=new Image(); await new Promise((ok,no)=>{ img.onload=ok; img.onerror=no; img.src=url; }); const c=document.createElement('canvas'); c.width=c.height=512; const g=c.getContext('2d'); g.fillStyle='#0b1020'; g.fillRect(0,0,512,512); g.drawImage(img,16,16,480,480); try{ URL.revokeObjectURL(url); }catch(e){}
+  const png=c.toDataURL('image/png'); MART=[{src:png,sizes:'512x512',type:'image/png'}]; mediaTitle(); return png; }catch(e){ return null; } }
 const audioSess=()=>{ try{ if(navigator.audioSession) navigator.audioSession.type='playback'; }catch(e){} }; audioSess();
 const SHIM='<script>(function(){var m={};var S={getItem:function(k){return Object.prototype.hasOwnProperty.call(m,k)?m[k]:null},setItem:function(k,v){m[k]=String(v)},removeItem:function(k){delete m[k]},clear:function(){m={}},key:function(i){return Object.keys(m)[i]||null}};Object.defineProperty(S,"length",{get:function(){return Object.keys(m).length}});try{Object.defineProperty(window,"localStorage",{value:S,configurable:true});Object.defineProperty(window,"sessionStorage",{value:S,configurable:true});}catch(e){}})();<\/script>';
 const SECS=[['intro','Intro'],['bld','Build-up'],['drop','Drop'],['chorus','Chorus'],['brk','Break'],['bridge','Bridge'],['half','Half'],['outro','Outro']];
@@ -413,7 +394,7 @@ const customSvg=(id,u)=>'<svg viewBox="0 0 200 200" aria-hidden="true"><defs><cl
 const gfxFor=id=>CUSTOM[id]?customSvg(id,CUSTOM[id]):GFX[GFXI][1].replace(/(id="|url\(#)(dsk|swp)/g,'$1$2'+id);
 function setLbl(on){ document.body.classList.toggle('nolbl',!on); const c=$('padlbl'); if(c) c.checked=on; try{ localStorage.setItem('ebdj.lbl2',on?'1':'0'); }catch(e){} }
 let GFXI=1; try{ const v=localStorage.getItem('ebdj.gfx'); if(v!==null) GFXI=Math.max(0,Math.min(GFX.length-1,+v||0)); }catch(e){}
-function setGfx(i){ GFXI=((i%GFX.length)+GFX.length)%GFX.length; try{ localStorage.setItem('ebdj.gfx',String(GFXI)); }catch(e){} document.querySelectorAll('.plat').forEach(p=>{ p.innerHTML=gfxFor(p.dataset.d); }); const b=$('gfx'); if(b) b.innerHTML='<span class="dp">Deck: </span>'+GFX[GFXI][0]; }
+function setGfx(i){ GFXI=((i%GFX.length)+GFX.length)%GFX.length; try{ localStorage.setItem('ebdj.gfx',String(GFXI)); }catch(e){} document.querySelectorAll('.plat').forEach(p=>{ p.innerHTML=gfxFor(p.dataset.d); }); try{ mediaArt(); }catch(e){} const b=$('gfx'); if(b) b.innerHTML='<span class="dp">Deck: </span>'+GFX[GFXI][0]; }
 function FLIP(a){ const r=a.map((x,k)=>[x,k]); return r.slice(4).concat(r.slice(0,4)); } // top row shows items 5 to 8, bottom row 1 to 4, like the pad
 function deckHTML(d,opts){
   const i=d.id;
@@ -461,7 +442,7 @@ function paintPads(){ return; /* on-screen pads removed */
 
 /* ---------- audio ---------- */
 function wireDeck(d){
-  ev(d,"(function(){ ensureAudio(); ac.resume(); var g=ac.createGain(), lp=ac.createBiquadFilter(), hp=ac.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=20000; hp.type='highpass'; hp.frequency.value=20; var el=ac.createBiquadFilter(), em=ac.createBiquadFilter(), eh=ac.createBiquadFilter(); el.type='lowshelf'; el.frequency.value=250; em.type='peaking'; em.frequency.value=1000; em.Q.value=0.7; eh.type='highshelf'; eh.frequency.value=4000; OUTTAP.disconnect(); OUTTAP.connect(el); el.connect(em); em.connect(eh); eh.connect(hp); hp.connect(lp); lp.connect(g); g.connect((window.parent.__ebOut?window.parent.__ebOut(ac):ac.destination)); var rd=ac.createMediaStreamDestination(); g.connect(rd); window.__dj={g:g,lp:lp,hp:hp,el:el,em:em,eh:eh,rec:rd}; })()");
+  ev(d,"(function(){ ensureAudio(); ac.resume(); var g=ac.createGain(), lp=ac.createBiquadFilter(), hp=ac.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=20000; hp.type='highpass'; hp.frequency.value=20; var el=ac.createBiquadFilter(), em=ac.createBiquadFilter(), eh=ac.createBiquadFilter(); el.type='lowshelf'; el.frequency.value=250; em.type='peaking'; em.frequency.value=1000; em.Q.value=0.7; eh.type='highshelf'; eh.frequency.value=4000; OUTTAP.disconnect(); OUTTAP.connect(el); el.connect(em); em.connect(eh); eh.connect(hp); hp.connect(lp); lp.connect(g); g.connect(ac.destination); var rd=ac.createMediaStreamDestination(); g.connect(rd); window.__dj={g:g,lp:lp,hp:hp,el:el,em:em,eh:eh,rec:rd}; })()");
   d.vol=85; d.filt=0; d.bendSave=null; d.eq={l:0,m:0,h:0}; d.page=0; d.held={};
 }
 function cross(id){ const x=S.xf/100; return id==='A'?Math.cos(x*Math.PI/2):Math.sin(x*Math.PI/2); }
@@ -1663,7 +1644,7 @@ function wireUI(){
       apply(v);
       sel.addEventListener('change',()=>{ if(sel.value==='custom') pk.click(); else apply(sel.value); });
       pk.addEventListener('input',()=>apply(pk.value)); }); }
-  $('carmode').checked=CARON; $('carmode').addEventListener('change',()=>{ try{ localStorage.setItem('ebdj.car',$('carmode').checked?'1':'0'); }catch(e){} $('carnote').textContent='Saved. Reload the page to use it.'; }); [0,1,2,3,4,5].forEach(n=>{ const b=$('tst'+n); if(b) b.addEventListener('click',()=>window.__ebTest(n)); }); $('aq').value=AQ; $('aq').addEventListener('change',()=>{ try{ localStorage.setItem('ebdj.aq',$('aq').value); }catch(e){} $('aqnote').textContent='Saved. Reload the page to use it.'; }); $('ashare').value=AMODE; $('ashare').addEventListener('change',()=>{ try{ localStorage.setItem('ebdj.ashare',$('ashare').value); }catch(e){} $('asharenote').textContent='Saved. Reload the page to use it.'; }); $('abuf').value=ABUF; $('abuf').addEventListener('change',()=>{ try{ localStorage.setItem('ebdj.abuf',$('abuf').value); }catch(e){} $('abufnote').textContent='Saved. Reload the page to use it.'; });
+  $('carmode').checked=CARON; $('carmode').addEventListener('change',()=>{ try{ localStorage.setItem('ebdj.car',$('carmode').checked?'1':'0'); }catch(e){} $('carnote').textContent='Saved. Reload the page to use it.'; }); 
   try{ const v=localStorage.getItem('ebdj.sttext'); if(v&&[...$('sttext').options].some(o=>o.value===v)) $('sttext').value=v; }catch(e){}
   const stApply=()=>{ const m=$('sttext').value; const st=$('autost'); st.classList.remove('st-ticker','st-shrink','st-still'); st.classList.add('st-'+m); ['auton','autonx'].forEach(id=>{ const sp=$(id); sp._sc=1; sp.classList.remove('mq','clip'); sp.firstChild.style.fontSize=''; sp.style.removeProperty('--mq'); sp.firstChild.children[1].textContent=''; mqFit(sp,sp.firstChild.children[0].textContent); }); };
   stApply(); $('sttext').addEventListener('change',()=>{ try{ localStorage.setItem('ebdj.sttext',$('sttext').value); }catch(e){} stApply(); });
@@ -1702,7 +1683,7 @@ function wireUI(){
   $('clearmap').addEventListener('click',()=>{ MAP={}; saveMap(); refreshMapped(); $('msg').textContent='All mappings cleared.'; });
 }
 
-$('go').addEventListener('click',()=>{ audioSess(); window.__ebMediaStart&&window.__ebMediaStart();
+$('go').addEventListener('click',()=>{ audioSess(); try{ mediaArt(); }catch(e){}
   if(S.started) return; S.started=true;
   buildUI();
   decks.forEach(d=>{ wireDeck(d); setGenre(d,d.genre); });
@@ -2014,12 +1995,19 @@ function sgSkip(){ if(CARON){ if(SG.on) carSkip(); return; } if(!SG.on||!SG.cur)
 
 // ---- sample volume, example song, saved settings for the sample-song controls
 const smpVol=()=>{ const e=$('smpvol'); return e?(+e.value||60)/100:.6; };
-const EX={a:null};
+const EX={a:null}; window.__ebEx=()=>EX;
+let EXBUF=null;
+const exVolDead=()=>{ if(window.__exTail) return true; try{ const a=new Audio(), v=a.volume; a.volume=.5; return Math.abs(a.volume-.5)>.01; }catch(e){ return true; } };
+async function exPrep(){ if(EXBUF) return EXBUF; try{ const ab=await (await fetch('samples/demo/eight_bells_example.mp3')).arrayBuffer(); const OC=window.OfflineAudioContext||window.webkitOfflineAudioContext; EXBUF=await new OC(1,1,44100).decodeAudioData(ab); }catch(e){ dg('intro fade prep failed'); } return EXBUF; }
+async function exTailFade(a){ // an audio file's volume cannot be changed on iPhone, so play a copy of the next 2 seconds that already fades out, and silence the original
+  const B=await exPrep(); if(!B){ a.muted=true; return; } const sr=B.sampleRate, n=Math.floor(2.2*sr), st=Math.floor((a.currentTime+.25)*sr), out=new Float32Array(n), ch=B.numberOfChannels, dat=[]; for(let c=0;c<ch;c++) dat.push(B.getChannelData(c));
+  for(let i=0;i<n;i++){ const k=st+i; if(k>=B.length) break; let v=0; for(let c=0;c<ch;c++) v+=dat[c][k]; v=v/ch*.9; const q=Math.min(1,i/(2*sr)); out[i]=v*(1-q)*(1-q); }
+  const url=URL.createObjectURL(carWav(out,sr)), t=new Audio(url); t.addEventListener('playing',()=>{ a.muted=true; },{once:true}); t.addEventListener('ended',()=>{ try{ URL.revokeObjectURL(url); }catch(e){} }); EX.t=t; try{ await t.play(); }catch(e){ a.muted=true; } dg('intro faded out'); }
 function exampleStop(){ // fade the example song out over about 2 seconds, then stop it
   const a=EX.a; EX.a=null; const bar=$('exbar'); if(bar) bar.hidden=true; const spinEnd=()=>{ EX.spin=false; try{ if(!playing(decks[0])){ const p=document.querySelector('#deck'+decks[0].id+' .plat'); if(p) p.innerHTML=gfxFor(p.dataset.d); } }catch(e){} };
   if(a) EX.spin=true; else spinEnd();
-  if(a){ try{ if(a.paused||a.ended||!(a.currentTime>0)){ a.pause(); spinEnd(); } else { const v0=a.volume, t0=Date.now(), D=2000; const f=setInterval(()=>{ const k=Math.min(1,(Date.now()-t0)/D); try{ a.volume=Math.max(0,v0*(1-k)*(1-k)); }catch(e){} if(k>=1){ clearInterval(f); try{ a.muted=true; a.volume=0; dg('intro faded, left running silent'); }catch(e){} spinEnd(); } },50); } }catch(e){ try{ a.pause(); }catch(e2){} spinEnd(); } } }
-function exampleStart(){ if(!($('exauto')&&$('exauto').checked)) return; try{ const a=new Audio('samples/demo/eight_bells_example.mp3'); a.volume=.9; EX.a=a; $('exbar').hidden=false; a.addEventListener('ended',exampleStop); const pr=a.play(); if(pr&&pr.catch) pr.catch(exampleStop); }catch(e){ exampleStop(); } }
+  if(a){ try{ if(a.paused||a.ended||!(a.currentTime>0)){ a.pause(); spinEnd(); } else if(exVolDead()){ exTailFade(a).then(spinEnd,spinEnd); } else { const v0=a.volume, t0=Date.now(), D=2000; const f=setInterval(()=>{ const k=Math.min(1,(Date.now()-t0)/D); try{ a.volume=Math.max(0,v0*(1-k)*(1-k)); }catch(e){} if(k>=1){ clearInterval(f); try{ a.muted=true; a.volume=0; dg('intro faded, left running silent'); }catch(e){} spinEnd(); } },50); } }catch(e){ try{ a.pause(); }catch(e2){} spinEnd(); } } }
+function exampleStart(){ if(!($('exauto')&&$('exauto').checked)) return; try{ exPrep(); const a=new Audio('samples/demo/eight_bells_example.mp3'); a.volume=.9; EX.a=a; $('exbar').hidden=false; a.addEventListener('ended',exampleStop); const pr=a.play(); if(pr&&pr.catch) pr.catch(exampleStop); }catch(e){ exampleStop(); } }
 function sgWire(){
   [['musicsrc','v'],['sglen','v'],['sghook','v'],['sgvox','v'],['sgmine','c'],['smpvol','v'],['exauto','c']].forEach(a=>{ const e=$(a[0]); if(!e) return; try{ const v=localStorage.getItem('ebdj.'+a[0]); if(v!==null){ if(a[1]==='c') e.checked=v==='1'; else if(e.tagName!=='SELECT'||[...e.options].some(o=>o.value===v)) e.value=v; } }catch(x){}
     e.addEventListener('change',()=>{ try{ localStorage.setItem('ebdj.'+a[0],a[1]==='c'?(e.checked?'1':'0'):e.value); }catch(x){} if(a[0]==='smpvol') $('smpvolv').textContent=e.value+'%'; });
