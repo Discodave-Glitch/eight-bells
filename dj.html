@@ -319,7 +319,7 @@ try{ const ms=navigator.mediaSession; if(ms){
   ms.setActionHandler('pause',()=>{ try{ if(CARON&&CAR.el){ CAR.el.pause(); dg('car: pause'); return; } if((SG.on||AU.on||BOTH.t)&&!S.apaused) autoPause(); if(MEL) MEL.pause(); ms.playbackState='paused'; dg('car: pause'); }catch(e){} });
   ms.setActionHandler('nexttrack',()=>{ mediaSkip(); dg('car: next'); });
   ms.setActionHandler('previoustrack',()=>{ if(CARON) carRestart(); else dg('car: back (live mode, not wired)'); });
-  ['seekbackward','seekforward'].forEach(a=>{ try{ ms.setActionHandler(a,null); }catch(e){} }); } }catch(e){}
+  try{ ms.setActionHandler('seekforward',()=>{ dg('car: seek forward button'); if(CARON) carSkip(); else mediaSkip(); }); ms.setActionHandler('seekbackward',()=>{ dg('car: seek back button'); if(CARON) carRestart(); }); ms.setActionHandler('seekto',()=>{ dg('car: seek ignored'); }); }catch(e){} } }catch(e){}
 // CarPlay test: does plain Web Audio break up in the car, even with none of the DJ engine running?
 let TST={a:null,c:null,s:null};
 window.__ebTest=async(n)=>{ try{ if(TST.a){ TST.a.pause(); TST.a=null; } if(TST.s){ try{ TST.s.stop(); }catch(e){} TST.s=null; } if(TST.c){ try{ TST.c.close(); }catch(e){} TST.c=null; }
