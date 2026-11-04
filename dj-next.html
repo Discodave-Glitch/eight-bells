@@ -304,6 +304,12 @@ html.full #dstrip{display:none}
   html.sim #console .mixer .xfw{order:1;flex:1 1 auto;min-width:0}
   html.sim #console .mixer .mvr{order:2;flex:none} html.sim #console .mixer .recb{padding:0 12px;min-width:0}
 }
+/* phone sideways, decks: the example-song strip sits in the top bar next to DJ, so the decks get its row back */
+@media (orientation:landscape) and (max-height:560px){
+  body.v-decks #exbar{position:fixed;top:calc(env(safe-area-inset-top) + 10px);left:calc(max(16px,env(safe-area-inset-left)) + 96px);margin:0;z-index:12;font-size:13px;white-space:nowrap;max-width:calc(100vw - 600px);overflow:hidden}
+  body.v-decks #exbar button{min-height:32px;padding:0 12px}
+  body.v-decks #app{padding-bottom:max(8px,env(safe-area-inset-bottom))!important;box-sizing:border-box}
+}
 /* tap a part of the song to jump there (Car mode) */
 #nsegs,#dsegs{cursor:pointer;padding:12px 0;margin:-12px 0;box-sizing:content-box;touch-action:manipulation}
 /* Keep this song */
