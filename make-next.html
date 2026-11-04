@@ -19125,6 +19125,54 @@ $('mksheet').addEventListener('click',e=>{ if(e.target===$('mksheet')) shClose()
 addEventListener('keydown',e=>{ if(e.key==='Escape'&&!$('mksheet').hidden) shClose(); });
 // open the tab named in the address (from the DJ page's tab bar)
 addEventListener('hashchange',()=>{ const h=(location.hash||'').slice(1); if(['make','live','pads','stage','more'].includes(h)&&h!==cur()) go(h); });
+
+// ---- real drum kits: recorded kick, snare, hat and percussion from the starter pack and the owner's packs (samples/pack + samples/xpack).
+// They join the app's kit list (KITS), so the Pads Kit knob, the kit menus and the dice all reach them. While one is chosen,
+// the four drum lanes play its sounds (PV.samp d0..d3, the app's own "drum lane uses a sample" setting); built-in kits clear them again.
+const RK={kits:{},clips:{},loading:{},ready:false};
+const rkRand=seed=>{ let h=1779033703^seed.length; for(let i=0;i<seed.length;i++){ h=Math.imul(h^seed.charCodeAt(i),3432918353); h=h<<13|h>>>19; } return ()=>{ h=Math.imul(h^h>>>16,2246822507); h=Math.imul(h^h>>>13,3266489909); return ((h^=h>>>16)>>>0)/4294967296; }; };
+async function rkManifest(base){ try{ const r=await fetch(base+'manifest.json'); if(!r.ok) return []; const m=await r.json(); return (m.groups||[]).flatMap(g=>(g.clips||[]).map(c=>Object.assign({},c,{grp:g.id,url:base+c.f}))); }catch(e){ return []; } }
+async function rkBuild(){
+  const all=(await rkManifest('samples/pack/')).concat(await rkManifest('samples/xpack/'));
+  const hits=g=>all.filter(c=>c.grp===g&&c.d<=1.4&&c.k!=='loop');
+  const K=hits('dk'), S=hits('ds'), C=hits('dc'), H=hits('dh'), P=hits('dp').concat(C);
+  if(!K.length||!S.length||!H.length||!P.length) return;
+  all.forEach(c=>{ RK.clips['rk:'+c.id]=c; });
+  const top=(list,score,rnd,n)=>{ const s=list.slice().sort((a,b)=>score(b)-score(a)).slice(0,Math.max(1,n||12)); return s[Math.floor(rnd()*s.length)]; };
+  const mine=c=>/^xp_/.test(c.id);
+  const add=(id,name,f)=>{ const rnd=rkRand(id), k=f(rnd); if(!k||!k.every(Boolean)) return; RK.kits[id]=k.map(c=>'rk:'+c.id); KITS[id]=Object.assign({},KITS['909']||KITS.basic,{name,real:true}); };
+  // starter pack kits, each with its own character
+  add('rk_punchy','Real: Punchy',r=>[top(K,c=>c.e,r),top(S,c=>c.e,r),top(H,c=>c.e,r),top(P,c=>c.e,r)]);
+  add('rk_deep','Real: Deep',r=>[top(K.filter(c=>c.kf),c=>-c.kf,r),top(S,c=>-c.c,r),top(H,c=>-c.c,r),top(P,c=>-c.c,r)]);
+  add('rk_bright','Real: Bright',r=>[top(K,c=>c.c,r),top(S,c=>c.c,r),top(H,c=>c.c,r),top(P,c=>c.c,r)]);
+  add('rk_soft','Real: Soft',r=>[top(K,c=>-c.e,r),top(S,c=>-c.e,r),top(H,c=>-c.e,r),top(P,c=>-c.e,r)]);
+  add('rk_boom','Real: Boom',r=>[top(K,c=>c.d+(c.kf?-c.kf/100:0),r),top(S,c=>c.d,r),top(H,c=>c.d,r),top(P,c=>c.d,r)]);
+  add('rk_tight','Real: Tight',r=>[top(K,c=>-c.d,r),top(S,c=>-c.d,r),top(H,c=>-c.d,r),top(P,c=>-c.d,r)]);
+  add('rk_clap','Real: Clap',r=>[top(K,c=>c.e,r,20),top(C.length?C:S,c=>c.e,r),top(H,c=>c.e,r,20),top(P.filter(c=>c.grp!=='dc'),c=>c.e,r,20)]);
+  for(let i=1;i<=5;i++) add('rk_mix'+i,'Real: Mixed '+i,r=>[K,S,H,P].map(l=>l[Math.floor(r()*l.length)]));
+  // the owner's own packs: one kit per family of names (28-bda / 28-sda / 28-chh ...), then mixed ones
+  const MK=K.filter(mine), MS=S.concat(C).filter(mine), MH=H.filter(mine), MP=P.filter(mine);
+  if(MK.length&&MS.length&&MP.length){ const fam=c=>String(c.name).split(/[-_ ]/)[0].toLowerCase(), fams=[...new Set(MK.map(fam))]; let n=0;
+    fams.forEach(f=>{ const s=MS.filter(c=>fam(c)===f), p=MP.filter(c=>fam(c)===f), h=MH.filter(c=>fam(c)===f); if(!s.length||!p.length) return; n++;
+      add('rk_my'+n,'Your Kit '+n,r=>[MK.filter(c=>fam(c)===f)[Math.floor(r()*MK.filter(c=>fam(c)===f).length)],s[Math.floor(r()*s.length)],(h.length?h:(MH.length?MH:H))[Math.floor(r()*(h.length||MH.length||H.length))],p[Math.floor(r()*p.length)]]); });
+    for(let i=1;n<6&&i<=6;i++){ n++; add('rk_my'+n,'Your Kit '+n,r=>[MK[Math.floor(r()*MK.length)],MS[Math.floor(r()*MS.length)],(MH.length?MH:H)[Math.floor(r()*(MH.length||H.length))],MP[Math.floor(r()*MP.length)]]); } }
+  RK.ready=true; try{ if(typeof renderPreview==='function') renderPreview(); if(typeof padKitOpts==='function') padKitOpts(); }catch(e){}
+  rkApply();
+}
+async function rkLoad(id){ if(SBUF.has(id)) return true; if(RK.loading[id]) return RK.loading[id]; const c=RK.clips[id]; if(!c) return false;
+  RK.loading[id]=(async()=>{ try{ ensureAudio(); const r=await fetch(c.url); if(!r.ok) return false; const b=await ac.decodeAudioData(await r.arrayBuffer());
+    const g=Math.min(2,Math.max(.5,c.g||1)); for(let ch=0;ch<b.numberOfChannels;ch++){ const d=b.getChannelData(ch); for(let i=0;i<d.length;i++) d[i]*=g; } // even out loudness (the clip's own gain trim)
+    SBUF.set(id,b); SMETA.set(id,{id,name:c.name,root:60,mode:'oneshot',size:0}); return true; }catch(e){ return false; } })();
+  return RK.loading[id]; }
+let rkLast='';
+function rkApply(){ if(!RK.ready) return; const k=(PV.kit==='auto'?autoKit():PV.kit), kit=RK.kits[k]; const key=k+'|'+(kit||[]).join(',');
+  if(key===rkLast) return; rkLast=key;
+  if(kit){ Promise.all(kit.map(rkLoad)).then(()=>{ if(rkLast!==key) return; kit.forEach((id,j)=>{ PV.samp['d'+j]=id; }); try{ savePV(); }catch(e){} }); }
+  else { let ch=false; ['d0','d1','d2','d3'].forEach(d=>{ if(String(PV.samp[d]||'').startsWith('rk:')){ delete PV.samp[d]; ch=true; } }); if(ch) try{ savePV(); }catch(e){} } }
+setInterval(rkApply,300);
+rkBuild();
+// the Kit knob on Pads shows which kit is on (short name)
+try{ const kInfo=window.padKnobInfoA; if(typeof kInfo==='function') window.padKnobInfoA=function(n){ const r=kInfo.apply(this,arguments); if(n===5&&r){ const k=PV.kit==='auto'?autoKit():PV.kit, nm=KITS[k]?KITS[k].name.replace(/^Real: /,''):'Kit'; return [(PV.kit==='auto'?'Auto ':'')+nm,r[1]]; } return r; }; }catch(e){}
 const want=(location.hash||'').slice(1);
 setTimeout(()=>{ if(['live','pads','stage','more'].includes(want)) go(want); else go('make'); },300);
 })();
