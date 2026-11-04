@@ -215,7 +215,7 @@ body.nolbl .bt{display:none}
 <style id="ebn">
 /* ===== Eight Bells next: new look (navy, big buttons). Layout only: every old control is still in the page. ===== */
 :root{--bg:#0d1320;--panel:#151d2e;--panel2:#1c2740;--line:#2a3652;--ink:#eef2f8;--muted:#9aa8c0;--a:#4fb3c9;--b:#f0b84a;--bad:#e8837a;--disp:#0d1320;--kbg:#0d1320;
-  --n-bg:#0d1320;--n-s1:#151d2e;--n-s2:#1c2740;--n-line:#2a3652;--n-ink:#eef2f8;--n-mut:#9aa8c0;--n-teal:#4fb3c9;--n-gold:#f0b84a;--n-bad:#e8837a;--n-rec:#e5584f;--n-tab:60px;--n-sb:max(4px,calc(env(safe-area-inset-bottom) - 14px))}
+  --n-bg:#0d1320;--n-s1:#151d2e;--n-s2:#1c2740;--n-line:#2a3652;--n-ink:#eef2f8;--n-mut:#9aa8c0;--n-teal:#4fb3c9;--n-gold:#f0b84a;--n-bad:#e8837a;--n-rec:#e5584f;--n-tab:60px;--n-sb:max(4px,calc(env(safe-area-inset-bottom) - 14px));--n-bh:calc(var(--n-tab) + var(--n-sb))}
 html,body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
 body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)!important;background:var(--n-bg)}
 button{border-radius:14px}
@@ -297,9 +297,22 @@ html.full #dstrip{display:none}
 #tabbar button{flex:1;border:0;border-radius:0;background:transparent;color:var(--n-mut);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:11px;font-weight:700;min-height:44px;padding:0}
 #tabbar button[aria-current="page"]{color:var(--n-gold)}
 #tabbar button.soon{opacity:.55}
+/* the tab bar hides itself after a few seconds; a small handle brings it back */
+#tabbar{transition:transform .25s ease}
+html.barhid{--n-bh:calc(40px + var(--n-sb))}
+html.barhid #tabbar{transform:translateY(105%);pointer-events:none}
+#barhandle{position:fixed;left:0;right:0;bottom:0;z-index:17;height:var(--n-bh);border:0;border-radius:0;background:var(--n-bg);padding:0 0 var(--n-sb);display:none;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
+#barhandle i{display:flex;align-items:center;justify-content:center;width:64px;height:28px;border-radius:14px;background:var(--n-s2);border:1px solid var(--n-line);color:var(--n-mut)}
+html.barhid #barhandle{display:flex}
+body:has(#app[hidden]) #barhandle{display:none!important}
+/* screens stay put: only things meant to scroll scroll */
+html,body{overscroll-behavior:none;overflow-x:hidden;touch-action:pan-x pan-y}
+#app{box-sizing:border-box;min-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom))}
+html:has(body.v-now),body.v-now{overflow:hidden;height:100%}
+body.v-now #app{height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom))!important;min-height:0}
 body:has(#app[hidden]) #tabbar{display:none}
-@media (orientation:portrait),(max-width:559px){ #app{padding-bottom:calc(var(--n-tab) + 16px + var(--n-sb))} #tagbar{bottom:calc(var(--n-tab) + 8px + var(--n-sb))} body.v-now #viewb{display:none} }
-#toast{position:fixed;left:50%;bottom:calc(var(--n-tab) + 20px + var(--n-sb));transform:translateX(-50%);z-index:60;background:var(--n-s2);color:var(--n-ink);border:1px solid var(--n-line);border-radius:22px;padding:12px 20px;font-weight:700;font-size:15px;opacity:0;pointer-events:none;transition:opacity .2s}
+@media (orientation:portrait),(max-width:559px){ #app{padding-bottom:calc(var(--n-bh) + 8px)} #tagbar{bottom:calc(var(--n-bh) + 8px)} body.v-now #viewb{display:none} }
+#toast{position:fixed;left:50%;bottom:calc(var(--n-bh) + 20px);transform:translateX(-50%);z-index:60;background:var(--n-s2);color:var(--n-ink);border:1px solid var(--n-line);border-radius:22px;padding:12px 20px;font-weight:700;font-size:15px;opacity:0;pointer-events:none;transition:opacity .2s}
 #toast.on{opacity:1}
 /* setup sheet */
 #setup{position:fixed;inset:0;z-index:30;background:var(--n-bg);overflow:auto;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);overscroll-behavior:contain}
@@ -389,7 +402,7 @@ html.sim .strip>.chv .vf{writing-mode:horizontal-tb;direction:ltr;height:28px!im
   html.sim .xfr{grid-template-columns:1fr 1fr;grid-template-rows:auto auto}
   html.sim .xfr b.A{grid-row:1;grid-column:1}html.sim .xfr b.B{grid-row:1;grid-column:2;text-align:right}html.sim .xfr #xf{grid-row:2;grid-column:1/3}
   html.sim .plat{width:clamp(80px,calc(100dvh - 300px),190px)!important}
-  #tabbar{display:none}
+  #tabbar,#barhandle{display:none!important}
   #dstrip{margin:10px 16px 10px}
   /* Car screen: big picture left, song and three big buttons right */
   #now{flex-direction:row;align-items:center;gap:clamp(16px,4vw,40px);padding:8px clamp(16px,3vw,32px) 12px}
@@ -2435,6 +2448,12 @@ $('ndecks').addEventListener('click',()=>{ VIEW='decks'; applyView(); });
 $('viewb').addEventListener('click',()=>{ VIEW=view()==='now'?'decks':'now'; applyView(); });
 // other tabs live on the Make page; leaving this page stops the DJ, so ask for a second tap while music plays
 const NEXT=/-next\.html$/.test(location.pathname); let leaveT=0, leaveK='';
+// the tab bar hides itself 4 s after it was last used; the small handle at the bottom brings it back
+const hb=document.createElement('button'); hb.type='button'; hb.id='barhandle'; hb.setAttribute('aria-label','Show tabs');
+hb.innerHTML='<i><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></i>';
+document.body.appendChild(hb);
+let barT=0; const barShow=()=>{ document.documentElement.classList.remove('barhid'); clearTimeout(barT); barT=setTimeout(()=>document.documentElement.classList.add('barhid'),4000); };
+hb.addEventListener('click',barShow); document.getElementById('tabbar').addEventListener('pointerdown',barShow); barShow();
 document.querySelectorAll('#tabbar [data-nav]').forEach(b=>{ const k=b.dataset.nav;
   b.addEventListener('click',()=>{ if(k==='dj'){ VIEW='now'; applyView(); return; } if(k==='more'){ openSetup(); return; }
     const url='make'+(NEXT?'-next':'')+'.html'+(k==='make'?'':'#'+k);
