@@ -2402,15 +2402,18 @@ const amp=x=>String(x||'').replace(/&amp;/g,'&');
 const store=(k,v)=>{ try{ if(v===undefined) return localStorage.getItem(k); localStorage.setItem(k,v); }catch(e){ return null; } };
 // simple decks unless Full decks is on
 let FULLPREF=store('ebn.fulldecks')!=='0'; // new name: the old 'ebn.full' was saved as off on every visit
-const setFull=(on,keep)=>{ if(!keep){ FULLPREF=on; store('ebn.fulldecks',on?'1':'0'); } const f=FULLPREF&&innerWidth>innerHeight; html.classList.toggle('full',f); html.classList.toggle('sim',!f); }; // full decks only sideways (made for it); upright uses the simple cards
-setFull(FULLPREF,true); addEventListener('resize',()=>setFull(FULLPREF,true)); addEventListener('orientationchange',()=>setTimeout(()=>setFull(FULLPREF,true),300));
+const setFull=(on,keep)=>{ if(!keep){ FULLPREF=on; store('ebn.fulldecks',on?'1':'0'); } const f=FULLPREF&&(window.matchMedia?matchMedia('(orientation: landscape)').matches:innerWidth>innerHeight); html.classList.toggle('full',f); html.classList.toggle('sim',!f); }; // full decks only sideways (made for it); upright uses the simple cards
+setFull(FULLPREF,true);
+// iPhone reports the new size a moment after turning: check again a few times
+const fullSoon=()=>{ setFull(FULLPREF,true); [120,400,900].forEach(t=>setTimeout(()=>setFull(FULLPREF,true),t)); };
+addEventListener('resize',fullSoon); addEventListener('orientationchange',fullSoon); try{ matchMedia('(orientation: landscape)').addEventListener('change',fullSoon); }catch(e){}
 // which screen: "now" (big buttons) or "decks"
 let VIEW=null;
 const land=()=>innerWidth>innerHeight&&innerWidth>=560;
 const view=()=>VIEW||(land()?(CARON?'now':'decks'):'now');
 function applyView(){ const v=view(); document.body.classList.toggle('v-now',v==='now'); document.body.classList.toggle('v-decks',v==='decks');
   const b=$('viewb'); if(b) b.setAttribute('aria-label',v==='now'?'Open decks':'Big buttons'); }
-let lastLand=land(); addEventListener('resize',()=>{ const l=land(); if(l!==lastLand){ lastLand=l; VIEW=null; } applyView(); });
+let lastLand=land(); const reView=()=>{ const l=land(); if(l!==lastLand){ lastLand=l; if(VIEW!=='decks') VIEW=null; } applyView(); }; addEventListener('resize',()=>{ reView(); [120,400,900].forEach(t=>setTimeout(reView,t)); });
 applyView();
 const toast=t=>{ const e=$('toast'); e.textContent=t; e.classList.add('on'); clearTimeout(toast.t); toast.t=setTimeout(()=>e.classList.remove('on'),1800); };
 const autoOn=()=>{ const t=T(); return !!(t&&(t.SG.on||t.AU.on||(t.BOTH&&t.BOTH.t))); };
@@ -2476,8 +2479,8 @@ $('nplay').addEventListener('click',()=>{
 });
 $('nback').addEventListener('click',()=>{ if(CARON&&T()&&T().SG.on&&window.__ebAll&&window.__ebAll.carBackRate) window.__ebAll.carBackRate(); else $('mkgood').click(); toast('Liked'); });
 $('nskip').addEventListener('click',()=>{ if(CARON&&T()&&T().SG.on&&window.__ebAll&&window.__ebAll.carSkipRate) window.__ebAll.carSkipRate(); else { $('mkbad').click(); const s=$('sgskip'); if(s&&!s.disabled) s.click(); } toast('Not for me'); });
-$('ndecks').addEventListener('click',()=>{ VIEW='decks'; applyView(); });
-$('viewb').addEventListener('click',()=>{ VIEW=view()==='now'?'decks':'now'; applyView(); });
+$('ndecks').addEventListener('click',()=>{ VIEW='decks'; applyView(); setFull(FULLPREF,true); });
+$('viewb').addEventListener('click',()=>{ VIEW=view()==='now'?'decks':'now'; applyView(); setFull(FULLPREF,true); });
 // other tabs live on the Make page; leaving this page stops the DJ, so ask for a second tap while music plays
 const NEXT=/-next\.html$/.test(location.pathname); let leaveT=0, leaveK='';
 // the tab bar hides itself 4 s after it was last used; the small handle at the bottom brings it back
