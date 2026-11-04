@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0d1320">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Eight Bells DJ (prototype)</title>
 <style>
 :root{--bg:#0b0e15;--panel:#141a25;--panel2:#1d2535;--line:#2c374c;--ink:#eef2fa;--muted:#94a1ba;--a:#3a93ab;--b:#e0b04a;--ok:#46c48a;--bad:#ef6a6a;--disp:#070a10;--kbg:#0b0f17;color-scheme:dark}
@@ -2401,8 +2401,9 @@ const SECN={intro:'Intro',build:'Build-up',drop:'Drop',chorus:'Chorus','break':'
 const amp=x=>String(x||'').replace(/&amp;/g,'&');
 const store=(k,v)=>{ try{ if(v===undefined) return localStorage.getItem(k); localStorage.setItem(k,v); }catch(e){ return null; } };
 // simple decks unless Full decks is on
-const setFull=(on,keep)=>{ html.classList.toggle('full',on); html.classList.toggle('sim',!on); if(!keep) store('ebn.fulldecks',on?'1':'0'); }; // new name: the old 'ebn.full' was saved as off on every visit
-setFull(store('ebn.fulldecks')!=='0',true); // full decks (the original look) unless turned off in Setup
+let FULLPREF=store('ebn.fulldecks')!=='0'; // new name: the old 'ebn.full' was saved as off on every visit
+const setFull=(on,keep)=>{ if(!keep){ FULLPREF=on; store('ebn.fulldecks',on?'1':'0'); } const f=FULLPREF&&innerWidth>innerHeight; html.classList.toggle('full',f); html.classList.toggle('sim',!f); }; // full decks only sideways (made for it); upright uses the simple cards
+setFull(FULLPREF,true); addEventListener('resize',()=>setFull(FULLPREF,true)); addEventListener('orientationchange',()=>setTimeout(()=>setFull(FULLPREF,true),300));
 // which screen: "now" (big buttons) or "decks"
 let VIEW=null;
 const land=()=>innerWidth>innerHeight&&innerWidth>=560;
@@ -2508,7 +2509,7 @@ const SW={
   vox:{get:()=>$('sgvox').value!=='none',set:v=>{ const s=$('sgvox'); if(!v){ if(s.value!=='none') store('ebn.vox',s.value); s.value='none'; } else s.value=store('ebn.vox')||'dj'; s.dispatchEvent(new Event('change',{bubbles:true})); }},
   licks:{get:()=>$('sglicks').checked,set:v=>{ $('sglicks').checked=v; $('sglicks').dispatchEvent(new Event('change',{bubbles:true})); }},
   mine:{get:()=>$('sgmine').checked,set:v=>{ $('sgmine').checked=v; $('sgmine').dispatchEvent(new Event('change',{bubbles:true})); }},
-  full:{get:()=>html.classList.contains('full'),set:v=>setFull(v)}
+  full:{get:()=>FULLPREF,set:v=>setFull(v)}
 };
 function syncSetup(){
   document.querySelectorAll('#setup [data-sel]').forEach(b=>{ const s=$(b.dataset.sel), v=(CARON&&b.dataset.sel==='musicsrc')?'songs':(s&&s.value); b.setAttribute('aria-pressed',v===b.dataset.val?'true':'false');
