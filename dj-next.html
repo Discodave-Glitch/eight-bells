@@ -2399,7 +2399,7 @@ const amp=x=>String(x||'').replace(/&amp;/g,'&');
 const store=(k,v)=>{ try{ if(v===undefined) return localStorage.getItem(k); localStorage.setItem(k,v); }catch(e){ return null; } };
 // simple decks unless Full decks is on
 const setFull=on=>{ html.classList.toggle('full',on); html.classList.toggle('sim',!on); store('ebn.full',on?'1':'0'); };
-setFull(store('ebn.full')==='1');
+setFull(store('ebn.full')!=='0'); // full decks (the original look) unless turned off in Setup
 // which screen: "now" (big buttons) or "decks"
 let VIEW=null;
 const land=()=>innerWidth>innerHeight&&innerWidth>=560;
