@@ -569,7 +569,7 @@ html.full .mxb{display:none}
     <div class="row"><b class="chip">Starter pack</b><span class="chip" id="pkinfo">Sounds that come with the app. They play when Vocals and samples is set to "voices + samples". Tick what you want; the arrow plays one.</span></div>
     <div id="pkrows"></div>
     <details class="tfam" id="pkcred"><summary>Starter pack credits and licences</summary><div class="chip" id="pkcredt" style="white-space:normal;margin-top:6px"></div></details>
-    <div class="row"><b class="chip">My samples</b><button id="smadd">Add sounds, a zip, rar or iso...</button><label class="chip" style="cursor:pointer"><input type="checkbox" id="smcut" checked> Cut long sounds into phrases</label><button id="smclr">Remove all</button><input type="file" id="smfile" accept="audio/*,.zip,.rar,.iso,application/x-iso9660-image,application/zip,application/vnd.rar,application/x-rar-compressed,.mp3,.wav,.aif,.aiff,.m4a,.ogg,.flac,.opus,.aac" multiple hidden></div>
+    <div class="row"><b class="chip">My samples</b><button id="smadd">Add sounds, a zip, rar or iso...</button><button id="smexport" type="button">Export my sounds (zip)</button><label class="chip" style="cursor:pointer"><input type="checkbox" id="smcut" checked> Cut long sounds into phrases</label><button id="smclr">Remove all</button><input type="file" id="smfile" accept="audio/*,.zip,.rar,.iso,application/x-iso9660-image,application/zip,application/vnd.rar,application/x-rar-compressed,.mp3,.wav,.aif,.aiff,.m4a,.ogg,.flac,.opus,.aac" multiple hidden></div>
     <div class="chip" id="smmsg">Add your own audio files or a zip of them. They play when Vocals and samples is set to "voices + samples". Tick the ones you want.</div>
     <input type="search" id="smq" placeholder="Search your sounds, packs and folders..." aria-label="Search your sounds" style="width:100%;margin:4px 0">
     <div id="smlist"></div>
@@ -3075,12 +3075,37 @@ rotUpd();
     root.querySelectorAll('p,div.chip,span.chip,small,.sechint,.hint').forEach(e=>{ if(e.classList.contains('lt')||KEEP.has(e.id)||e.closest('.lt')) return; if(ctl(e)) return;
       const t=(e.textContent||'').trim(); if(t.length>55) e.classList.add('lt'); });
     root.querySelectorAll('label').forEach(l=>{ if(l.dataset.tidy) return; l.dataset.tidy='1'; const nodes=[...l.childNodes].filter(n=>n.nodeType===3&&n.textContent.trim());
-      nodes.forEach(n=>{ const t=n.textContent; if(t.trim().length<=40&&!/^\s*:/.test(t)) return;
+      nodes.forEach(n=>{ const t=n.textContent; if(/\(\d[\d,]*\)/.test(t)) return; if(t.trim().length<=40&&!/^\s*:/.test(t)) return; // keep counts like (455) pads only
         let cut=t.search(/\s\(|:\s|\s—\s|\.\s/); if(/^\s*:/.test(t)) cut=0; if(cut<0) return;
         const keep=t.slice(0,cut), rest=t.slice(cut), sp=document.createElement('span'); sp.className='lt'; sp.textContent=rest; n.textContent=keep; n.after(sp); }); }); }
   const box=$('morebox'); tidy(box); new MutationObserver(()=>tidy(box)).observe(box,{childList:true,subtree:true});
   const setHelp=on=>{ html.classList.toggle('help',on); $('djhelp').setAttribute('aria-pressed',String(on)); store('ebn.help',on?'1':'0'); };
   setHelp(store('ebn.help')==='1'); $('djhelp').addEventListener('click',()=>setHelp(!html.classList.contains('help'))); })();
+
+// ---- Export my sounds: every sound added with "Add sounds" (kept in this browser, store eb_samples) as one zip of the original files,
+// in folders by pack, so they can be added to the website like the owner's other packs (tools/add-packs.mjs)
+(function(){ const b=$('smexport'); if(!b) return;
+  const CRC=(()=>{ const t=new Uint32Array(256); for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c=c&1?0xEDB88320^(c>>>1):c>>>1; t[n]=c>>>0; } return t; })();
+  const crc32=u=>{ let c=0xFFFFFFFF; for(let i=0;i<u.length;i++) c=CRC[(c^u[i])&255]^(c>>>8); return (c^0xFFFFFFFF)>>>0; };
+  const ext=u=>{ const s=String.fromCharCode(...u.subarray(0,12)); if(s.startsWith('RIFF')) return '.wav'; if(s.startsWith('ID3')||(u[0]===0xFF&&(u[1]&0xE0)===0xE0)) return '.mp3'; if(s.startsWith('fLaC')) return '.flac'; if(s.startsWith('OggS')) return '.ogg'; if(s.startsWith('FORM')) return '.aif'; if(s.slice(4,8)==='ftyp') return '.m4a'; return '.wav'; };
+  const clean=x=>String(x||'').replace(/[\\/:*?"<>|]+/g,' ').replace(/\s+/g,' ').trim().slice(0,60)||'sound';
+  function zip(files){ const enc=new TextEncoder(), parts=[], cen=[]; let off=0;
+    for(const f of files){ const name=enc.encode(f.path), d=f.data, crc=crc32(d), h=new DataView(new ArrayBuffer(30));
+      h.setUint32(0,0x04034b50,true); h.setUint16(4,20,true); h.setUint16(6,0x0800,true); h.setUint16(8,0,true); h.setUint32(14,crc,true); h.setUint32(18,d.length,true); h.setUint32(22,d.length,true); h.setUint16(26,name.length,true);
+      parts.push(h.buffer,name,d); const c=new DataView(new ArrayBuffer(46)); c.setUint32(0,0x02014b50,true); c.setUint16(4,20,true); c.setUint16(6,20,true); c.setUint16(8,0x0800,true); c.setUint32(16,crc,true); c.setUint32(20,d.length,true); c.setUint32(24,d.length,true); c.setUint16(28,name.length,true); c.setUint32(42,off,true);
+      cen.push(c.buffer,name); off+=30+name.length+d.length; }
+    const cs=cen.reduce((a,x)=>a+(x.byteLength||x.length),0), e=new DataView(new ArrayBuffer(22)); e.setUint32(0,0x06054b50,true); e.setUint16(8,files.length,true); e.setUint16(10,files.length,true); e.setUint32(12,cs,true); e.setUint32(16,off,true);
+    return new Blob(parts.concat(cen,[e.buffer]),{type:'application/zip'}); }
+  b.addEventListener('click',async()=>{ const old=b.textContent; b.disabled=true; b.textContent='Packing...';
+    try{ const recs=await new Promise(res=>{ try{ const q=indexedDB.open('eb_samples',1); q.onupgradeneeded=()=>q.result.createObjectStore('s',{keyPath:'id'}); q.onsuccess=()=>{ const db=q.result, t=db.transaction('s').objectStore('s').getAll(); t.onsuccess=()=>{ db.close(); res(t.result||[]); }; t.onerror=()=>{ db.close(); res([]); }; }; q.onerror=()=>res([]); }catch(e){ res([]); } });
+      if(!recs.length){ toast('No sounds of your own on this device'); return; }
+      let gr={}; try{ gr=JSON.parse(localStorage.getItem('ebdj.smgrp')||'{}')||{}; }catch(e){} const used=new Set(), files=[];
+      for(const r of recs){ if(!r||!r.data) continue; const u=new Uint8Array(r.data), g=gr[r.id]||['Earlier sounds',''], dir=clean(g[0])+(g[1]?'/'+clean(g[1]):'');
+        let base=dir+'/'+clean(r.name), path=base+ext(u), n=2; while(used.has(path.toLowerCase())) path=base+' '+(n++)+ext(u); used.add(path.toLowerCase()); files.push({path,data:u}); }
+      const z=zip(files), nm='Eight Bells my sounds ('+files.length+').zip', url=URL.createObjectURL(z), a=document.createElement('a'); a.href=url; a.download=nm; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),60000);
+      toast('Downloading '+files.length+' sounds ('+Math.round(z.size/1048576)+' MB)'); }
+    catch(e){ console.warn(e); toast('Could not pack the sounds'); }
+    finally{ b.disabled=false; b.textContent=old; } }); })();
 setInterval(render,250);
 })();
 </script>
