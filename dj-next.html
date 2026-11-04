@@ -2425,8 +2425,13 @@ $('nback').addEventListener('click',()=>{ if(CARON&&T()&&T().SG.on&&window.__ebA
 $('nskip').addEventListener('click',()=>{ if(CARON&&T()&&T().SG.on&&window.__ebAll&&window.__ebAll.carSkipRate) window.__ebAll.carSkipRate(); else { $('mkbad').click(); const s=$('sgskip'); if(s&&!s.disabled) s.click(); } toast('Not for me'); });
 $('ndecks').addEventListener('click',()=>{ VIEW='decks'; applyView(); });
 $('viewb').addEventListener('click',()=>{ VIEW=view()==='now'?'decks':'now'; applyView(); });
-document.querySelectorAll('#tabbar [data-nav]').forEach(b=>{ const k=b.dataset.nav; if(k!=='dj'&&k!=='more') b.classList.add('soon');
-  b.addEventListener('click',()=>{ if(k==='dj'){ VIEW='now'; applyView(); } else if(k==='more') openSetup(); else toast('Coming soon'); }); });
+// other tabs live on the Make page; leaving this page stops the DJ, so ask for a second tap while music plays
+const NEXT=/-next\.html$/.test(location.pathname); let leaveT=0, leaveK='';
+document.querySelectorAll('#tabbar [data-nav]').forEach(b=>{ const k=b.dataset.nav;
+  b.addEventListener('click',()=>{ if(k==='dj'){ VIEW='now'; applyView(); return; } if(k==='more'){ openSetup(); return; }
+    const url='make'+(NEXT?'-next':'')+'.html'+(k==='make'?'':'#'+k);
+    if(autoOn()&&!(leaveK===k&&Date.now()-leaveT<4000)){ leaveK=k; leaveT=Date.now(); toast('Music will stop. Tap again'); return; }
+    location.href=url; }); });
 
 // ---- EQ and Filter buttons in the mixer (they show the same knobs as before)
 function addMixButtons(){ const mx=document.querySelector('#console .mixer'); if(!mx||mx.querySelector('.mxb')) return;
