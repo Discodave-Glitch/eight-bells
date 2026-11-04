@@ -310,6 +310,8 @@ html.full #dstrip{display:none}
   body.v-decks #exbar button{min-height:32px;padding:0 12px}
   body.v-decks #app{padding-bottom:max(8px,env(safe-area-inset-bottom))!important;box-sizing:border-box}
 }
+/* no intro: while the decks load, just the logo and a short line (the page opens by itself) */
+#start #go{display:none!important}
 /* tap a part of the song to jump there (Car mode) */
 #nsegs,#dsegs{cursor:pointer;padding:12px 0;margin:-12px 0;box-sizing:content-box;touch-action:manipulation}
 /* Keep this song */
@@ -2712,6 +2714,12 @@ function rotUpd(){ const realLand=window.matchMedia?matchMedia('(orientation: la
   else { MQ.forEach((t,r)=>{ try{ r.media.mediaText=t; }catch(e){} }); MQ.clear(); }
   setFull(FULLPREF,true); }
 rotUpd();
+
+// ---- no intro screen: the DJ opens by itself as soon as both decks are ready (like the other tabs). The example song is not started this way
+// (phones only allow sound after a tap); the first tap on Play starts the music and unlocks Car mode's player as before.
+(function(){ const go=$('go'), st=$('start'); if(!go||!st) return;
+  const auto=()=>{ if(go.disabled||st.hidden) return; const ex=$('exauto'), was=ex?ex.checked:false; if(ex) ex.checked=false; try{ go.click(); }finally{ if(ex) ex.checked=was; } };
+  new MutationObserver(auto).observe(go,{attributes:true,attributeFilter:['disabled']}); auto(); })();
 setInterval(render,250);
 })();
 </script>
