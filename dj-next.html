@@ -429,7 +429,10 @@ html.sim .strip>.chv .vf{writing-mode:horizontal-tb;direction:ltr;height:28px!im
   #dstrip{margin:10px 16px 10px}
   /* Car screen: big picture left, song and three big buttons right */
   #now{flex-direction:row;align-items:center;gap:clamp(16px,4vw,40px);padding:8px clamp(16px,3vw,32px) 12px}
-  .nart{width:min(310px,calc(100dvh - 100px));height:min(310px,calc(100dvh - 100px))}
+  .nart{width:min(300px,calc(var(--ih,100dvh) - 130px));height:min(300px,calc(var(--ih,100dvh) - 130px))}
+  .nkeep button{min-height:40px;padding:0 14px;font-size:14px}
+  /* example song strip: up in the middle of the top bar, so it never covers the song name */
+  body.v-now #exbar{position:fixed;top:calc(env(safe-area-inset-top) + 10px);left:calc(max(16px,env(safe-area-inset-left)) + 96px);margin:0;z-index:12;font-size:14px;white-space:nowrap}
   .ninfo{flex:1;gap:clamp(8px,2.4vh,18px)}
   .nmeta{align-items:flex-start;text-align:left}
   .nsong{font-size:15px}.ngen{font-size:clamp(26px,7vh,40px)}.nsub{font-size:clamp(14px,3.6vh,18px)}
@@ -2586,6 +2589,8 @@ const DOCOK=()=>!document.body.classList.contains('v-now');
 (function(){ const canScroll=el=>{ for(;el&&el!==document.body&&el!==document.documentElement;el=el.parentElement){ const s=getComputedStyle(el); if(/(auto|scroll)/.test(s.overflowY)&&el.scrollHeight>el.clientHeight+1) return true; if(/(auto|scroll)/.test(s.overflowX)&&el.scrollWidth>el.clientWidth+1) return true; } return false; };
   document.addEventListener('touchmove',e=>{ if(DOCOK()||e.touches.length>1) return; const t=e.target; if(t.closest&&t.closest('input,select,textarea')) return; if(!canScroll(t)) e.preventDefault(); },{passive:false});
   addEventListener('scroll',()=>{ if(!DOCOK()&&(scrollY||scrollX)) scrollTo(0,0); },{passive:true}); })();
+// the real visible height, for sizing the sideways Car screen picture
+const setIH=()=>html.style.setProperty('--ih',innerHeight+'px'); setIH(); addEventListener('resize',setIH); addEventListener('orientationchange',()=>setTimeout(setIH,300));
 setInterval(render,250);
 })();
 </script>
