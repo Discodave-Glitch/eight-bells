@@ -894,6 +894,8 @@ html.barhid #barhandle{display:flex}
 /* screens stay put: only lists that are meant to scroll do */
 /* iPhone Home Screen app: a page that is not taller than the screen is laid out one status bar short (gap under the tab bar). One status bar taller makes it use the whole screen, like More; the touch lock below stops the page itself from being dragged. */
 html{min-height:calc(100% + env(safe-area-inset-top))}
+/* the old app's own bottom strip (Generate, Play) sits behind the tab bar; Make and Live have these buttons */
+#minibar{display:none!important}
 html,body{overscroll-behavior:none;overflow-x:hidden;touch-action:pan-x pan-y}
 /* on every tab except More the long old page is folded away, so there is nothing to drag (no overflow:hidden on html: on iPhone Home Screen apps that leaves a gap under the tab bar) */
 html.nlock main{height:0!important;min-height:0!important;overflow:hidden!important;visibility:hidden;margin:0!important;padding:0!important}
