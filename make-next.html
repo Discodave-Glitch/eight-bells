@@ -778,12 +778,12 @@ html.st-lock,html.st-lock body{overflow:hidden}
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style id="ebn">
 /* ===== Eight Bells next: Make home + tab bar. The old app is underneath, unchanged ("More"). ===== */
-:root{--n-bg:#0d1320;--n-s1:#151d2e;--n-s2:#1c2740;--n-line:#2a3652;--n-ink:#eef2f8;--n-mut:#9aa8c0;--n-teal:#4fb3c9;--n-gold:#f0b84a;--n-bad:#e8837a;--n-blue:#4f6bff;--n-tab:76px}
+:root{--n-bg:#0d1320;--n-s1:#151d2e;--n-s2:#1c2740;--n-line:#2a3652;--n-ink:#eef2f8;--n-mut:#9aa8c0;--n-teal:#4fb3c9;--n-gold:#f0b84a;--n-bad:#e8837a;--n-blue:#4f6bff;--n-tab:60px;--n-sb:max(4px,calc(env(safe-area-inset-bottom) - 14px))}
 #mk,#tabbar,#mksheet,#toast{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-text-size-adjust:100%;box-sizing:border-box}
 #mk *,#tabbar *,#mksheet *{box-sizing:border-box}
 #mk button,#tabbar button,#mksheet button,#mksheet input{font-family:inherit}
 /* the Make screen covers the old page */
-#mk{position:fixed;inset:0;bottom:calc(var(--n-tab) + env(safe-area-inset-bottom));z-index:90;background:var(--n-bg);color:var(--n-ink);overflow:auto;padding:env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);overscroll-behavior:contain}
+#mk{position:fixed;inset:0;bottom:calc(var(--n-tab) + var(--n-sb));z-index:90;background:var(--n-bg);color:var(--n-ink);overflow:auto;padding:env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);overscroll-behavior:contain}
 #mk[hidden]{display:none}
 .mkin{max-width:560px;margin:0 auto;padding:0 20px 20px;display:flex;flex-direction:column;gap:16px}
 .mkh{display:flex;align-items:center;gap:10px;padding:16px 0 0}
@@ -822,14 +822,18 @@ html.st-lock,html.st-lock body{overflow:hidden}
 .shc button{min-height:44px;padding:0 16px;border-radius:14px;border:1px solid var(--n-line);background:var(--n-s1);color:var(--n-ink);font-weight:700;font-size:15px;cursor:pointer}
 .shc button[aria-pressed="true"]{background:var(--n-gold);border-color:var(--n-gold);color:#1a1305}
 /* tab bar, on every screen */
-#tabbar{position:fixed;left:0;right:0;bottom:0;z-index:200;height:calc(var(--n-tab) + env(safe-area-inset-bottom));padding:0 6px env(safe-area-inset-bottom);border-top:1px solid var(--n-line);background:#111a2b;display:flex;align-items:stretch}
+#tabbar{position:fixed;left:0;right:0;bottom:0;z-index:200;height:calc(var(--n-tab) + var(--n-sb));padding:0 6px var(--n-sb);border-top:1px solid var(--n-line);background:#111a2b;display:flex;align-items:stretch}
 #tabbar button{flex:1;border:0;border-radius:0;background:transparent;color:var(--n-mut);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:11px;font-weight:700;min-height:44px;padding:0;cursor:pointer}
 #tabbar button[aria-current="page"]{color:var(--n-gold)}
 /* old full-screen views sit above the bar's space */
-.live,.padm,.stagev{bottom:calc(var(--n-tab) + env(safe-area-inset-bottom))!important}
-body{padding-bottom:calc(var(--n-tab) + env(safe-area-inset-bottom))}
+.live,.padm,.stagev{bottom:calc(var(--n-tab) + var(--n-sb))!important}
+body{padding-bottom:calc(var(--n-tab) + var(--n-sb))}
+/* the bar already covers the phone's bottom edge, so no extra gap; let these screens scroll so nothing is hidden */
+.live,.padm,.stagev{padding-bottom:8px!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+html.lv-lock,html.lv-lock body{overflow:visible!important}
+@media (orientation:portrait){ .live .lv-in{flex:none} .live .lv-in>*{flex-shrink:0} .live .lv-trkw{flex:none} .live .lv-trks{flex:none;min-height:0;max-height:none} .live .lv-fxw{flex:none} .padm>*{flex-shrink:0} }
 @media (orientation:landscape) and (max-height:560px){ :root{--n-tab:56px} #tabbar button{flex-direction:row;gap:8px;font-size:13px} }
-#toast{position:fixed;left:50%;bottom:calc(var(--n-tab) + 20px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:260;background:var(--n-s2);color:var(--n-ink);border:1px solid var(--n-line);border-radius:22px;padding:12px 20px;font-weight:700;font-size:15px;opacity:0;pointer-events:none;transition:opacity .2s}
+#toast{position:fixed;left:50%;bottom:calc(var(--n-tab) + 20px + var(--n-sb));transform:translateX(-50%);z-index:260;background:var(--n-s2);color:var(--n-ink);border:1px solid var(--n-line);border-radius:22px;padding:12px 20px;font-weight:700;font-size:15px;opacity:0;pointer-events:none;transition:opacity .2s}
 #toast.on{opacity:1}
 /* ===== the old screens (More, Live, Pads, Stage) in the new colours and font ===== */
 :root,:root[data-theme="light"],:root[data-theme="dark"]{--bg:#0d1320!important;--surface:#151d2e!important;--ink:#eef2f8!important;--muted:#9aa8c0!important;--line:#2a3652!important;--cell:#1c2740!important;--accent:#f0b84a!important;--accent-ink:#1a1305!important;

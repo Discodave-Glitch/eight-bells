@@ -215,7 +215,7 @@ body.nolbl .bt{display:none}
 <style id="ebn">
 /* ===== Eight Bells next: new look (navy, big buttons). Layout only: every old control is still in the page. ===== */
 :root{--bg:#0d1320;--panel:#151d2e;--panel2:#1c2740;--line:#2a3652;--ink:#eef2f8;--muted:#9aa8c0;--a:#4fb3c9;--b:#f0b84a;--bad:#e8837a;--disp:#0d1320;--kbg:#0d1320;
-  --n-bg:#0d1320;--n-s1:#151d2e;--n-s2:#1c2740;--n-line:#2a3652;--n-ink:#eef2f8;--n-mut:#9aa8c0;--n-teal:#4fb3c9;--n-gold:#f0b84a;--n-bad:#e8837a;--n-rec:#e5584f;--n-tab:76px}
+  --n-bg:#0d1320;--n-s1:#151d2e;--n-s2:#1c2740;--n-line:#2a3652;--n-ink:#eef2f8;--n-mut:#9aa8c0;--n-teal:#4fb3c9;--n-gold:#f0b84a;--n-bad:#e8837a;--n-rec:#e5584f;--n-tab:60px;--n-sb:max(4px,calc(env(safe-area-inset-bottom) - 14px))}
 html,body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
 body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)!important;background:var(--n-bg)}
 button{border-radius:14px}
@@ -252,6 +252,7 @@ body.v-now #mkgood,body.v-now #mkbad{display:none}
 #now{flex:1;display:flex;flex-direction:column;gap:16px;padding:8px 20px 12px;min-height:0}
 .nart{align-self:center;width:240px;height:240px;border-radius:32px;background:#2b7f95;display:flex;align-items:center;justify-content:center;flex:none;overflow:hidden;--c:var(--n-gold)}
 .nart svg{width:82%;height:82%;display:block}
+@media (orientation:portrait){ .nart{width:clamp(150px,calc(100dvh - 560px - env(safe-area-inset-top) - env(safe-area-inset-bottom)),240px);height:auto;aspect-ratio:1} #now{overflow-y:auto} }
 .nart .spin{transform-box:view-box;transform-origin:50% 50%;animation:spin var(--spin,2s) linear infinite;animation-play-state:paused}
 .nart .hr{transform-box:view-box;transform-origin:50% 50%;animation:spin calc(var(--spin,2s)*12) steps(12,end) infinite;animation-play-state:paused}
 .nart .rock{transform-box:view-box;transform-origin:50% 34%;animation:rock calc(var(--spin,2s)/4) ease-in-out infinite alternate;animation-play-state:paused}
@@ -292,13 +293,13 @@ body.v-now #mkgood,body.v-now #mkbad{display:none}
 #dstrip .ssbar i.past{background:var(--n-line)}#dstrip .ssbar i.cur{background:var(--n-teal)}
 html.full #dstrip{display:none}
 /* bottom tab bar (phone upright) */
-#tabbar{position:fixed;left:0;right:0;bottom:0;z-index:18;height:calc(var(--n-tab) + env(safe-area-inset-bottom));padding:0 6px env(safe-area-inset-bottom);border-top:1px solid var(--n-line);background:#111a2b;display:flex;align-items:stretch}
+#tabbar{position:fixed;left:0;right:0;bottom:0;z-index:18;height:calc(var(--n-tab) + var(--n-sb));padding:0 6px var(--n-sb);border-top:1px solid var(--n-line);background:#111a2b;display:flex;align-items:stretch}
 #tabbar button{flex:1;border:0;border-radius:0;background:transparent;color:var(--n-mut);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:11px;font-weight:700;min-height:44px;padding:0}
 #tabbar button[aria-current="page"]{color:var(--n-gold)}
 #tabbar button.soon{opacity:.55}
 body:has(#app[hidden]) #tabbar{display:none}
-@media (orientation:portrait),(max-width:559px){ #app{padding-bottom:calc(var(--n-tab) + 8px)} #tagbar{bottom:calc(var(--n-tab) + 8px + env(safe-area-inset-bottom))} body.v-now #viewb{display:none} }
-#toast{position:fixed;left:50%;bottom:calc(var(--n-tab) + 20px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:60;background:var(--n-s2);color:var(--n-ink);border:1px solid var(--n-line);border-radius:22px;padding:12px 20px;font-weight:700;font-size:15px;opacity:0;pointer-events:none;transition:opacity .2s}
+@media (orientation:portrait),(max-width:559px){ #app{padding-bottom:calc(var(--n-tab) + 16px + var(--n-sb))} #tagbar{bottom:calc(var(--n-tab) + 8px + var(--n-sb))} body.v-now #viewb{display:none} }
+#toast{position:fixed;left:50%;bottom:calc(var(--n-tab) + 20px + var(--n-sb));transform:translateX(-50%);z-index:60;background:var(--n-s2);color:var(--n-ink);border:1px solid var(--n-line);border-radius:22px;padding:12px 20px;font-weight:700;font-size:15px;opacity:0;pointer-events:none;transition:opacity .2s}
 #toast.on{opacity:1}
 /* setup sheet */
 #setup{position:fixed;inset:0;z-index:30;background:var(--n-bg);overflow:auto;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);overscroll-behavior:contain}
