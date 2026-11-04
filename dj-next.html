@@ -343,7 +343,12 @@ html,body{overscroll-behavior:none;overflow-x:hidden;touch-action:pan-x pan-y}
 #app{box-sizing:border-box;min-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom))}
 body.v-now #app{height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom))!important;min-height:0}
 body:has(#app[hidden]) #tabbar{display:none}
-@media (orientation:portrait),(max-width:559px){ #app{padding-bottom:calc(var(--n-bh) + 8px)} #tagbar{bottom:calc(var(--n-bh) + 8px)} body.v-now #viewb{display:none} }
+@media (orientation:portrait),(max-width:559px){ #app{padding-bottom:calc(var(--n-bh) + 8px)} #tagbar{bottom:calc(var(--n-bh) + 8px)} }
+@media (max-width:420px){ body.v-now .top .brand h1{display:none} }
+/* phone upright (or rotation locked): the full decks are drawn turned on their side across the whole screen; turn the phone to use them */
+html.rot body{overflow:hidden}
+html.rot #app{position:fixed!important;top:0!important;left:0!important;width:var(--rw)!important;height:var(--rh)!important;min-height:0!important;max-width:none!important;margin:0!important;transform-origin:0 0;transform:translateX(var(--rh)) rotate(90deg);overflow:auto;padding:0 max(8px,env(safe-area-inset-bottom)) 0 max(8px,env(safe-area-inset-top))!important;box-sizing:border-box;z-index:5}
+html.rot #tabbar,html.rot #barhandle{display:none!important}
 #toast{position:fixed;left:50%;bottom:calc(var(--n-bh) + 20px);transform:translateX(-50%);z-index:60;background:var(--n-s2);color:var(--n-ink);border:1px solid var(--n-line);border-radius:22px;padding:12px 20px;font-weight:700;font-size:15px;opacity:0;pointer-events:none;transition:opacity .2s}
 #toast.on{opacity:1}
 /* setup sheet */
@@ -2419,7 +2424,7 @@ const amp=x=>String(x||'').replace(/&amp;/g,'&');
 const store=(k,v)=>{ try{ if(v===undefined) return localStorage.getItem(k); localStorage.setItem(k,v); }catch(e){ return null; } };
 // simple decks unless Full decks is on
 let FULLPREF=store('ebn.fulldecks')!=='0'; // new name: the old 'ebn.full' was saved as off on every visit
-const setFull=(on,keep)=>{ if(!keep){ FULLPREF=on; store('ebn.fulldecks',on?'1':'0'); } const f=FULLPREF&&(window.matchMedia?matchMedia('(orientation: landscape)').matches:innerWidth>innerHeight); html.classList.toggle('full',f); html.classList.toggle('sim',!f); }; // full decks only sideways (made for it); upright uses the simple cards
+const setFull=(on,keep)=>{ if(!keep){ FULLPREF=on; store('ebn.fulldecks',on?'1':'0'); } const f=FULLPREF&&(!!window.__ebRot||(window.matchMedia?matchMedia('(orientation: landscape)').matches:innerWidth>innerHeight)); html.classList.toggle('full',f); html.classList.toggle('sim',!f); }; // full decks only sideways (made for it); upright uses the simple cards
 setFull(FULLPREF,true);
 // iPhone reports the new size a moment after turning: check again a few times
 const fullSoon=()=>{ setFull(FULLPREF,true); [120,400,900].forEach(t=>setTimeout(()=>setFull(FULLPREF,true),t)); };
@@ -2429,7 +2434,7 @@ let VIEW=null;
 const land=()=>innerWidth>innerHeight&&innerWidth>=560;
 const view=()=>VIEW||(land()?(CARON?'now':'decks'):'now');
 function applyView(){ const v=view(); document.body.classList.toggle('v-now',v==='now'); document.body.classList.toggle('v-decks',v==='decks');
-  const b=$('viewb'); if(b) b.setAttribute('aria-label',v==='now'?'Open decks':'Big buttons'); }
+  const b=$('viewb'); if(b) b.setAttribute('aria-label',v==='now'?'Open decks':'Big buttons'); try{ rotUpd(); }catch(e){} }
 let lastLand=land(); const reView=()=>{ const l=land(); if(l!==lastLand){ lastLand=l; if(VIEW!=='decks') VIEW=null; } applyView(); }; addEventListener('resize',()=>{ reView(); [120,400,900].forEach(t=>setTimeout(reView,t)); });
 applyView();
 const toast=t=>{ const e=$('toast'); e.textContent=t; e.classList.add('on'); clearTimeout(toast.t); toast.t=setTimeout(()=>e.classList.remove('on'),1800); };
@@ -2628,6 +2633,31 @@ function carSeekPart(pred,label){ const t=T(), car=C(); if(!(CARON&&t&&t.SG.on&&
 const SECK=[['intro','Intro'],['bld','Build-up'],['drop','Drop'],['chorus','Chorus'],['brk','Break'],['bridge','Bridge'],['half','Half'],['outro','Outro']], SECMAP={intro:'intro',build:'bld',drop:'drop',chorus:'chorus','break':'brk',bridge:'bridge',outro:'outro'}; // same as the deck buttons' list (SECS) and the song-part map (SGSECMAP) in the old script
 document.addEventListener('click',e=>{ const b=e.target.closest&&e.target.closest('[data-a="sec"]'); if(!b||!CARON) return; const t=T(); if(!(t&&t.SG.on)) return; const s=SECK[+b.dataset.k]; if(!s) return;
   e.stopPropagation(); e.preventDefault(); carSeekPart(x=>SECMAP[x.type]===s[0],s[1]); },true);
+
+// ---- full decks turned on their side when the phone is upright (works with rotation lock on). The page's sideways layout rules are switched on by rewriting each @media rule as if the screen were sideways; turning the phone for real puts everything back.
+const MQ=new Map();
+function mqTrue(txt,w,h){ return String(txt).split(',').some(part=>{ part=part.trim(); if(!part) return false; let neg=false; if(/^not\s/i.test(part)){ neg=true; part=part.replace(/^not\s+/i,''); }
+  const ok=part.split(/\s+and\s+/i).every(f=>{ f=f.trim(); if(/^(all|screen)$/i.test(f)) return true; if(/^print$/i.test(f)) return false;
+    const m=f.match(/^\((min|max)-(width|height)\s*:\s*([\d.]+)px\)$/); if(m){ const v=m[2]==='width'?w:h, n=+m[3]; return m[1]==='min'?v>=n:v<=n; }
+    const o=f.match(/^\(orientation\s*:\s*(landscape|portrait)\)$/); if(o) return (w>h)===(o[1]==='landscape');
+    try{ return matchMedia(f).matches; }catch(e){ return false; } }); return neg?!ok:ok; }); }
+function mqRules(){ const out=[]; for(const ss of document.styleSheets){ let rs; try{ rs=ss.cssRules; }catch(e){ continue; } const walk=l=>{ for(const r of l){ if(r.type===4){ out.push(r); walk(r.cssRules); } } }; walk(rs); } return out; }
+const VU=new Map(); // sizes based on the screen's width / height are swapped while the decks are turned
+const vuSwap=v=>v.replace(/(\d)vw\b/g,'$1@@').replace(/(\d)[dsl]?vh\b/g,'$1vw').replace(/(\d)@@/g,'$1vh');
+function vuRules(on){ if(!on){ VU.forEach((list,st)=>list.forEach(([k,v,pr])=>{ try{ st.setProperty(k,v,pr); }catch(e){} })); VU.clear(); return; }
+  for(const ss of document.styleSheets){ let rs; try{ rs=ss.cssRules; }catch(e){ continue; } const walk=l=>{ for(const r of l){ if(r.cssRules&&r.type!==1) walk(r.cssRules); if(r.type!==1) continue; const st=r.style, list=[];
+    for(let i=0;i<st.length;i++){ const k=st[i], v=st.getPropertyValue(k); if(/\d[dsl]?v[wh]\b/.test(v)) list.push([k,v,st.getPropertyPriority(k)]); }
+    if(list.length){ VU.set(st,list); list.forEach(([k,v,pr])=>st.setProperty(k,vuSwap(v),pr)); } } }; walk(rs); } }
+function rotSize(){ html.style.setProperty('--rw',innerHeight+'px'); html.style.setProperty('--rh',innerWidth+'px'); }
+function rotUpd(){ const realLand=window.matchMedia?matchMedia('(orientation: landscape)').matches:innerWidth>innerHeight;
+  const want=document.body.classList.contains('v-decks')&&!realLand&&FULLPREF;
+  if(want) rotSize();
+  if(want===!!window.__ebRot){ if(want) mqRules().forEach(r=>{ if(MQ.has(r)) r.media.mediaText=mqTrue(MQ.get(r),innerHeight,innerWidth)?'all':'not all'; }); return; }
+  window.__ebRot=want; html.classList.toggle('rot',want); vuRules(want);
+  if(want) mqRules().forEach(r=>{ if(!MQ.has(r)) MQ.set(r,r.media.mediaText); r.media.mediaText=mqTrue(MQ.get(r),innerHeight,innerWidth)?'all':'not all'; });
+  else { MQ.forEach((t,r)=>{ try{ r.media.mediaText=t; }catch(e){} }); MQ.clear(); }
+  setFull(FULLPREF,true); }
+rotUpd();
 setInterval(render,250);
 })();
 </script>
