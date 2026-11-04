@@ -2473,6 +2473,7 @@ function drawStrip(pre,inf){
   const tot=inf.pl.total||S[S.length-1].b1;
   return {cur:SECN[S[cur].type]||'',next:S[cur+1]?(SECN[S[cur+1].type]||''):'',bar:Math.min(tot,Math.floor(bi)+1),tot};
 }
+const timeLeft=(inf,st)=>{ try{ const sec=Math.max(0,(st.tot-Math.max(0,inf.bar))*inf.pl.barSec); if(!isFinite(sec)) return ''; const m=Math.floor(sec/60), r=Math.floor(sec%60); return ' · '+m+':'+String(r).padStart(2,'0')+' left'; }catch(e){ return ''; } }; // time left in the song playing now
 const txt=(id,v)=>{ const e=$(id); if(e&&e.textContent!==v) e.textContent=v; };
 let artKey='', tick=0;
 function render(){
@@ -2481,7 +2482,7 @@ function render(){
   // now screen
   if(inf&&!inf.synth){ const st=drawStrip('n',inf);
     txt('nsong','Song '+inf.no); txt('ngen',amp(inf.pl.g.name)); txt('nsub',inf.bpm+' BPM'+(st&&st.cur?' · '+st.cur:''));
-    txt('nl',st?'Bar '+st.bar+' of '+st.tot:''); txt('nr',st&&st.next?'Next: '+st.next:'');
+    txt('nl',st?'Bar '+st.bar+' of '+st.tot+timeLeft(inf,st):''); txt('nr',st&&st.next?'Next: '+st.next:'');
     txt('nup',inf.next?amp(inf.next.g.name)+' · '+Math.round(inf.next.T)+' BPM':(busy?'Making it...':'Making it...'));
   } else if(inf&&inf.synth){ drawStrip('n',null); txt('nsong','Synth'); txt('ngen',inf.genre||'Eight Bells'); txt('nsub',inf.bpm?inf.bpm+' BPM':''); txt('nl',inf.line); txt('nr',''); txt('nup',inf.nextLine?inf.nextLine.replace(/^Next:\s*/,''):'-'); }
   else { drawStrip('n',null); txt('nsong','Auto DJ'); txt('ngen',busy?'Making songs...':'Ready'); txt('nsub',busy?'One moment':'Press play'); txt('nl',''); txt('nr',''); txt('nup','-'); }
@@ -2494,7 +2495,7 @@ function render(){
     if(dk) $('nart').style.setProperty('--spin',dk.style.getPropertyValue('--spin')||'2s'); }
   $('nart').classList.toggle('playing',on&&playing);
   // strip under the decks
-  if(inf&&!inf.synth){ const st=drawStrip('d',inf); txt('dl','Song '+inf.no+' · '+amp(inf.pl.g.name)); txt('dr',st?'Bar '+st.bar+' of '+st.tot+(st.next?' · Next: '+st.next:''):''); }
+  if(inf&&!inf.synth){ const st=drawStrip('d',inf); txt('dl','Song '+inf.no+' · '+amp(inf.pl.g.name)); txt('dr',st?'Bar '+st.bar+' of '+st.tot+timeLeft(inf,st)+(st.next?' · Next: '+st.next:''):''); }
   else if(inf&&inf.synth){ drawStrip('d',null); txt('dl',inf.line); txt('dr',inf.nextLine); }
   else { drawStrip('d',null); txt('dl',busy?'Making songs...':'Auto DJ is off'); txt('dr',''); }
 }
