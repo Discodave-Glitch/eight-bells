@@ -7,6 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Bells Next">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0d1320">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -327,6 +328,8 @@ html.barhid #tabbar{transform:translateY(105%);pointer-events:none}
 html.barhid #barhandle{display:flex}
 body:has(#app[hidden]) #barhandle{display:none!important}
 /* screens stay put: only things meant to scroll scroll */
+/* iPhone Home Screen app: a page that is not taller than the screen is laid out one status bar short (gap under the tab bar). One status bar taller makes it use the whole screen, like More; the touch lock below stops the page itself from being dragged. */
+html{min-height:calc(100% + env(safe-area-inset-top))}
 html,body{overscroll-behavior:none;overflow-x:hidden;touch-action:pan-x pan-y}
 #app{box-sizing:border-box;min-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom))}
 body.v-now #app{height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom))!important;min-height:0}
@@ -2578,6 +2581,11 @@ $('nkept').addEventListener('click',()=>{ $('keptsh').hidden=false; kRender(); $
 const keptClose=()=>{ kStop(); $('keptsh').hidden=true; };
 $('keptx').addEventListener('click',keptClose);
 addEventListener('keydown',e=>{ if(e.key==='Escape'&&!$('keptsh').hidden) keptClose(); });
+const DOCOK=()=>!document.body.classList.contains('v-now');
+// the page itself never moves: a swipe only scrolls a list or menu that really has more to show (or the long More page)
+(function(){ const canScroll=el=>{ for(;el&&el!==document.body&&el!==document.documentElement;el=el.parentElement){ const s=getComputedStyle(el); if(/(auto|scroll)/.test(s.overflowY)&&el.scrollHeight>el.clientHeight+1) return true; if(/(auto|scroll)/.test(s.overflowX)&&el.scrollWidth>el.clientWidth+1) return true; } return false; };
+  document.addEventListener('touchmove',e=>{ if(DOCOK()||e.touches.length>1) return; const t=e.target; if(t.closest&&t.closest('input,select,textarea')) return; if(!canScroll(t)) e.preventDefault(); },{passive:false});
+  addEventListener('scroll',()=>{ if(!DOCOK()&&(scrollY||scrollX)) scrollTo(0,0); },{passive:true}); })();
 setInterval(render,250);
 })();
 </script>

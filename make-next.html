@@ -769,6 +769,7 @@ html.st-lock,html.st-lock body{overflow:hidden}
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Bells Next">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0d1320">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta name="theme-color" content="#2f7f95">
@@ -891,6 +892,8 @@ html.barhid #tabbar{transform:translateY(105%);pointer-events:none}
 #barhandle i{display:flex;align-items:center;justify-content:center;width:64px;height:28px;border-radius:14px;background:#1c2740;border:1px solid #2a3652;color:#9aa8c0}
 html.barhid #barhandle{display:flex}
 /* screens stay put: only lists that are meant to scroll do */
+/* iPhone Home Screen app: a page that is not taller than the screen is laid out one status bar short (gap under the tab bar). One status bar taller makes it use the whole screen, like More; the touch lock below stops the page itself from being dragged. */
+html{min-height:calc(100% + env(safe-area-inset-top))}
 html,body{overscroll-behavior:none;overflow-x:hidden;touch-action:pan-x pan-y}
 /* on every tab except More the long old page is folded away, so there is nothing to drag (no overflow:hidden on html: on iPhone Home Screen apps that leaves a gap under the tab bar) */
 html.nlock main{height:0!important;min-height:0!important;overflow:hidden!important;visibility:hidden;margin:0!important;padding:0!important}
@@ -19045,6 +19048,11 @@ hb.innerHTML='<i><svg width="20" height="20" viewBox="0 0 24 24" fill="none" str
 document.body.appendChild(hb);
 let barT=0; function barShow(){ document.documentElement.classList.remove('barhid'); clearTimeout(barT); barT=setTimeout(()=>document.documentElement.classList.add('barhid'),4000); }
 hb.addEventListener('click',barShow); $('tabbar').addEventListener('pointerdown',barShow);
+const DOCOK=()=>TAB==='more';
+// the page itself never moves: a swipe only scrolls a list or menu that really has more to show (or the long More page)
+(function(){ const canScroll=el=>{ for(;el&&el!==document.body&&el!==document.documentElement;el=el.parentElement){ const s=getComputedStyle(el); if(/(auto|scroll)/.test(s.overflowY)&&el.scrollHeight>el.clientHeight+1) return true; if(/(auto|scroll)/.test(s.overflowX)&&el.scrollWidth>el.clientWidth+1) return true; } return false; };
+  document.addEventListener('touchmove',e=>{ if(DOCOK()||e.touches.length>1) return; const t=e.target; if(t.closest&&t.closest('input,select,textarea')) return; if(!canScroll(t)) e.preventDefault(); },{passive:false});
+  addEventListener('scroll',()=>{ if(!DOCOK()&&(scrollY||scrollX)) scrollTo(0,0); },{passive:true}); })();
 // the Now card and tiles follow the app
 const tx=(id,v)=>{ const e=$(id); if(e&&e.textContent!==v) e.textContent=v; };
 const engName=()=>{ try{ return (ENGINES.find(e=>e.id===(state.engine||'euclid'))||{}).name||''; }catch(e){ return ''; } };
