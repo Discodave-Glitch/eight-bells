@@ -312,6 +312,15 @@ html.full #dstrip{display:none}
 }
 /* no intro: while the decks load, just the logo and a short line (the page opens by itself) */
 #start #go{display:none!important}
+/* while the decks load, the DJ screen itself shows (top bar, picture, "Getting ready") with the tab bar, so opening DJ feels like the other tabs */
+#start{justify-content:flex-start!important;gap:16px!important;padding:calc(env(safe-area-inset-top) + 14px) 20px 20px!important;bottom:var(--n-bh)!important}
+#start .sktop{align-self:stretch;display:flex;align-items:center;gap:10px;min-height:52px}
+#start .sktop b{font-size:22px;font-weight:800;color:var(--n-ink)}
+@media (max-width:420px){ #start .sktop b{display:none} }
+#start .skart{background:#2b7f95;padding:6%;box-sizing:border-box}
+#start .skart svg{animation:skp 1.6s ease-in-out infinite}
+@keyframes skp{50%{opacity:.6;transform:scale(.96)}}
+@media (orientation:landscape) and (max-height:560px){ #start .skart{width:min(240px,calc(var(--ih,100dvh) - 150px));height:auto;aspect-ratio:1} }
 /* tap a part of the song to jump there (Car mode) */
 #nsegs,#dsegs{cursor:pointer;padding:12px 0;margin:-12px 0;box-sizing:content-box;touch-action:manipulation}
 /* Keep this song */
@@ -350,7 +359,7 @@ html{min-height:calc(100% + env(safe-area-inset-top))}
 html,body{overscroll-behavior:none;overflow-x:hidden;touch-action:pan-x pan-y}
 #app{box-sizing:border-box;min-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom))}
 body.v-now #app{height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom))!important;min-height:0}
-body:has(#app[hidden]) #tabbar{display:none}
+body:has(#app[hidden]):not(:has(#start:not([hidden]))) #tabbar{display:none}
 @media (orientation:portrait),(max-width:559px){ #app{padding-bottom:calc(var(--n-bh) + 8px)} #tagbar{bottom:calc(var(--n-bh) + 8px)} }
 @media (max-width:420px){ body.v-now .top .brand h1{display:none} }
 /* phone upright (or rotation locked): the full decks are drawn turned on their side across the whole screen; turn the phone to use them */
@@ -477,11 +486,10 @@ html.full .mxb{display:none}
 </head>
 <body>
 <div id="start">
-  <svg class="logo" width="96" height="96" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="44" fill="#2b7f95" stroke="#f0b84a" stroke-width="6"/><path d="M50 22c-9 0-15 7-15 17v12l-7 9h44l-7-9V39c0-10-6-17-15-17z" fill="#fbf3df"/><circle cx="50" cy="71" r="5" fill="#fbf3df"/></svg>
-  <h1>Eight Bells DJ</h1>
-  <p>Two decks that mix songs on their own.</p>
+  <div class="sktop"><svg class="logo" width="34" height="34" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="44" fill="#2b7f95" stroke="#f0b84a" stroke-width="6"/><path d="M50 22c-9 0-15 7-15 17v12l-7 9h44l-7-9V39c0-10-6-17-15-17z" fill="#fbf3df"/><circle cx="50" cy="71" r="5" fill="#fbf3df"/></svg><b>DJ</b></div>
+  <div class="nart skart"><svg width="100%" height="100%" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="44" fill="#2b7f95" stroke="#f0b84a" stroke-width="6"/><path d="M50 22c-9 0-15 7-15 17v12l-7 9h44l-7-9V39c0-10-6-17-15-17z" fill="#fbf3df"/><circle cx="50" cy="71" r="5" fill="#fbf3df"/></svg></div>
+  <div class="nmeta"><span class="nsong">AUTO DJ</span><span class="ngen">Getting ready</span><span class="nsub" id="loadmsg">Loading...</span></div>
   <button id="go" disabled>Loading decks...</button>
-  <p id="loadmsg">Loading...</p>
 </div>
 
 <div id="app" hidden>
