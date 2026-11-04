@@ -3053,7 +3053,8 @@ function vuRules(on){ if(!on){ VU.forEach((list,st)=>list.forEach(([k,v,pr])=>{ 
     if(list.length){ VU.set(st,list); list.forEach(([k,v,pr])=>st.setProperty(k,vuSwap(v),pr)); } } }; walk(rs); } }
 function rotSize(){ html.style.setProperty('--rw',innerHeight+'px'); html.style.setProperty('--rh',innerWidth+'px'); }
 function rotUpd(){ const realLand=window.matchMedia?matchMedia('(orientation: landscape)').matches:innerWidth>innerHeight;
-  const want=document.body.classList.contains('v-decks')&&!realLand&&FULLPREF;
+  const touch=!!(window.matchMedia&&matchMedia('(hover: none) and (pointer: coarse)').matches); // phones and tablets only: a computer never turns the decks
+  const want=touch&&document.body.classList.contains('v-decks')&&!realLand&&FULLPREF;
   if(want) rotSize();
   if(want===!!window.__ebRot){ if(want) mqRules().forEach(r=>{ if(MQ.has(r)) r.media.mediaText=mqTrue(MQ.get(r),innerHeight,innerWidth)?'all':'not all'; }); return; }
   window.__ebRot=want; html.classList.toggle('rot',want); vuRules(want);
