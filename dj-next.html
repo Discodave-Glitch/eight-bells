@@ -297,6 +297,13 @@ html.full #dstrip{display:none}
 #tabbar button{flex:1;border:0;border-radius:0;background:transparent;color:var(--n-mut);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:11px;font-weight:700;min-height:44px;padding:0}
 #tabbar button[aria-current="page"]{color:var(--n-gold)}
 #tabbar button.soon{opacity:.55}
+/* upright phone, simple decks: the mixer is one slim line between the two decks (EQ, Filter | crossfader | Rec), so the screen is just two decks */
+@media (orientation:portrait),(max-width:559px){
+  html.sim #console .mixer{flex-wrap:nowrap!important;align-items:center!important;gap:8px!important;padding:0!important;margin:0!important;background:none!important;border:0!important;min-height:0!important}
+  html.sim #console .mixer .mxb{order:0;flex:none;gap:6px} html.sim #console .mixer .mxb button{min-width:44px;padding:0 10px}
+  html.sim #console .mixer .xfw{order:1;flex:1 1 auto;min-width:0}
+  html.sim #console .mixer .mvr{order:2;flex:none} html.sim #console .mixer .recb{padding:0 12px;min-width:0}
+}
 /* tap a part of the song to jump there (Car mode) */
 #nsegs,#dsegs{cursor:pointer;padding:12px 0;margin:-12px 0;box-sizing:content-box;touch-action:manipulation}
 /* Keep this song */
