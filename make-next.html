@@ -830,7 +830,7 @@ html.st-lock,html.st-lock body{overflow:hidden}
 body{padding-bottom:var(--n-bh)}
 /* the bar already covers the phone's bottom edge, so no extra gap; let these screens scroll so nothing is hidden */
 .live,.padm,.stagev{padding-bottom:8px!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
-html.lv-lock,html.lv-lock body{overflow:visible!important}
+html.lv-lock,html.lv-lock body,html.st-lock,html.st-lock body{overflow:visible!important}
 @media (orientation:portrait){ .live .lv-in{flex:none} .live .lv-in>*{flex-shrink:0} .live .lv-trkw{flex:none} .live .lv-trks{flex:none;min-height:0;max-height:none} .live .lv-fxw{flex:none} .padm>*{flex-shrink:0} }
 @media (orientation:landscape) and (max-height:560px){ :root{--n-tab:56px} #tabbar button{flex-direction:row;gap:8px;font-size:13px} }
 #toast{position:fixed;left:50%;bottom:calc(var(--n-bh) + 20px);transform:translateX(-50%);z-index:260;background:var(--n-s2);color:var(--n-ink);border:1px solid var(--n-line);border-radius:22px;padding:12px 20px;font-weight:700;font-size:15px;opacity:0;pointer-events:none;transition:opacity .2s}
@@ -881,7 +881,9 @@ html.barhid #tabbar{transform:translateY(105%);pointer-events:none}
 html.barhid #barhandle{display:flex}
 /* screens stay put: only lists that are meant to scroll do */
 html,body{overscroll-behavior:none;overflow-x:hidden;touch-action:pan-x pan-y}
-html.nlock,html.nlock body{overflow:hidden!important;height:100%}
+/* on every tab except More the long old page is folded away, so there is nothing to drag (no overflow:hidden on html: on iPhone Home Screen apps that leaves a gap under the tab bar) */
+html.nlock main{height:0!important;min-height:0!important;overflow:hidden!important;visibility:hidden;margin:0!important;padding:0!important}
+html.nlock body{padding-bottom:0!important}
 #mk,.live,.padm,.stagev{overflow-x:hidden!important;overscroll-behavior:contain}
 </style>
 </head>

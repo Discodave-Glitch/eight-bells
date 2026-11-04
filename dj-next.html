@@ -330,7 +330,6 @@ body:has(#app[hidden]) #barhandle{display:none!important}
 /* screens stay put: only things meant to scroll scroll */
 html,body{overscroll-behavior:none;overflow-x:hidden;touch-action:pan-x pan-y}
 #app{box-sizing:border-box;min-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom))}
-html:has(body.v-now),body.v-now{overflow:hidden;height:100%}
 body.v-now #app{height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom))!important;min-height:0}
 body:has(#app[hidden]) #tabbar{display:none}
 @media (orientation:portrait),(max-width:559px){ #app{padding-bottom:calc(var(--n-bh) + 8px)} #tagbar{bottom:calc(var(--n-bh) + 8px)} body.v-now #viewb{display:none} }
