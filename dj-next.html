@@ -341,7 +341,7 @@ html:not(.help) #morebox .lt{display:none!important}
   body.v-decks .top #auto{min-height:38px!important;height:38px!important;font-size:15px!important}
   body.v-decks .top .ib,body.v-decks .top button.ib{width:38px!important;height:38px!important;min-height:38px!important}
   body.v-decks .top .brand svg{width:28px;height:28px} body.v-decks .top .brand h1{font-size:18px}
-  body.v-decks #app{height:var(--ih,100dvh)!important;min-height:0!important;overflow:hidden!important;box-sizing:border-box;padding-top:max(4px,env(safe-area-inset-top))!important}
+  html body.v-decks{padding-bottom:0!important;padding-top:0!important} body.v-decks #app{height:var(--ih,100dvh)!important;min-height:0!important;overflow:hidden!important;box-sizing:border-box;padding-top:2px!important;padding-bottom:max(6px,calc(env(safe-area-inset-bottom) - 12px))!important}
   body.v-decks #console{flex:1 1 auto!important;min-height:0!important}
 }
 html.rot body.v-decks #app{overflow:hidden!important;height:var(--rh)!important;width:var(--rw)!important}
@@ -389,7 +389,7 @@ body:has(#app[hidden]):not(:has(#start:not([hidden]))) #tabbar{display:none}
 @media (max-width:420px){ body.v-now .top .brand h1{display:none} }
 /* phone upright (or rotation locked): the full decks are drawn turned on their side across the whole screen; turn the phone to use them */
 html.rot body{overflow:hidden}
-html.rot #app{position:fixed!important;top:0!important;left:0!important;width:var(--rw)!important;height:var(--rh)!important;min-height:0!important;max-width:none!important;margin:0!important;transform-origin:0 0;transform:translateX(var(--rh)) rotate(90deg);overflow:auto;padding:0 max(8px,env(safe-area-inset-bottom)) 0 max(8px,env(safe-area-inset-top))!important;box-sizing:border-box;z-index:5}
+html.rot #app{position:fixed!important;top:0!important;left:0!important;width:var(--rw)!important;height:var(--rh)!important;min-height:0!important;max-width:none!important;margin:0!important;transform-origin:0 0;transform:translateX(var(--rh)) rotate(90deg);overflow:auto;padding:2px max(8px,env(safe-area-inset-top)) max(6px,calc(env(safe-area-inset-bottom) - 12px)) max(8px,env(safe-area-inset-top))!important;box-sizing:border-box;z-index:5}
 html.rot #tabbar,html.rot #barhandle{display:none!important}
 #toast{position:fixed;left:50%;bottom:calc(var(--n-bh) + 20px);transform:translateX(-50%);z-index:60;background:var(--n-s2);color:var(--n-ink);border:1px solid var(--n-line);border-radius:22px;padding:12px 20px;font-weight:700;font-size:15px;opacity:0;pointer-events:none;transition:opacity .2s}
 #toast.on{opacity:1}
