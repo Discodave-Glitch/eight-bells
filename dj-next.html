@@ -899,8 +899,13 @@ const PK={man:null,loading:null,on:null,ready:new Map(),order:[],pend:new Set(),
 function pkOn(){ if(!PK.on){ let o=null; try{ o=JSON.parse(localStorage.getItem('ebdj.pack')||'null'); }catch(e){} PK.on=o||{}; } return PK.on; }
 const pkGroupOn=g=>{ const o=pkOn(); return o[g.id]===undefined?!!g.on:!!o[g.id]; };
 PK.err='';
+// the owner's own packs (samples/xpack/, same list format): clips join the starter pack's group with the same id, new ids become new groups. Missing folder = nothing added.
+const XPBASE='samples/xpack/';
+async function pkAddExtra(m){ try{ const r=await fetch(XPBASE+'manifest.json',{cache:'no-cache'}); if(!r.ok) return; const x=await r.json(); if(!x||!x.groups) return;
+  x.groups.forEach(g=>{ const clips=(g.clips||[]).map(c=>Object.assign({},c,{f:'../xpack/'+c.f})); const have=m.groups.find(h=>h.id===g.id);
+    if(have) have.clips=have.clips.concat(clips); else m.groups.push(Object.assign({},g,{clips})); }); PK.extra=x.groups.reduce((a,g)=>a+(g.clips||[]).length,0); }catch(e){} }
 async function pkFetchMan(){ // try a few times (second and third try skip the browser cache) so a flaky connection or a stale cached copy does not leave the pack missing
-  for(let i=0;i<3;i++){ try{ const r=await fetch(PKBASE+'manifest.json'+(i?'?r='+Date.now():''),i?{cache:'reload'}:undefined); if(r.ok){ const m=await r.json(); if(m&&m.groups) return m; PK.err='the pack list looked wrong'; } else PK.err='server said '+r.status; }catch(e){ PK.err=(location.protocol==='file:')?'this page was opened as a file, so the browser blocks the samples folder':'the connection failed'; } await new Promise(z=>setTimeout(z,700*(i+1))); }
+  for(let i=0;i<3;i++){ try{ const r=await fetch(PKBASE+'manifest.json'+(i?'?r='+Date.now():''),i?{cache:'reload'}:undefined); if(r.ok){ const m=await r.json(); if(m&&m.groups){ await pkAddExtra(m); return m; } PK.err='the pack list looked wrong'; } else PK.err='server said '+r.status; }catch(e){ PK.err=(location.protocol==='file:')?'this page was opened as a file, so the browser blocks the samples folder':'the connection failed'; } await new Promise(z=>setTimeout(z,700*(i+1))); }
   return null; }
 function pkMan(){ if(PK.loading&&PK.failed){ PK.loading=null; PK.failed=false; } if(!PK.loading){ const p=pkFetchMan().then(m=>{ if(m) m.groups.forEach(g=>g.clips.forEach(c=>{ c.grp=g.id; })); PK.man=m; if(!m&&PK.loading===p) PK.failed=true; return m; }).catch(()=>{ if(PK.loading===p) PK.failed=true; return null; }); PK.loading=p; } return PK.loading; }
 let PAC=null; const pkCtx=()=>{ if(!PAC){ const AC=window.AudioContext||window.webkitAudioContext; PAC=window.__ebSharedAC()||new AC({latencyHint:ABUF}); } return PAC; };
