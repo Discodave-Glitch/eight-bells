@@ -829,9 +829,21 @@ html.st-lock,html.st-lock body{overflow:hidden}
 .live,.padm,.stagev{bottom:var(--n-bh)!important}
 body{padding-bottom:var(--n-bh)}
 /* the bar already covers the phone's bottom edge, so no extra gap; let these screens scroll so nothing is hidden */
-.live,.padm,.stagev{padding-bottom:8px!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.live,.padm,.stagev{padding-bottom:8px!important}
 html.lv-lock,html.lv-lock body,html.st-lock,html.st-lock body{overflow:visible!important}
-@media (orientation:portrait){ .live .lv-in{flex:none} .live .lv-in>*{flex-shrink:0} .live .lv-trkw{flex:none} .live .lv-trks{flex:none;min-height:0;max-height:none} .live .lv-fxw{flex:none} .padm>*{flex-shrink:0} }
+/* phone upright: every screen fits without scrolling (only menus and lists scroll) */
+@media (orientation:portrait) and (max-width:699px){
+  .live .lv-top{display:none!important}
+  .live .lv-in{gap:5px!important}
+  .live .lv-chip{min-height:36px!important}
+  .live .lv-d{min-height:40px!important}
+  .live .lv-lblrow .lvb{min-height:32px!important}
+  .live .lv-fx{grid-template-columns:repeat(8,1fr)!important;gap:3px!important}
+  .live .lvfx{min-height:40px!important;font-size:10.5px!important;line-height:1.1;white-space:normal;text-align:center;padding:0 1px!important}
+  .stagev:not([hidden]){display:flex!important;flex-direction:column}
+  .stagev .st-in{flex:1 1 auto;min-height:0}
+  .stagev .st-cvw{min-height:0}
+}
 @media (orientation:landscape) and (max-height:560px){ :root{--n-tab:56px} #tabbar button{flex-direction:row;gap:8px;font-size:13px} }
 #toast{position:fixed;left:50%;bottom:calc(var(--n-bh) + 20px);transform:translateX(-50%);z-index:260;background:var(--n-s2);color:var(--n-ink);border:1px solid var(--n-line);border-radius:22px;padding:12px 20px;font-weight:700;font-size:15px;opacity:0;pointer-events:none;transition:opacity .2s}
 #toast.on{opacity:1}
