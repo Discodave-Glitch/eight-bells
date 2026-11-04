@@ -2133,6 +2133,44 @@ SGTEMPL.coldSong=[['chorus',.1],['verse',.14],['chorus',.14],['break',.1],['vers
 SGTEMPL.buildSong=[['intro',.1],['verse',.14],['build',.1],['chorus',.2],['break',.1],['build',.08],['chorus',.18],['outro',.1]];
 SGTEMPL.longSong=[['intro',.06],['verse',.12],['chorus',.12],['verse',.12],['chorus',.12],['bridge',.1],['break',.08],['chorus',.18],['outro',.1]];
 const SGDANCE=['dance','dance','danceLong','danceTriple','dropOnly','coldOpen'], SGSONG=['song','simple','ballad','coldSong','buildSong','longSong'];
+// owner, 4 Nov 2026: more layouts, written for different kinds of music (still only the 8 section types the renderer knows)
+SGTEMPL.progressive=[['intro',.16],['build',.08],['break',.12],['build',.08],['drop',.24],['break',.1],['drop',.12],['outro',.1]];
+SGTEMPL.tranceBreak=[['intro',.12],['build',.06],['drop',.14],['break',.18],['build',.08],['drop',.26],['outro',.16]];
+SGTEMPL.doubleDrop=[['intro',.1],['build',.06],['drop',.16],['chorus',.12],['break',.1],['build',.06],['drop',.28],['outro',.12]];
+SGTEMPL.dnbRoller=[['intro',.1],['drop',.26],['break',.08],['build',.04],['drop',.3],['break',.08],['outro',.14]];
+SGTEMPL.garage=[['intro',.08],['verse',.12],['chorus',.12],['verse',.1],['drop',.18],['break',.1],['drop',.18],['outro',.12]];
+SGTEMPL.vocalHouse=[['intro',.1],['verse',.12],['build',.06],['chorus',.16],['break',.1],['build',.06],['chorus',.18],['drop',.12],['outro',.1]];
+SGTEMPL.slowBurn=[['intro',.22],['build',.1],['drop',.2],['break',.12],['drop',.2],['outro',.16]];
+SGTEMPL.popPre=[['intro',.06],['verse',.12],['build',.06],['chorus',.12],['verse',.12],['build',.06],['chorus',.12],['bridge',.1],['chorus',.14],['outro',.1]];
+SGTEMPL.hiphop=[['intro',.08],['verse',.2],['chorus',.1],['verse',.2],['chorus',.1],['bridge',.08],['chorus',.12],['outro',.12]];
+SGTEMPL.rockSolo=[['intro',.08],['verse',.12],['chorus',.12],['verse',.12],['chorus',.12],['break',.14],['chorus',.18],['outro',.12]];
+SGTEMPL.jazzHead=[['intro',.1],['chorus',.16],['verse',.2],['verse',.2],['chorus',.18],['outro',.16]];
+SGTEMPL.ambient=[['intro',.2],['verse',.2],['break',.2],['verse',.18],['outro',.22]];
+SGTEMPL.folk=[['intro',.08],['verse',.14],['verse',.14],['chorus',.16],['verse',.14],['chorus',.18],['outro',.16]];
+SGTEMPL.reprise=[['intro',.08],['chorus',.12],['verse',.12],['chorus',.12],['bridge',.1],['break',.08],['chorus',.12],['chorus',.14],['outro',.12]];
+SGTEMPL.storyArc=[['intro',.1],['verse',.14],['bridge',.1],['verse',.14],['build',.08],['chorus',.18],['break',.1],['outro',.16]];
+SGDANCE.push('progressive','tranceBreak','doubleDrop','dnbRoller','garage','vocalHouse','slowBurn');
+SGSONG.push('popPre','hiphop','rockSolo','jazzHead','ambient','folk','reprise','storyArc');
+const SGFAM={hiphop:['hiphop','hiphop','coldSong','reprise','song'],slow:['ambient','ambient','ballad','storyArc','folk'],rock:['rockSolo','rockSolo','popPre','longSong','reprise'],jazz:['jazzHead','jazzHead','ballad','folk','song']};
+// layout maker: builds a new shape from rules each time (how it opens, 2 or 3 rounds, a middle part, how it ends), so songs rarely share a shape
+function sgMakeLayout(dance){ const r=Math.random, pick=a=>a[Math.floor(r()*a.length)], L=[], add=(t,w)=>{ const ww=w*(.8+r()*.4), last=L[L.length-1]; if(last&&last[0]===t) last[1]+=ww; else L.push([t,ww]); }; // two of the same part in a row become one longer part
+  if(dance){ const o=r(); if(o<.68) add('intro',.12); else if(o<.78) add('drop',.12); else if(o<.88) add('break',.1); else { add('intro',.1); add('build',.06); }
+    const n=r()<.55?2:3; for(let i=0;i<n;i++){ if(r()<.8) add('build',.06); add(r()<.18?'chorus':'drop',n===3?.15:.2); if(i<n-1){ if(r()<.15&&i===n-2) add('bridge',.08); else add('break',.1); } }
+    if(r()<.15) add('break',.08); add('outro',.12); }
+  else { const o=r(); if(o<.75) add('intro',.1); else if(o<.9) add('chorus',.1); else add('verse',.12);
+    const n=r()<.6?2:3; for(let i=0;i<n;i++){ add('verse',n===3?.11:.14); if(r()<.4) add('build',.05); add('chorus',n===3?.11:.13); }
+    const m=r(); if(m<.5) add('bridge',.1); else if(m<.8) add('break',.1); else if(m<.9){ add('bridge',.08); add('break',.08); }
+    add('chorus',.13); if(r()<.3) add('chorus',.1); if(r()<.85) add('outro',.12); }
+  return L; }
+function sgLayout(g,dance,total){ const maxParts=Math.max(4,Math.floor((total||120)/6)); /* every part at least about 6 bars */ const grp=(g&&g.group)||'', nm=String((g&&g.name)||'').toLowerCase();
+  const fam=/Hip-hop/.test(grp)?'hiphop':(/Slow/.test(grp)||/ambient|chill|lo-?fi|downtempo/.test(nm))?'slow':/Rock/.test(grp)?'rock':/Jazz/.test(grp)?'jazz':null;
+  let t, key, tries=0;
+  do { if(Math.random()<.55) t=sgMakeLayout(dance&&Math.random()<.85||(!dance&&Math.random()<.12));
+       else { const list=fam&&Math.random()<.6?SGFAM[fam]:(dance&&Math.random()<.85?SGDANCE:(!dance&&Math.random()<.12?SGDANCE:SGSONG)); t=SGTEMPL[sgPick(list)]; }
+       key=t.map(x=>x[0]).join('-'); } while((key===SG.lastLayout||t.length>maxParts)&&++tries<12);
+  if(t.length>maxParts){ t=SGTEMPL.simple; key=t.map(x=>x[0]).join('-'); }
+  SG.lastLayout=key; return t; }
+
 function sgJitter(t){ const j=t.map(x=>[x[0],x[1]*(.75+Math.random()*.6)]), sum=j.reduce((a,x)=>a+x[1],0); return j.map(x=>[x[0],x[1]/sum]); }
 function sgVary(drums,base){ // each song gets its own twist on the genre's drum pattern
   const odd=[3,5,6,7,9,10,11,13,14,15].filter(x=>x<base), fin=d=>{ d.steps=Array.from(new Set(d.steps.filter(x=>x>=0&&x<base))).sort((a,b)=>a-b); };
@@ -2196,7 +2234,7 @@ async function sgPlan(prev,forceId){
   SG.beds.push(bed.c.id); if(bed2) SG.beds.push(bed2.c.id); while(SG.beds.length>24) SG.beds.shift();
   const len=($('sglen')&&$('sglen').value)||'medium', target={short:80,medium:140,long:210,test:22}[len]||140, ovBars=len==='test'?2:4;
   const total=Math.max(len==='test'?8:16,2*Math.round(target/barSec/2)), dance=/Trance|House|Bass/.test(g.group||'');
-  const tmpl=len==='test'?[['intro',.25],['chorus',.5],['outro',.25]]:sgJitter(SGTEMPL[sgPick(dance&&Math.random()<.85?SGDANCE:(!dance&&Math.random()<.12?SGDANCE:SGSONG))]);
+  const tmpl=len==='test'?[['intro',.25],['chorus',.5],['outro',.25]]:sgJitter(sgLayout(g,dance,total));
   const secs=sgSections(total,tmpl,Math.max(ovBars,2)), total2=secs[secs.length-1].b1, fam=sgKitFor(g);
   // drums: one pattern per drum voice, one sound per voice chosen from a kit family
   const drums=[]; (g.drums||[]).forEach(d=>{ const cat=sgCat(d.label), steps=sgSteps(d,base); if(!steps.length) return; let c=sgPickKit(man,fam,cat); if(!c) return;
