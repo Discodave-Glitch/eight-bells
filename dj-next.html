@@ -297,6 +297,8 @@ html.full #dstrip{display:none}
 #tabbar button{flex:1;border:0;border-radius:0;background:transparent;color:var(--n-mut);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:11px;font-weight:700;min-height:44px;padding:0}
 #tabbar button[aria-current="page"]{color:var(--n-gold)}
 #tabbar button.soon{opacity:.55}
+/* tap a part of the song to jump there (Car mode) */
+#nsegs,#dsegs{cursor:pointer;padding:12px 0;margin:-12px 0;box-sizing:content-box;touch-action:manipulation}
 /* Keep this song */
 .nkeep{display:flex;justify-content:center;gap:12px}
 .nkeep button{display:flex;align-items:center;gap:8px;min-height:48px;padding:0 18px;border-radius:24px;border:1px solid var(--n-line);background:var(--n-s1);color:var(--n-ink);font-weight:700;font-size:15px}
@@ -2604,6 +2606,21 @@ const DOCOK=()=>!document.body.classList.contains('v-now');
   addEventListener('scroll',()=>{ if(!DOCOK()&&(scrollY||scrollX)) scrollTo(0,0); },{passive:true}); })();
 // the real visible height, for sizing the sideways Car screen picture
 const setIH=()=>html.style.setProperty('--ih',innerHeight+'px'); setIH(); addEventListener('resize',setIH); addEventListener('orientationchange',()=>setTimeout(setIH,300));
+
+// ---- jump to a part of the song: tap the section strip, or the Intro / Build-up / Drop... buttons on the decks (Car mode: the song is one audio file, so this moves its position like the lock-screen controls; no like / dislike)
+function carSeekPart(pred,label){ const t=T(), car=C(); if(!(CARON&&t&&t.SG.on&&car&&car.cur&&car.el)) return false;
+  const a=car.el, b=car.cur, at=(a.currentTime||0)+.05; let i=0; for(let j=0;j<b.meta.length;j++) if(b.meta[j].start<=at) i=j;
+  const m=b.meta[i], pl=m.song.plan, S=secsOf(pl), bi=((a.currentTime||0)-m.start)/pl.barSec, c=S.map((x,k)=>({x,k})).filter(o=>pred(o.x,o.k));
+  if(!c.length){ toast('No '+label+' in this song'); return true; }
+  const o=c.find(q=>q.x.b0>bi+.5)||c[0]; let tg=m.start+o.x.b0*pl.barSec; const nm=b.meta[i+1]; if(nm) tg=Math.min(tg,nm.start-1);
+  try{ a.currentTime=Math.max(0,tg); }catch(e){} toast(label); return true; }
+['nsegs','dsegs'].forEach(id=>{ const el=$(id); if(!el) return; el.addEventListener('click',e=>{ const kids=[...el.children]; if(!kids.length) return;
+  let k=kids.findIndex(c=>{ const r=c.getBoundingClientRect(); return e.clientX>=r.left-2&&e.clientX<=r.right+2; }); if(k<0) k=e.clientX<kids[0].getBoundingClientRect().left?0:kids.length-1;
+  const inf=info(); if(!inf||!inf.pl) return; const S=secsOf(inf.pl), x=S[k]; if(!x) return;
+  if(!carSeekPart((y,j)=>j===k,SECN[x.type]||'Part')) toast('Jumping works in Car mode'); }); });
+const SECK=[['intro','Intro'],['bld','Build-up'],['drop','Drop'],['chorus','Chorus'],['brk','Break'],['bridge','Bridge'],['half','Half'],['outro','Outro']], SECMAP={intro:'intro',build:'bld',drop:'drop',chorus:'chorus','break':'brk',bridge:'bridge',outro:'outro'}; // same as the deck buttons' list (SECS) and the song-part map (SGSECMAP) in the old script
+document.addEventListener('click',e=>{ const b=e.target.closest&&e.target.closest('[data-a="sec"]'); if(!b||!CARON) return; const t=T(); if(!(t&&t.SG.on)) return; const s=SECK[+b.dataset.k]; if(!s) return;
+  e.stopPropagation(); e.preventDefault(); carSeekPart(x=>SECMAP[x.type]===s[0],s[1]); },true);
 setInterval(render,250);
 })();
 </script>
