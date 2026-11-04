@@ -353,7 +353,7 @@ html:not(.help) #morebox .lt{display:none!important}
 .krow .kt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
 .krow .kt b{font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .krow .kt small{font-size:13px;color:var(--n-mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.krow button{flex:none;width:48px;height:48px;border-radius:50%;border:1px solid var(--n-line);background:var(--n-s2);color:var(--n-ink);display:flex;align-items:center;justify-content:center;padding:0}
+.krow button{flex:none;width:44px;height:44px;border-radius:50%;border:1px solid var(--n-line);background:var(--n-s2);color:var(--n-ink);display:flex;align-items:center;justify-content:center;padding:0}
 .krow button.kbplay{background:var(--n-gold);border-color:var(--n-gold);color:#1a1305}
 .krow button.kbdel{color:var(--n-bad)}
 .krow.on{outline:2px solid var(--n-gold)}
@@ -2988,24 +2988,26 @@ const KP={el:null,id:null,url:null};
 function kStop(){ try{ if(KP.el) KP.el.pause(); }catch(e){} if(KP.url){ try{ URL.revokeObjectURL(KP.url); }catch(e){} } KP.url=null; KP.id=null; }
 const ICP='<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg>', ICS='<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4h4v16H6z"/><path d="M14 4h4v16h-4z"/></svg>',
   ICV='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>',
+  ICSH='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>',
   ICX='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 15h10l1-15"/></svg>';
 const mmss=x=>Math.floor(x/60)+':'+String(Math.round(x%60)).padStart(2,'0');
 async function kRender(){ const L=$('keptlist'); let all=[]; try{ all=await kAll(); }catch(e){} keptN=all.length; kLabel();
   if(!all.length){ L.innerHTML='<div class="kempty">No kept songs yet.<br>Tap Keep while a song plays.</div>'; $('keptinfo').textContent=''; return; }
-  L.innerHTML=all.map(x=>{ const d=new Date(x.at), on=KP.id===x.id&&KP.el&&!KP.el.paused; return '<div class="krow'+(on?' on':'')+'" data-id="'+x.id+'"><button type="button" class="kbplay" data-k="play" aria-label="'+(on?'Pause':'Play')+'">'+(on?ICS:ICP)+'</button><div class="kt"><b>'+x.name+(x.why==='like'?' ♥':'')+'</b><small>'+x.bpm+' BPM · '+mmss(x.dur)+' · '+d.toLocaleDateString(undefined,{day:'numeric',month:'short'})+' '+d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'})+'</small></div><button type="button" data-k="save" aria-label="Save (download or share)">'+ICV+'</button><button type="button" class="kbdel" data-k="del" aria-label="Remove">'+ICX+'</button></div>'; }).join('');
-  const mb=all.reduce((a,x)=>a+(x.size||0),0)/1048576; $('keptinfo').textContent='Up to '+KEEPMAX+' songs, kept on this phone ('+Math.round(mb)+' MB). The arrow saves an MP3 (made with LAME, LGPL).'; }
+  L.innerHTML=all.map(x=>{ const d=new Date(x.at), on=KP.id===x.id&&KP.el&&!KP.el.paused; return '<div class="krow'+(on?' on':'')+'" data-id="'+x.id+'"><button type="button" class="kbplay" data-k="play" aria-label="'+(on?'Pause':'Play')+'">'+(on?ICS:ICP)+'</button><div class="kt"><b>'+x.name+(x.why==='like'?' ♥':'')+'</b><small>'+x.bpm+' BPM · '+mmss(x.dur)+' · '+d.toLocaleDateString(undefined,{day:'numeric',month:'short'})+' '+d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'})+'</small></div><button type="button" data-k="dl" aria-label="Download MP3">'+ICV+'</button><button type="button" data-k="share" aria-label="Share">'+ICSH+'</button><button type="button" class="kbdel" data-k="del" aria-label="Remove">'+ICX+'</button></div>'; }).join('');
+  const mb=all.reduce((a,x)=>a+(x.size||0),0)/1048576; $('keptinfo').textContent='Up to '+KEEPMAX+' songs, kept on this phone ('+Math.round(mb)+' MB). Download or share as MP3 (made with LAME, LGPL).'; }
 const kGet=id=>kreq('readonly',st=>st.get(id));
 $('keptlist').addEventListener('click',async e=>{ const b=e.target.closest('button'), row=e.target.closest('.krow'); if(!b||!row) return; const id=+row.dataset.id, k=b.dataset.k;
   if(k==='play'){ if(KP.id===id&&KP.el){ if(KP.el.paused) KP.el.play(); else KP.el.pause(); kRender(); return; }
     const x=await kGet(id); if(!x) return; kStop(); const inf=info(); if(autoOn()&&inf&&inf.playing) $('nplay').click(); // pause Auto DJ first, same as its Pause button
     if(!KP.el){ KP.el=new Audio(); KP.el.setAttribute('playsinline',''); ['play','pause','ended'].forEach(n=>KP.el.addEventListener(n,()=>{ if(!$('keptsh').hidden) kRender(); })); }
     KP.id=id; KP.url=URL.createObjectURL(x.blob); KP.el.src=KP.url; const p=KP.el.play(); if(p&&p.catch) p.catch(()=>{}); kRender(); }
-  else if(k==='save'){ let x=await kGet(id); if(!x) return;
+  else if(k==='dl'||k==='share'){ let x=await kGet(id); if(!x) return;
     if(x.fmt!=='mp3'){ toast('Making an MP3...'); const w=await kWavToMp3(x.blob); x=Object.assign({},x,{blob:w.blob,size:w.blob.size,fmt:'mp3'}); await kreq('readwrite',st=>st.put(x)); kRender(); }
     const nm=('Eight Bells '+x.name+' '+x.bpm+' BPM').replace(/[^\w .-]+/g,'').replace(/\s+/g,' ').trim()+'.mp3', f=new File([x.blob],nm,{type:'audio/mpeg'});
-    const touch=!!(window.matchMedia&&matchMedia('(hover: none) and (pointer: coarse)').matches); // phone: share menu; computer: plain download
-    try{ if(touch&&navigator.canShare&&navigator.canShare({files:[f]})){ await navigator.share({files:[f],title:nm}); return; } }catch(err){ if(err&&err.name==='AbortError') return; if(err&&err.name==='NotAllowedError'){ toast('MP3 ready: tap the arrow again'); return; } }
-    const u=URL.createObjectURL(x.blob), a=document.createElement('a'); a.href=u; a.download=nm; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),20000); }
+    const download=()=>{ const u=URL.createObjectURL(x.blob), a=document.createElement('a'); a.href=u; a.download=nm; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),20000); toast('Downloading '+nm); };
+    if(k==='dl'){ download(); return; }
+    try{ if(navigator.canShare&&navigator.canShare({files:[f]})){ await navigator.share({files:[f],title:nm}); return; } }catch(err){ if(err&&err.name==='AbortError') return; if(err&&err.name==='NotAllowedError'){ toast('MP3 ready: tap Share again'); return; } }
+    download(); }
   else if(k==='del'){ if(!row.classList.contains('ask')){ row.classList.add('ask'); b.setAttribute('aria-label','Tap again to remove'); toast('Tap again to remove'); setTimeout(()=>row.classList.remove('ask'),3000); return; }
     if(KP.id===id) kStop(); await kreq('readwrite',st=>{ st.delete(id); }); kRender(); } });
 $('nkept').addEventListener('click',()=>{ $('keptsh').hidden=false; kRender(); $('keptx').focus(); });
