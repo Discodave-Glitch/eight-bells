@@ -425,7 +425,6 @@ html.sim .strip>.chv .vf{writing-mode:horizontal-tb;direction:ltr;height:28px!im
   html.sim .xfr{grid-template-columns:1fr 1fr;grid-template-rows:auto auto}
   html.sim .xfr b.A{grid-row:1;grid-column:1}html.sim .xfr b.B{grid-row:1;grid-column:2;text-align:right}html.sim .xfr #xf{grid-row:2;grid-column:1/3}
   html.sim .plat{width:clamp(80px,calc(100dvh - 300px),190px)!important}
-  #tabbar,#barhandle{display:none!important}
   #dstrip{margin:10px 16px 10px}
   /* Car screen: big picture left, song and three big buttons right */
   #now{flex-direction:row;align-items:center;gap:clamp(16px,4vw,40px);padding:8px clamp(16px,3vw,32px) 12px}
@@ -445,6 +444,10 @@ html.sim .strip>.chv .vf{writing-mode:horizontal-tb;direction:ltr;height:28px!im
 }
 @media (orientation:landscape) and (max-height:560px) and (min-width:560px){ html.sim .deck{grid-template-areas:"pl dh" "pl screen" "pl ." "pl tr"} }
 @media (max-width:420px){ .top{gap:8px!important} .top #auto{padding:0 14px 0 12px!important;font-size:15px!important;gap:8px} body.v-decks .top .brand h1{display:none} }
+/* phone sideways: no tab bar (no room); a computer screen keeps it */
+@media (orientation:landscape) and (max-height:560px){ #tabbar,#barhandle{display:none!important} }
+@media (orientation:landscape) and (min-height:561px){ #app{padding-bottom:calc(var(--n-bh) + 8px)} }
+@media (min-width:900px) and (min-height:640px){ #tabbar{justify-content:center} #tabbar button{flex:0 1 150px} }
 /* full decks: the old layout, new colours */
 html.full .mxb{display:none}
 </style>
@@ -2487,7 +2490,8 @@ const NEXT=/-next\.html$/.test(location.pathname); let leaveT=0, leaveK='';
 const hb=document.createElement('button'); hb.type='button'; hb.id='barhandle'; hb.setAttribute('aria-label','Show tabs');
 hb.innerHTML='<i><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></i>';
 document.body.appendChild(hb);
-let barT=0; const barShow=()=>{ document.documentElement.classList.remove('barhid'); clearTimeout(barT); barT=setTimeout(()=>document.documentElement.classList.add('barhid'),4000); };
+const AUTOHIDE=!!(window.matchMedia&&matchMedia('(hover: none) and (pointer: coarse)').matches); // only touch phones and tablets hide the tab bar; with a mouse it always stays
+let barT=0; const barShow=()=>{ document.documentElement.classList.remove('barhid'); clearTimeout(barT); if(AUTOHIDE) barT=setTimeout(()=>document.documentElement.classList.add('barhid'),4000); };
 hb.addEventListener('click',barShow); document.getElementById('tabbar').addEventListener('pointerdown',barShow); barShow();
 document.querySelectorAll('#tabbar [data-nav]').forEach(b=>{ const k=b.dataset.nav;
   b.addEventListener('click',()=>{ if(k==='dj'){ VIEW='now'; applyView(); return; } if(k==='more'){ openSetup(); return; }

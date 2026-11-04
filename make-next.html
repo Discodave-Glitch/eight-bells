@@ -832,6 +832,9 @@ body{padding-bottom:var(--n-bh)}
 .live,.padm,.stagev{padding-bottom:8px!important}
 html.lv-lock,html.lv-lock body,html.st-lock,html.st-lock body{overflow:visible!important}
 html:has(.stagev.st-imm) #tabbar,html:has(.stagev.st-imm) #barhandle{display:none!important}
+/* big screens (computer): Make drawn larger and centred, tab bar buttons kept together in the middle */
+@media (min-width:900px) and (min-height:640px){ .mkin{zoom:1.35;padding-top:4vh} #tabbar{justify-content:center} #tabbar button{flex:0 1 150px} }
+@media (min-width:1500px) and (min-height:900px){ .mkin{zoom:1.6} }
 /* Stage full screen: the buttons over the picture sit in two neat dark panels at the bottom, same look as the rest of the app */
 .stagev.st-imm .st-ftrk,.stagev.st-imm .st-float{left:50%!important;right:auto!important;transform:translateX(-50%);width:max-content;max-width:calc(100vw - 24px);box-sizing:border-box;background:rgba(13,19,32,.82);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid #2a3652;border-radius:20px;padding:8px!important;gap:8px!important;z-index:7;font-family:Inter,system-ui,sans-serif}
 .stagev.st-imm .st-float{bottom:max(10px,env(safe-area-inset-bottom))!important}
@@ -19059,7 +19062,8 @@ document.querySelectorAll('#tabbar [data-nav]').forEach(b=>b.addEventListener('c
 const hb=document.createElement('button'); hb.type='button'; hb.id='barhandle'; hb.setAttribute('aria-label','Show tabs');
 hb.innerHTML='<i><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></i>';
 document.body.appendChild(hb);
-let barT=0; function barShow(){ document.documentElement.classList.remove('barhid'); clearTimeout(barT); barT=setTimeout(()=>document.documentElement.classList.add('barhid'),4000); }
+const AUTOHIDE=!!(window.matchMedia&&matchMedia('(hover: none) and (pointer: coarse)').matches); // only touch phones and tablets hide the tab bar; with a mouse it always stays
+let barT=0; function barShow(){ document.documentElement.classList.remove('barhid'); clearTimeout(barT); if(AUTOHIDE) barT=setTimeout(()=>document.documentElement.classList.add('barhid'),4000); }
 hb.addEventListener('click',barShow); $('tabbar').addEventListener('pointerdown',barShow);
 const DOCOK=()=>TAB==='more';
 // the page itself never moves: a swipe only scrolls a list or menu that really has more to show (or the long More page)
