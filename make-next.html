@@ -765,7 +765,13 @@ html.st-lock,html.st-lock body{overflow:hidden}
 }
 @media(max-height:420px){ .pm-kn span{display:none} .pm-kn i{width:34px;height:34px} .pm-kn i::after{height:11px;transform-origin:50% 13px} }
 </style>
-<link rel="manifest" href="manifest.webmanifest">
+<link rel="manifest" href="manifest-next.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Bells Next">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0d1320">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta name="theme-color" content="#2f7f95">
 <meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -825,6 +831,41 @@ body{padding-bottom:calc(var(--n-tab) + env(safe-area-inset-bottom))}
 @media (orientation:landscape) and (max-height:560px){ :root{--n-tab:56px} #tabbar button{flex-direction:row;gap:8px;font-size:13px} }
 #toast{position:fixed;left:50%;bottom:calc(var(--n-tab) + 20px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:260;background:var(--n-s2);color:var(--n-ink);border:1px solid var(--n-line);border-radius:22px;padding:12px 20px;font-weight:700;font-size:15px;opacity:0;pointer-events:none;transition:opacity .2s}
 #toast.on{opacity:1}
+/* ===== the old screens (More, Live, Pads, Stage) in the new colours and font ===== */
+:root,:root[data-theme="light"],:root[data-theme="dark"]{--bg:#0d1320!important;--surface:#151d2e!important;--ink:#eef2f8!important;--muted:#9aa8c0!important;--line:#2a3652!important;--cell:#1c2740!important;--accent:#f0b84a!important;--accent-ink:#1a1305!important;
+  --t1:#5a86f0!important;--t2:#3cc29a!important;--t3:#f0e14a!important;--t4:#f5a45d!important;--t5:#b48cff!important;--t6:#ff6fa0!important;--t7:#4fd0e8!important;--t8:#ff7a68!important;--t9:#ff7a68!important;--ok:#3cd0bf!important;--bad:#e8837a!important;--warn:#f0b84a!important;
+  --font-display:Inter,system-ui,sans-serif!important;--font-body:Inter,system-ui,sans-serif!important;color-scheme:dark!important}
+html,body{background:#0d1320}
+#themebtn{display:none!important}
+main{padding-top:env(safe-area-inset-top)}
+/* buttons the tab bar now does */
+[data-lv="exit"],[data-lv="pad"],[data-lv="stage"],#pmlive,#pmstage,#pmexit,#stlive,#stx,#livebtn,#padbtn,#perfbtn,#stagebtn,header.brand .sub,header.brand .from,.waves{display:none!important}
+/* long explanations only when "Help text" is on (the i button) */
+html:not(.help) :is(.hint:not([aria-live]),p.fine,#pmst,#pmhint,.stagev>.st-in>.hint){display:none!important}
+/* Live */
+.live,.padm{font-family:Inter,system-ui,sans-serif}
+#lvgen{background:#4f6bff!important;color:#fff!important;border-color:#4f6bff!important}
+#lvplay{background:#f0b84a!important;color:#1a1305!important;border-color:#f0b84a!important}
+.live button,.padm button{border-radius:14px;min-height:44px}
+/* Stage */
+.stagev{background:#0d1320!important;color:#eef2f8!important;font-family:Inter,system-ui,sans-serif!important}
+.stagev .sb{font-family:inherit!important;border-radius:14px!important;min-height:44px}
+.stagev .sb:not([style*="background"]):not(.sel){background:#151d2e!important;border:1px solid #2a3652!important;color:#eef2f8!important}
+.stagev .sb.sel{background:#f0b84a!important;color:#1a1305!important}
+/* More */
+#morehd{display:none;align-items:center;gap:10px;padding:16px 16px 4px;max-width:960px;margin:0 auto;font-family:Inter,system-ui,sans-serif;color:#eef2f8}
+html[data-tab="more"] #morehd{display:flex}
+#morehd h1{margin:0;font-size:20px;font-weight:800;flex:1}
+#helpb{height:44px;padding:0 16px 0 6px;border-radius:22px;border:1px solid #2a3652;background:#151d2e;color:#eef2f8;font:700 14px Inter,system-ui,sans-serif;display:flex;align-items:center;gap:8px;cursor:pointer}
+#helpb i{width:32px;height:32px;border-radius:16px;display:flex;align-items:center;justify-content:center;font:italic 800 16px Georgia,serif;background:#2a3652}
+#helpb[aria-pressed="true"]{background:#f0b84a;border-color:#f0b84a;color:#1a1305}#helpb[aria-pressed="true"] i{background:#1a1305;color:#f0b84a}
+html[data-tab="more"] header.brand{display:none!important}
+main details>summary{min-height:52px;display:flex;align-items:center;cursor:pointer}
+#morehd{width:100%;box-sizing:border-box;grid-column:1/-1;align-self:stretch;justify-self:stretch}
+#morehd h1{text-align:left}
+/* the old dice emoji becomes a drawn dice icon */
+summary .dice{font-size:0!important;width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;border-radius:14px;color:#4fb3c9}
+summary .dice::before{content:"";width:22px;height:22px;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Crect x='3' y='3' width='18' height='18' rx='3'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.3' fill='black'/%3E%3Ccircle cx='15.5' cy='15.5' r='1.3' fill='black'/%3E%3Ccircle cx='12' cy='12' r='1.3' fill='black'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Crect x='3' y='3' width='18' height='18' rx='3'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.3' fill='black'/%3E%3Ccircle cx='15.5' cy='15.5' r='1.3' fill='black'/%3E%3Ccircle cx='12' cy='12' r='1.3' fill='black'/%3E%3C/svg%3E") center/contain no-repeat}
 </style>
 </head>
 <body>
@@ -847,6 +888,7 @@ body{padding-bottom:calc(var(--n-tab) + env(safe-area-inset-bottom))}
  </div>
 </div>
 <div id="mksheet" hidden role="dialog" aria-modal="true" aria-labelledby="shtitle"><div class="shbox"><div class="shh"><h2 id="shtitle">Genre</h2><button type="button" id="shdone">Done</button></div><input id="shq" type="search" placeholder="Search" aria-label="Search" autocomplete="off"><div class="shlist" id="shlist"></div></div></div>
+<div id="morehd"><h1>More</h1><button type="button" id="helpb" aria-pressed="false"><i>i</i>Help text</button></div>
 <nav id="tabbar" aria-label="Sections">
  <button type="button" data-nav="make"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg><span>Make</span></button>
  <button type="button" data-nav="live"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h3l3-8 4 16 3-8h5"/></svg><span>Live</span></button>
@@ -18962,7 +19004,7 @@ function go(t){
   else if(t==='pads') $('padbtn').click();
   else if(t==='stage') $('stagebtn').click();
   else if(t==='more') window.scrollTo(0,0);
-  TAB=t; mark(); try{ history.replaceState(null,'',t==='make'?location.pathname+location.search:'#'+t); }catch(e){}
+  TAB=t; document.documentElement.dataset.tab=t; mark(); try{ history.replaceState(null,'',t==='make'?location.pathname+location.search:'#'+t); }catch(e){}
 }
 function cur(){ try{ if(lvOn()) return 'live'; if(padOn()) return 'pads'; }catch(e){} if(stageOn()) return 'stage'; return $('mk').hidden?'more':'make'; }
 function mark(){ const c=cur(); document.querySelectorAll('#tabbar [data-nav]').forEach(b=>{ if(b.dataset.nav===c) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); }); }
@@ -18986,7 +19028,14 @@ $('mkplay').addEventListener('click',()=>$('play').click());
 $('mkgen').addEventListener('click',()=>{ $('gen').click(); toast('New pattern'); });
 $('mksurp').addEventListener('click',()=>{ $('gsurp').click(); toast('Surprise!'); });
 $('mkrec').addEventListener('click',()=>$('recbtn').click());
-$('mkinfo').addEventListener('click',()=>{ go('more'); const a=$('about'); if(a){ a.open=true; a.scrollIntoView({block:'start'}); } });
+$('mkinfo').addEventListener('click',()=>{ setHelp(true); go('more'); const a=$('about'); if(a){ a.open=true; a.scrollIntoView({block:'start'}); } });
+// help text: long explanations hidden unless the i button is on
+const setHelp=on=>{ document.documentElement.classList.toggle('help',on); $('helpb').setAttribute('aria-pressed',String(on)); try{ localStorage.setItem('ebn.help',on?'1':'0'); }catch(e){} };
+try{ setHelp(localStorage.getItem('ebn.help')==='1'); }catch(e){ setHelp(false); }
+$('helpb').addEventListener('click',()=>setHelp(!document.documentElement.classList.contains('help')));
+// More: the header moves to the top of the page, and the long sections start closed
+const mh=$('morehd'), mn=document.querySelector('main'); if(mh&&mn) mn.prepend(mh);
+document.querySelectorAll('main details.midi[open],main details.about[open]').forEach(d=>{ if(!d.parentElement.closest('details')) d.open=false; });
 // chooser sheet: lists the app's own choices and presses them
 let SH=null;
 const chip=(label,on,fn)=>{ const b=document.createElement('button'); b.type='button'; b.textContent=label; b.setAttribute('aria-pressed',on?'true':'false'); b.addEventListener('click',()=>{ fn(); setTimeout(fill,30); }); return b; };
