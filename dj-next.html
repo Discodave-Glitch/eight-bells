@@ -344,6 +344,9 @@ html:not(.help) #morebox .lt{display:none!important}
   html body.v-decks{padding-bottom:0!important;padding-top:0!important} body.v-decks #app{height:var(--ih,100dvh)!important;min-height:0!important;overflow:hidden!important;box-sizing:border-box;padding-top:2px!important;padding-bottom:max(6px,calc(env(safe-area-inset-bottom) - 12px))!important}
   body.v-decks #console{flex:1 1 auto!important;min-height:0!important}
 }
+/* decks views on a phone: the browser may not pan or scroll the page at all, only the control under the finger moves */
+html.rot,html.rot body{touch-action:none!important;overscroll-behavior:none}
+@media (orientation:landscape) and (max-height:560px){ html:has(body.v-decks),html:has(body.v-decks) body{touch-action:none!important} }
 html.rot body.v-decks #app{overflow:hidden!important;height:var(--rh)!important;width:var(--rw)!important}
 #console input[type=range]{touch-action:none}
 /* tap a part of the song to jump there (Car mode) */
@@ -2938,8 +2941,11 @@ $('nplay').addEventListener('click',()=>{
 });
 $('nback').addEventListener('click',()=>{ if(CARON&&T()&&T().SG.on&&window.__ebAll&&window.__ebAll.carBackRate) window.__ebAll.carBackRate(); else $('mkgood').click(); toast('Liked'); });
 $('nskip').addEventListener('click',()=>{ if(CARON&&T()&&T().SG.on&&window.__ebAll&&window.__ebAll.carSkipRate) window.__ebAll.carSkipRate(); else { $('mkbad').click(); const s=$('sgskip'); if(s&&!s.disabled) s.click(); } toast('Not for me'); });
-$('ndecks').addEventListener('click',()=>{ VIEW='decks'; applyView(); setFull(FULLPREF,true); });
-$('viewb').addEventListener('click',()=>{ VIEW=view()==='now'?'decks':'now'; applyView(); setFull(FULLPREF,true); });
+
+const ooToggle=()=>{ VIEW=view()==='now'?'decks':'now'; applyView(); setFull(FULLPREF,true); };
+// oo and Open decks answer the touch itself (a tap can lose its click on a phone while the page lock blocks scrolling); the click that may follow is ignored
+let ooT=0; const onTouch=(el,fn)=>{ el.addEventListener('touchend',e=>{ if(e.changedTouches.length!==1) return; const t=e.changedTouches[0], r=el.getBoundingClientRect(); if(t.clientX<r.left-10||t.clientX>r.right+10||t.clientY<r.top-10||t.clientY>r.bottom+10) return; e.preventDefault(); ooT=Date.now(); fn(); },{passive:false}); el.addEventListener('click',()=>{ if(Date.now()-ooT<700) return; fn(); }); };
+onTouch($('viewb'),ooToggle); onTouch($('ndecks'),()=>{ VIEW='decks'; applyView(); setFull(FULLPREF,true); });
 // other tabs live on the Make page; leaving this page stops the DJ, so ask for a second tap while music plays
 const NEXT=/-next\.html$/.test(location.pathname); let leaveT=0, leaveK='';
 // the tab bar hides itself 4 s after it was last used; the small handle at the bottom brings it back
@@ -3156,6 +3162,23 @@ rotUpd();
       toast('Downloading '+files.length+' sounds ('+Math.round(z.size/1048576)+' MB)'); }
     catch(e){ console.warn(e); toast('Could not pack the sounds'); }
     finally{ b.disabled=false; b.textContent=old; } }); })();
+
+// ---- turned decks (html.rot): sliders and knobs follow the finger in the turned direction.
+// The page is drawn rotated 90 degrees clockwise, so what you see as "up" is the screen's right and "right" is the screen's bottom.
+(function(){ const isRot=()=>html.classList.contains('rot');
+  // knobs (.kd) read up/down drags: give them the turned direction
+  let knob=false; const remap=e=>{ if(!isRot()) return; if(e.type==='pointerdown') knob=!!(e.target.closest&&e.target.closest('.kd')); if(!knob) return;
+    const X=e.clientX, Y=e.clientY, rh=innerWidth; try{ Object.defineProperty(e,'clientX',{value:Y}); Object.defineProperty(e,'clientY',{value:rh-X}); }catch(_){} if(e.type==='pointerup'||e.type==='pointercancel') setTimeout(()=>{ knob=false; },0); };
+  ['pointerdown','pointermove','pointerup','pointercancel'].forEach(t=>document.addEventListener(t,remap,true));
+  // sliders: set the value from where the finger is along the turned slider
+  let drag=null; const setFrom=(el,X,Y)=>{ const r=el.getBoundingClientRect(), vert=getComputedStyle(el).writingMode.startsWith('vertical');
+    let f=vert?(X-r.left)/r.width:(Y-r.top)/r.height; f=Math.max(0,Math.min(1,f)); const mn=+el.min||0, mx=el.max===''?100:+el.max, st=+el.step||1, v=Math.round((mn+f*(mx-mn))/st)*st;
+    if(+el.value!==v){ el.value=v; el.dispatchEvent(new Event('input',{bubbles:true})); } };
+  document.addEventListener('pointerdown',e=>{ if(!isRot()) return; const el=e.target.closest&&e.target.closest('#console input[type=range]'); if(!el||el.closest('.kd')) return; e.preventDefault(); drag=el; try{ el.setPointerCapture(e.pointerId); }catch(_){} setFrom(el,e.clientX,e.clientY); },true);
+  document.addEventListener('pointermove',e=>{ if(drag){ e.preventDefault(); setFrom(drag,e.clientX,e.clientY); } },true);
+  const end=()=>{ if(drag){ drag.dispatchEvent(new Event('change',{bubbles:true})); drag=null; } };
+  document.addEventListener('pointerup',end,true); document.addEventListener('pointercancel',end,true);
+  document.addEventListener('touchstart',e=>{ if(isRot()&&e.target.closest&&e.target.closest('#console input[type=range]')) e.preventDefault(); },{capture:true,passive:false}); })();
 setInterval(render,250);
 })();
 </script>
