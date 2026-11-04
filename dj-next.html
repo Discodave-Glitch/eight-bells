@@ -2473,6 +2473,36 @@ function drawStrip(pre,inf){
   const tot=inf.pl.total||S[S.length-1].b1;
   return {cur:SECN[S[cur].type]||'',next:S[cur+1]?(SECN[S[cur+1].type]||''):'',bar:Math.min(tot,Math.floor(bi)+1),tot};
 }
+
+// ---- song titles: every sample song gets a made-up title that fits its style, key (minor = darker words) and speed. Made once per song and kept with it.
+const TW={
+ club:{a:['Neon','Midnight','Velvet','Electric','Golden','Deep','Late','Warehouse','Strobe','Silver','Hypnotic','Endless'],n:['Pulse','Groove','Lights','Floor','Hours','Motion','Signal','Rush','Circuit','Rhythm','Heat','Shift'],t:['After Hours','Into The Night','Keep Moving','Lost In Sound','Lights Down Low','One More Time','Under The Strobe','Till Sunrise']},
+ bass:{a:['Concrete','Heavy','Cold','Dark','Static','Low','Steel','Smoke','Iron','Shadow','Rough','Grime'],n:['Pressure','Weight','Block','Tunnel','Riddim','Engine','Signal','Ends','Bassline','Drop','Current','Sirens'],t:['No Turning Back','Run The Block','Pressure Point','Out Of Bounds','Low End Theory','Night Patrol','Fully Loaded','Back To Back']},
+ chill:{a:['Soft','Quiet','Drifting','Hazy','Slow','Faded','Paper','Sleepy','Pale','Gentle','Rainy','Still'],n:['Clouds','Tides','Haze','Morning','Window','Dreams','Waves','Rain','Daylight','Echoes','Bloom','Breeze'],t:['Rainy Sunday','Slow Afternoon','Under Blue Skies','Lights In The Fog','Half Asleep','Somewhere Warm','Coffee And Rain','Drifting Home']},
+ soul:{a:['Velvet','Smooth','Blue','Honey','Sweet','Golden','Late Night','Easy','Warm','Silk','Satin','Cool'],n:['Avenue','Groove','Feeling','Lounge','Love','Swing','Corner','Glow','Talk','Street','Shuffle','Moon'],t:['Easy Like Sunday','Blue Avenue','Midnight Lounge','Feel It Too','Sweet Talk','Down On Main Street','Keep It Smooth','Say It Again']},
+ world:{a:['Sunlit','Island','Desert','Tropical','Golden','Coastal','Spice','Carnival','Wild','Ocean','Market','Summer'],n:['Sun','Road','Dance','Fire','Market','Beach','Fiesta','Drums','Wind','Harbour','Sky','Festival'],t:['Summer Road','Dance Till Dawn','Sun On The Water','Carnival Lights','Far From Home','Fire On The Beach','Island Breeze','Spice Market']},
+ rock:{a:['Broken','Loud','Burning','Electric','Wild','Restless','Static','Reckless','Black','Highway','Rusty','Glass'],n:['Hearts','Road','Fire','Riot','Engine','Ghosts','Radio','Thunder','Wire','Echo','Storm','Alley'],t:['Turn It Up','Highway Fire','No Sleep Tonight','Broken Radio','Out Of Control','Ghost Town','Running Wild','Glass Hearts']},
+ gen:{a:['Midnight','Silver','Golden','Blue','Distant','Secret','Electric','Crystal','Hidden','Bright','Fading','Northern'],n:['Lights','Signal','Dreams','Waves','Skies','Echo','Horizon','Journey','Pulse','Rhythm','Garden','Story'],t:['Somewhere New','Into The Blue','Far Away','Coming Home','Northern Lights','Hidden Garden','Turn Around','Last Light']}
+};
+const TUSED=[]; // titles used lately, so a set never repeats one
+const TDARK=['Shadow','Midnight','Cold','Dark','Black','Lonely','Grey','Lost','Hollow','Bitter'], TBRIGHT=['Sunny','Golden','Bright','Happy','Shining','Summer','Sweet','Lucky','Morning','Warm'], TFAST=['Rush','Run','Fire','Racer','Overdrive','Sprint','Blaze','Storm'];
+function tGroup(g){ g=String(g||'').toLowerCase();
+  if(/drill|grime|dubstep|drum|jungle|bass|trap|dnb|breakbeat|neuro|garage uk|footwork|phonk|hip.?hop|rap\b|boom ?bap|g-?funk/.test(g)) return 'bass';
+  if(/lo-?fi|ambient|chill|dream|downtempo|trip|sleep|vapor|study|new age|lounge music/.test(g)) return 'chill';
+  if(/soul|funk|disco|jazz|blues|swing|r&b|rnb|motown|gospel|boogie/.test(g)) return 'soul';
+  if(/latin|afro|reggae|zouk|bossa|samba|salsa|cumbia|dancehall|soca|bhangra|k-?pop|bollywood|balkan|flamenco|kizomba|amapiano|highlife|calypso|tango|world/.test(g)) return 'world';
+  if(/rock|punk|metal|indie|grunge|surf|pop|emo|shoegaze|folk|country/.test(g)) return 'rock';
+  if(/house|techno|trance|garage|electro|edm|club|rave|hardstyle|disco house|minimal|progressive|eurodance|hi-?nrg/.test(g)) return 'club';
+  return 'gen'; }
+function songTitle(pl){ if(!pl) return ''; if(pl.__title) return pl.__title;
+  const W=TW[tGroup(pl.g&&pl.g.name)], pk=a=>a[Math.floor(Math.random()*a.length)], minor=/minor/.test(String(pl.name||'')), fast=(pl.T||0)>=128; let t;
+  for(let tries=0;tries<8;tries++){ const r=Math.random();
+    if(r<.3) t=pk(W.t);
+    else if(r<.5) t=(minor?pk(TDARK):pk(TBRIGHT))+' '+pk(W.n);
+    else if(r<.6&&fast) t=pk(W.a)+' '+pk(TFAST);
+    else t=pk(W.a)+' '+pk(W.n);
+    if(!TUSED.includes(t)) break; }
+  TUSED.push(t); if(TUSED.length>60) TUSED.shift(); pl.__title=t; return t; }
 const timeLeft=(inf,st)=>{ try{ const sec=Math.max(0,(st.tot-Math.max(0,inf.bar))*inf.pl.barSec); if(!isFinite(sec)) return ''; const m=Math.floor(sec/60), r=Math.floor(sec%60); return ' · '+m+':'+String(r).padStart(2,'0')+' left'; }catch(e){ return ''; } }; // time left in the song playing now
 const txt=(id,v)=>{ const e=$(id); if(e&&e.textContent!==v) e.textContent=v; };
 let artKey='', tick=0;
@@ -2481,9 +2511,9 @@ function render(){
   const t=T(); if(!t) return; const inf=info(), on=autoOn(), car=C(), busy=on&&!inf&&(t.SG.busy||(CARON&&car&&!car.cur&&t.SG.on));
   // now screen
   if(inf&&!inf.synth){ const st=drawStrip('n',inf);
-    txt('nsong','Song '+inf.no); txt('ngen',amp(inf.pl.g.name)); txt('nsub',inf.bpm+' BPM'+(st&&st.cur?' · '+st.cur:''));
+    txt('nsong','Song '+inf.no+' · '+amp(inf.pl.g.name)); txt('ngen',songTitle(inf.pl)); txt('nsub',inf.bpm+' BPM'+(st&&st.cur?' · '+st.cur:''));
     txt('nl',st?'Bar '+st.bar+' of '+st.tot+timeLeft(inf,st):''); txt('nr',st&&st.next?'Next: '+st.next:'');
-    txt('nup',inf.next?amp(inf.next.g.name)+' · '+Math.round(inf.next.T)+' BPM':(busy?'Making it...':'Making it...'));
+    txt('nup',inf.next?songTitle(inf.next)+' · '+amp(inf.next.g.name):(busy?'Making it...':'Making it...'));
   } else if(inf&&inf.synth){ drawStrip('n',null); txt('nsong','Synth'); txt('ngen',inf.genre||'Eight Bells'); txt('nsub',inf.bpm?inf.bpm+' BPM':''); txt('nl',inf.line); txt('nr',''); txt('nup',inf.nextLine?inf.nextLine.replace(/^Next:\s*/,''):'-'); }
   else { drawStrip('n',null); txt('nsong','Auto DJ'); txt('ngen',busy?'Making songs...':'Ready'); txt('nsub',busy?'One moment':'Press play'); txt('nl',''); txt('nr',''); txt('nup','-'); }
   const playing=!!(inf&&inf.playing), np=$('nplay');
@@ -2495,7 +2525,7 @@ function render(){
     if(dk) $('nart').style.setProperty('--spin',dk.style.getPropertyValue('--spin')||'2s'); }
   $('nart').classList.toggle('playing',on&&playing);
   // strip under the decks
-  if(inf&&!inf.synth){ const st=drawStrip('d',inf); txt('dl','Song '+inf.no+' · '+amp(inf.pl.g.name)); txt('dr',st?'Bar '+st.bar+' of '+st.tot+timeLeft(inf,st)+(st.next?' · Next: '+st.next:''):''); }
+  if(inf&&!inf.synth){ const st=drawStrip('d',inf); txt('dl','Song '+inf.no+' · '+songTitle(inf.pl)+' · '+amp(inf.pl.g.name)); txt('dr',st?'Bar '+st.bar+' of '+st.tot+timeLeft(inf,st)+(st.next?' · Next: '+st.next:''):''); }
   else if(inf&&inf.synth){ drawStrip('d',null); txt('dl',inf.line); txt('dr',inf.nextLine); }
   else { drawStrip('d',null); txt('dl',busy?'Making songs...':'Auto DJ is off'); txt('dr',''); }
 }
@@ -2578,7 +2608,7 @@ function curSong(){ const t=T(); if(!t) return null; const car=C();
   return null; }
 async function keepSong(s,why){ if(!s||!s.data||!s.plan||KEPT.has(s.plan)) return false; KEPT.add(s.plan);
   try{ const pl=s.plan, w=kWav(s.data,s.sr||44100);
-    await kreq('readwrite',st=>st.add({name:amp(pl.g.name),bpm:Math.round(pl.T),title:String(pl.name||''),at:Date.now(),dur:w.dur,size:w.blob.size,why:why||'keep',blob:w.blob}));
+    await kreq('readwrite',st=>st.add({name:songTitle(pl)+' · '+amp(pl.g.name),bpm:Math.round(pl.T),title:String(pl.name||''),at:Date.now(),dur:w.dur,size:w.blob.size,why:why||'keep',blob:w.blob}));
     const all=await kAll(); if(all.length>KEEPMAX){ const old=all.slice(KEEPMAX).map(x=>x.id); await kreq('readwrite',st=>{ old.forEach(id=>st.delete(id)); }); }
     keptN=Math.min(all.length,KEEPMAX); kLabel(); return true; }
   catch(e){ KEPT.delete(s.plan); console.warn('keep failed',e); toast('Could not keep it (phone storage full?)'); return false; } }
