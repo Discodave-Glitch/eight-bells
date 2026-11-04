@@ -2474,35 +2474,52 @@ function drawStrip(pre,inf){
   return {cur:SECN[S[cur].type]||'',next:S[cur+1]?(SECN[S[cur+1].type]||''):'',bar:Math.min(tot,Math.floor(bi)+1),tot};
 }
 
-// ---- song titles: every sample song gets a made-up title that fits its style, key (minor = darker words) and speed. Made once per song and kept with it.
+// ---- song titles: every song gets a made-up title built from what is in it (style, key, speed, the instruments of its loops and licks, vocals, drop or break).
+// Titles are remembered on this device (ebn.titles), so the same title is never given out twice.
 const TW={
- club:{a:['Neon','Midnight','Velvet','Electric','Golden','Deep','Late','Warehouse','Strobe','Silver','Hypnotic','Endless'],n:['Pulse','Groove','Lights','Floor','Hours','Motion','Signal','Rush','Circuit','Rhythm','Heat','Shift'],t:['After Hours','Into The Night','Keep Moving','Lost In Sound','Lights Down Low','One More Time','Under The Strobe','Till Sunrise']},
- bass:{a:['Concrete','Heavy','Cold','Dark','Static','Low','Steel','Smoke','Iron','Shadow','Rough','Grime'],n:['Pressure','Weight','Block','Tunnel','Riddim','Engine','Signal','Ends','Bassline','Drop','Current','Sirens'],t:['No Turning Back','Run The Block','Pressure Point','Out Of Bounds','Low End Theory','Night Patrol','Fully Loaded','Back To Back']},
- chill:{a:['Soft','Quiet','Drifting','Hazy','Slow','Faded','Paper','Sleepy','Pale','Gentle','Rainy','Still'],n:['Clouds','Tides','Haze','Morning','Window','Dreams','Waves','Rain','Daylight','Echoes','Bloom','Breeze'],t:['Rainy Sunday','Slow Afternoon','Under Blue Skies','Lights In The Fog','Half Asleep','Somewhere Warm','Coffee And Rain','Drifting Home']},
- soul:{a:['Velvet','Smooth','Blue','Honey','Sweet','Golden','Late Night','Easy','Warm','Silk','Satin','Cool'],n:['Avenue','Groove','Feeling','Lounge','Love','Swing','Corner','Glow','Talk','Street','Shuffle','Moon'],t:['Easy Like Sunday','Blue Avenue','Midnight Lounge','Feel It Too','Sweet Talk','Down On Main Street','Keep It Smooth','Say It Again']},
- world:{a:['Sunlit','Island','Desert','Tropical','Golden','Coastal','Spice','Carnival','Wild','Ocean','Market','Summer'],n:['Sun','Road','Dance','Fire','Market','Beach','Fiesta','Drums','Wind','Harbour','Sky','Festival'],t:['Summer Road','Dance Till Dawn','Sun On The Water','Carnival Lights','Far From Home','Fire On The Beach','Island Breeze','Spice Market']},
- rock:{a:['Broken','Loud','Burning','Electric','Wild','Restless','Static','Reckless','Black','Highway','Rusty','Glass'],n:['Hearts','Road','Fire','Riot','Engine','Ghosts','Radio','Thunder','Wire','Echo','Storm','Alley'],t:['Turn It Up','Highway Fire','No Sleep Tonight','Broken Radio','Out Of Control','Ghost Town','Running Wild','Glass Hearts']},
- gen:{a:['Midnight','Silver','Golden','Blue','Distant','Secret','Electric','Crystal','Hidden','Bright','Fading','Northern'],n:['Lights','Signal','Dreams','Waves','Skies','Echo','Horizon','Journey','Pulse','Rhythm','Garden','Story'],t:['Somewhere New','Into The Blue','Far Away','Coming Home','Northern Lights','Hidden Garden','Turn Around','Last Light']}
+ club:{a:['Neon','Midnight','Velvet','Electric','Golden','Deep','Late','Warehouse','Strobe','Silver','Hypnotic','Endless','Liquid','Infinite','Chrome','Afterglow'],n:['Pulse','Groove','Lights','Floor','Hours','Motion','Signal','Rush','Circuit','Rhythm','Heat','Shift','Mirror','Orbit','Frequency','Room'],p:['Berlin','Ibiza','The Basement','Room 9','The Docks','Sector 7','The Rooftop','Arena'],v:['Keep Moving','Feel The','Lose Yourself In The','Chase The','Ride The','Follow The']},
+ bass:{a:['Concrete','Heavy','Cold','Dark','Static','Low','Steel','Smoke','Iron','Shadow','Rough','Raw','Grey','Wired','Late Night','Underground'],n:['Pressure','Weight','Block','Tunnel','Riddim','Engine','Ends','Bassline','Drop','Current','Sirens','Corners','Rounds','Pavement','Motive','Signal'],p:['The Estate','South London','Platform 4','The Underpass','Zone 2','The Car Park','Block C','The Rooftop'],v:['Run The','Hold The','Mind The','Move Through The','Out Of The','Own The']},
+ chill:{a:['Soft','Quiet','Drifting','Hazy','Slow','Faded','Paper','Sleepy','Pale','Gentle','Rainy','Still','Linen','Amber','Misty','Velvet'],n:['Clouds','Tides','Haze','Morning','Window','Dreams','Waves','Rain','Daylight','Echoes','Bloom','Breeze','Tea','Lanterns','Pages','Sunday'],p:['The Lake','Kyoto','The Attic','A Small Town','The Coast','The Garden','Room 12','The Library'],v:['Drift Through The','Wait For The','Watch The','Sleep Through The','Follow The','Breathe In The']},
+ soul:{a:['Velvet','Smooth','Blue','Honey','Sweet','Golden','Late Night','Easy','Warm','Silk','Satin','Cool','Brown Sugar','Sunday','Slow Burn','Candlelit'],n:['Avenue','Groove','Feeling','Lounge','Love','Swing','Corner','Glow','Talk','Street','Shuffle','Moon','Promise','Kiss','Remedy','Serenade'],p:['Harlem','Detroit','Lenox Avenue','The Back Room','Memphis','The Supper Club','Chicago','New Orleans'],v:['Hold On To The','Dance In The','Remember The','Stay For The','Meet Me In The','Follow The']},
+ world:{a:['Sunlit','Island','Desert','Tropical','Golden','Coastal','Spice','Carnival','Wild','Ocean','Market','Summer','Dusty','Saffron','Coral','Mango'],n:['Sun','Road','Dance','Fire','Market','Beach','Fiesta','Drums','Wind','Harbour','Sky','Festival','Caravan','Lanterns','Bazaar','Shoreline'],p:['Lagos','Havana','Rio','Mumbai','Kingston','Marrakesh','Lisbon','Dakar'],v:['Dance Till The','Follow The','Ride The','Chase The','Meet Me By The','Sing To The']},
+ rock:{a:['Broken','Loud','Burning','Electric','Wild','Restless','Static','Reckless','Black','Highway','Rusty','Glass','Torn','Faded','Neon','Stolen'],n:['Hearts','Road','Fire','Riot','Engine','Ghosts','Radio','Thunder','Wire','Echo','Storm','Alley','Jacket','Motel','Rebels','Satellite'],p:['Route 66','The Garage','Sunset Strip','A Small Town','The Motel','Seattle','The Back Road','Camden'],v:['Turn Up The','Burn Down The','Outrun The','Break The','Drive Through The','Shout At The']},
+ gen:{a:['Midnight','Silver','Golden','Blue','Distant','Secret','Electric','Crystal','Hidden','Bright','Fading','Northern','Paper','Velvet','Quiet','Wandering'],n:['Lights','Signal','Dreams','Waves','Skies','Echo','Horizon','Journey','Pulse','Rhythm','Garden','Story','Compass','Atlas','Mirror','Lantern'],p:['The North','Nowhere','The Harbour','Tomorrow','Elsewhere','The Valley','The Old Town','Orbit'],v:['Follow The','Chase The','Find The','Cross The','Wait For The','Remember The']}
 };
-const TUSED=[]; // titles used lately, so a set never repeats one
-const TDARK=['Shadow','Midnight','Cold','Dark','Black','Lonely','Grey','Lost','Hollow','Bitter'], TBRIGHT=['Sunny','Golden','Bright','Happy','Shining','Summer','Sweet','Lucky','Morning','Warm'], TFAST=['Rush','Run','Fire','Racer','Overdrive','Sprint','Blaze','Storm'];
+const TMOOD={dark:['Shadow','Midnight','Cold','Dark','Black','Lonely','Grey','Lost','Hollow','Bitter','Smoky','Haunted','Silent','Broken'],bright:['Sunny','Golden','Bright','Happy','Shining','Summer','Sweet','Lucky','Morning','Warm','Rosy','Sparkling','Glowing','Clear']};
+const TSPEED={fast:{a:['Racing','Turbo','Wild','Rapid','Burning','Hyper'],n:['Rush','Run','Fire','Overdrive','Sprint','Blaze','Storm','Riot']},slow:{a:['Slow','Lazy','Easy','Gentle','Long','Patient'],n:['Sway','Drift','Stroll','Daydream','Lullaby','Afterglow']}};
+const TINS={gtr:['Strings','Riff','Six Strings','Fretboard','Strum'],keys:['Keys','Piano','Ivory','Chords','Organ'],syn:['Synth','Circuit','Oscillator','Arcade','Neon Keys'],bass:['Bassline','Low End','Sub','Groove'],horn:['Brass','Horns','Trumpet','Saxophone','Fanfare'],flt:['Flute','Whistle','Wind','Reed','Birdsong'],orch:['Strings','Orchestra','Violins','Symphony','Overture'],wld:['Sitar','Kalimba','Bells','Drum Circle','Caravan'],acap:['Voices','Choir','Chorus','Whispers','Call'],sing:['Voices','Choir','Song','Hymn','Serenade'],loop:['Voices','Echoes','Chant','Mantra'],spoken:['Words','Stories','Talk','Speech']};
+const TPART={drop:['Drop','Impact','Fall','Plunge'],break:['Breakdown','Pause','Quiet Part','Interlude'],build:['Rise','Lift','Climb','Ascent'],bridge:['Bridge','Crossing','Passage']};
 function tGroup(g){ g=String(g||'').toLowerCase();
   if(/drill|grime|dubstep|drum|jungle|bass|trap|dnb|breakbeat|neuro|garage uk|footwork|phonk|hip.?hop|rap\b|boom ?bap|g-?funk/.test(g)) return 'bass';
-  if(/lo-?fi|ambient|chill|dream|downtempo|trip|sleep|vapor|study|new age|lounge music/.test(g)) return 'chill';
+  if(/lo-?fi|ambient|chill|dream|downtempo|trip|sleep|vapor|study|new age|cinematic/.test(g)) return 'chill';
   if(/soul|funk|disco|jazz|blues|swing|r&b|rnb|motown|gospel|boogie/.test(g)) return 'soul';
-  if(/latin|afro|reggae|zouk|bossa|samba|salsa|cumbia|dancehall|soca|bhangra|k-?pop|bollywood|balkan|flamenco|kizomba|amapiano|highlife|calypso|tango|world/.test(g)) return 'world';
+  if(/latin|afro|reggae|zouk|bossa|samba|salsa|cumbia|dancehall|soca|bhangra|k-?pop|bollywood|balkan|flamenco|kizomba|amapiano|highlife|calypso|tango|world|riddim/.test(g)) return 'world';
   if(/rock|punk|metal|indie|grunge|surf|pop|emo|shoegaze|folk|country/.test(g)) return 'rock';
-  if(/house|techno|trance|garage|electro|edm|club|rave|hardstyle|disco house|minimal|progressive|eurodance|hi-?nrg/.test(g)) return 'club';
+  if(/house|techno|trance|garage|electro|edm|club|rave|hardstyle|minimal|progressive|eurodance|hi-?nrg|synthwave/.test(g)) return 'club';
   return 'gen'; }
+let TSEEN=null; const tSeen=()=>{ if(!TSEEN){ try{ TSEEN=new Set(JSON.parse(localStorage.getItem('ebn.titles')||'[]')); }catch(e){ TSEEN=new Set(); } } return TSEEN; };
+const tSave=()=>{ try{ localStorage.setItem('ebn.titles',JSON.stringify([...tSeen()])); }catch(e){} }; // every title ever given, no limit
 function songTitle(pl){ if(!pl) return ''; if(pl.__title) return pl.__title;
-  const W=TW[tGroup(pl.g&&pl.g.name)], pk=a=>a[Math.floor(Math.random()*a.length)], minor=/minor/.test(String(pl.name||'')), fast=(pl.T||0)>=128; let t;
-  for(let tries=0;tries<8;tries++){ const r=Math.random();
-    if(r<.3) t=pk(W.t);
-    else if(r<.5) t=(minor?pk(TDARK):pk(TBRIGHT))+' '+pk(W.n);
-    else if(r<.6&&fast) t=pk(W.a)+' '+pk(TFAST);
-    else t=pk(W.a)+' '+pk(W.n);
-    if(!TUSED.includes(t)) break; }
-  TUSED.push(t); if(TUSED.length>60) TUSED.shift(); pl.__title=t; return t; }
+  const W=TW[tGroup(pl.g&&pl.g.name)], pk=a=>a[Math.floor(Math.random()*a.length)], minor=pl.minor!==undefined?!!pl.minor:/minor/.test(String(pl.name||'')), T=pl.T||0;
+  const grps=[pl.bed&&pl.bed.c&&pl.bed.c.grp].concat((pl.licks||[]).map(l=>l.c&&l.c.grp),(pl.vocals||[]).map(v=>v.c&&v.c.grp)).filter(g=>g&&TINS[g]);
+  const parts=(pl.secs||[]).map(x=>x.type).filter(t=>TPART[t]);
+  // words that fit this song: style first, then mood (key), speed, its instruments and its big moments
+  const adj=W.a.concat(minor?TMOOD.dark:TMOOD.bright, T>=128?TSPEED.fast.a:(T&&T<95?TSPEED.slow.a:[]));
+  const noun=W.n.concat(T>=128?TSPEED.fast.n:(T&&T<95?TSPEED.slow.n:[]));
+  const ins=grps.length?TINS[pk(grps)]:null, part=parts.length?TPART[pk(parts)]:null;
+  const make=()=>{ const r=Math.random();
+    if(ins&&r<.22) return pk(adj)+' '+pk(ins);
+    if(part&&r<.32) return pk(W.v)+' '+pk(part);
+    if(r<.45) return pk(W.v)+' '+pk(noun);
+    if(r<.58) return pk(noun)+' Of '+pk(W.p);
+    if(r<.68) return (ins&&Math.random()<.5?pk(ins):pk(noun))+' In '+pk(W.p);
+    if(r<.76) return 'The '+pk(adj)+' '+pk(noun);
+    return pk(adj)+' '+pk(noun); };
+  const seen=tSeen(); let t='';
+  for(let i=0;i<60;i++){ const c=make(); if(!seen.has(c.toLowerCase())){ t=c; break; } }
+  if(!t){ const base=make(); let n=2; while(seen.has((base+' '+n).toLowerCase())) n++; t=base+' '+n; } // all near-misses used: number it so it is still new
+  seen.add(t.toLowerCase()); tSave(); pl.__title=t; return t; }
+window.__ebTitle=songTitle; // test hook
 const timeLeft=(inf,st)=>{ try{ const sec=Math.max(0,(st.tot-Math.max(0,inf.bar))*inf.pl.barSec); if(!isFinite(sec)) return ''; const m=Math.floor(sec/60), r=Math.floor(sec%60); return ' · '+m+':'+String(r).padStart(2,'0')+' left'; }catch(e){ return ''; } }; // time left in the song playing now
 const txt=(id,v)=>{ const e=$(id); if(e&&e.textContent!==v) e.textContent=v; };
 let artKey='', tick=0;
@@ -2511,7 +2528,7 @@ function render(){
   const t=T(); if(!t) return; const inf=info(), on=autoOn(), car=C(), busy=on&&!inf&&(t.SG.busy||(CARON&&car&&!car.cur&&t.SG.on));
   // now screen
   if(inf&&!inf.synth){ const st=drawStrip('n',inf);
-    txt('nsong','Song '+inf.no+' · '+amp(inf.pl.g.name)); txt('ngen',songTitle(inf.pl)); txt('nsub',inf.bpm+' BPM'+(st&&st.cur?' · '+st.cur:''));
+    txt('nsong','Song '+inf.no); txt('ngen',songTitle(inf.pl)); txt('nsub',amp(inf.pl.g.name)+' · '+inf.bpm+' BPM'+(st&&st.cur?' · '+st.cur:''));
     txt('nl',st?'Bar '+st.bar+' of '+st.tot+timeLeft(inf,st):''); txt('nr',st&&st.next?'Next: '+st.next:'');
     txt('nup',inf.next?songTitle(inf.next)+' · '+amp(inf.next.g.name):(busy?'Making it...':'Making it...'));
   } else if(inf&&inf.synth){ drawStrip('n',null); txt('nsong','Synth'); txt('ngen',inf.genre||'Eight Bells'); txt('nsub',inf.bpm?inf.bpm+' BPM':''); txt('nl',inf.line); txt('nr',''); txt('nup',inf.nextLine?inf.nextLine.replace(/^Next:\s*/,''):'-'); }
