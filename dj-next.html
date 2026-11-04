@@ -7,6 +7,13 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Bells Next">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script>/* real screen height: an iPhone Home Screen app whose page does not scroll is told the screen is shorter than it is, so bottom-pinned things float up. Measure it and place the tab bar from the top instead. */
+(function(){var d=document.documentElement;function f(){var H=window.innerHeight,top=0;try{var p=document.createElement('div');p.style.cssText='position:fixed;top:0;left:0;visibility:hidden;padding-top:env(safe-area-inset-top)';(document.body||d).appendChild(p);top=parseFloat(getComputedStyle(p).paddingTop)||0;p.remove();}catch(e){}
+var ios=/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1),st=navigator.standalone||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches);
+if(ios&&st&&top>0){var port=innerHeight>=innerWidth,sh=port?Math.max(screen.width,screen.height):Math.min(screen.width,screen.height);if(sh>H&&sh-H<130)H=sh;}
+d.style.setProperty('--vh',H+'px');}
+f();addEventListener('resize',f);addEventListener('orientationchange',function(){setTimeout(f,300);});document.addEventListener('DOMContentLoaded',f);addEventListener('load',f);})();</script>
 <meta name="theme-color" content="#0d1320">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -327,9 +334,14 @@ html.barhid #tabbar{transform:translateY(105%);pointer-events:none}
 html.barhid #barhandle{display:flex}
 body:has(#app[hidden]) #barhandle{display:none!important}
 /* screens stay put: only things meant to scroll scroll */
+/* place from the top using the real screen height (--vh), never from the bottom: see the script in <head> */
+#tabbar{bottom:auto!important;top:calc(var(--vh,100vh) - var(--n-tab) - var(--n-sb))}
+#barhandle{bottom:auto!important;top:calc(var(--vh,100vh) - var(--n-bh))}
+#setup,#keptsh{bottom:auto;height:var(--vh,100vh);box-sizing:border-box}
+#toast{bottom:auto!important;top:calc(var(--vh,100vh) - var(--n-bh) - 72px)}
+@media (orientation:portrait),(max-width:559px){ body.v-now #app{position:fixed;left:0;right:0;top:0;height:var(--vh,100vh)!important;min-height:0;padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right);overflow:hidden} }
 html,body{overscroll-behavior:none;overflow-x:hidden;touch-action:pan-x pan-y}
 #app{box-sizing:border-box;min-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom))}
-body.v-now #app{height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom))!important;min-height:0}
 body:has(#app[hidden]) #tabbar{display:none}
 @media (orientation:portrait),(max-width:559px){ #app{padding-bottom:calc(var(--n-bh) + 8px)} #tagbar{bottom:calc(var(--n-bh) + 8px)} body.v-now #viewb{display:none} }
 #toast{position:fixed;left:50%;bottom:calc(var(--n-bh) + 20px);transform:translateX(-50%);z-index:60;background:var(--n-s2);color:var(--n-ink);border:1px solid var(--n-line);border-radius:22px;padding:12px 20px;font-weight:700;font-size:15px;opacity:0;pointer-events:none;transition:opacity .2s}
@@ -426,7 +438,8 @@ html.sim .strip>.chv .vf{writing-mode:horizontal-tb;direction:ltr;height:28px!im
   #dstrip{margin:10px 16px 10px}
   /* Car screen: big picture left, song and three big buttons right */
   #now{flex-direction:row;align-items:center;gap:clamp(16px,4vw,40px);padding:8px clamp(16px,3vw,32px) 12px}
-  .nart{width:min(310px,calc(100dvh - 100px));height:min(310px,calc(100dvh - 100px))}
+  .nart{width:min(310px,calc(100dvh - 150px));height:min(310px,calc(100dvh - 150px))}
+  .nkeep button{min-height:40px;padding:0 14px;font-size:14px}
   .ninfo{flex:1;gap:clamp(8px,2.4vh,18px)}
   .nmeta{align-items:flex-start;text-align:left}
   .nsong{font-size:15px}.ngen{font-size:clamp(26px,7vh,40px)}.nsub{font-size:clamp(14px,3.6vh,18px)}

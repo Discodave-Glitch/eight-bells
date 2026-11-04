@@ -769,6 +769,13 @@ html.st-lock,html.st-lock body{overflow:hidden}
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Bells Next">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script>/* real screen height: an iPhone Home Screen app whose page does not scroll is told the screen is shorter than it is, so bottom-pinned things float up. Measure it and place the tab bar from the top instead. */
+(function(){var d=document.documentElement;function f(){var H=window.innerHeight,top=0;try{var p=document.createElement('div');p.style.cssText='position:fixed;top:0;left:0;visibility:hidden;padding-top:env(safe-area-inset-top)';(document.body||d).appendChild(p);top=parseFloat(getComputedStyle(p).paddingTop)||0;p.remove();}catch(e){}
+var ios=/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1),st=navigator.standalone||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches);
+if(ios&&st&&top>0){var port=innerHeight>=innerWidth,sh=port?Math.max(screen.width,screen.height):Math.min(screen.width,screen.height);if(sh>H&&sh-H<130)H=sh;}
+d.style.setProperty('--vh',H+'px');}
+f();addEventListener('resize',f);addEventListener('orientationchange',function(){setTimeout(f,300);});document.addEventListener('DOMContentLoaded',f);addEventListener('load',f);})();</script>
 <meta name="theme-color" content="#0d1320">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta name="theme-color" content="#2f7f95">
@@ -896,6 +903,13 @@ html,body{overscroll-behavior:none;overflow-x:hidden;touch-action:pan-x pan-y}
 html.nlock main{height:0!important;min-height:0!important;overflow:hidden!important;visibility:hidden;margin:0!important;padding:0!important}
 html.nlock body{padding-bottom:0!important}
 #mk,.live,.padm,.stagev{overflow-x:hidden!important;overscroll-behavior:contain}
+/* place from the top using the real screen height (--vh), never from the bottom: see the script in <head> */
+#tabbar{bottom:auto!important;top:calc(var(--vh,100vh) - var(--n-tab) - var(--n-sb))}
+#barhandle{bottom:auto!important;top:calc(var(--vh,100vh) - var(--n-bh))}
+#mk{bottom:auto!important;height:calc(var(--vh,100vh) - var(--n-bh))}
+.live,.padm,.stagev{bottom:auto!important;height:calc(var(--vh,100vh) - var(--n-bh))!important;box-sizing:border-box!important}
+#mksheet{bottom:auto;height:var(--vh,100vh)}
+#toast{bottom:auto!important;top:calc(var(--vh,100vh) - var(--n-bh) - 72px)}
 </style>
 </head>
 <body>
