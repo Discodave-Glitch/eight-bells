@@ -835,6 +835,8 @@ html:has(.stagev.st-imm) #tabbar,html:has(.stagev.st-imm) #barhandle{display:non
 /* big screens (computer): Make drawn larger and centred, tab bar buttons kept together in the middle */
 @media (min-width:900px) and (min-height:640px){ .mkin{zoom:1.35;padding-top:4vh} #tabbar{justify-content:center} #tabbar button{flex:0 1 150px} }
 @media (min-width:1500px) and (min-height:900px){ .mkin{zoom:1.6} }
+html:not(.help) main .lt{display:none!important}
+main .lt{color:var(--muted)}
 /* Stage full screen: the buttons over the picture sit in two neat dark panels at the bottom, same look as the rest of the app */
 .stagev.st-imm .st-ftrk,.stagev.st-imm .st-float{left:50%!important;right:auto!important;transform:translateX(-50%);width:max-content;max-width:calc(100vw - 24px);box-sizing:border-box;background:rgba(13,19,32,.82);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid #2a3652;border-radius:20px;padding:8px!important;gap:8px!important;z-index:7;font-family:Inter,system-ui,sans-serif}
 .stagev.st-imm .st-float{bottom:max(10px,env(safe-area-inset-bottom))!important}
@@ -19173,6 +19175,18 @@ setInterval(rkApply,300);
 rkBuild();
 // the Kit knob on Pads shows which kit is on (short name)
 try{ const kInfo=window.padKnobInfoA; if(typeof kInfo==='function') window.padKnobInfoA=function(n){ const r=kInfo.apply(this,arguments); if(n===5&&r){ const k=PV.kit==='auto'?autoKit():PV.kit, nm=KITS[k]?KITS[k].name.replace(/^Real: /,''):'Kit'; return [(PV.kit==='auto'?'Auto ':'')+nm,r[1]]; } return r; }; }catch(e){}
+
+// ---- More tab: long explanations, instructions, repeated credits and long tick-box descriptions show only with Help text on (live status lines stay)
+(function(){ const KEEP=new Set(['mstatus','mmon','capmsg','tempobox']);
+  const ctl=e=>e.querySelector('input,select,button,textarea');
+  function tidy(root){ if(!root) return;
+    root.querySelectorAll('p,li,pre,div.rectip,span.hint,small').forEach(e=>{ if(e.classList.contains('lt')||KEEP.has(e.id)||e.closest('.lt')||e.closest('#mk,#tabbar,#morehd')) return; if(ctl(e)) return;
+      if((e.textContent||'').trim().length>55) e.classList.add('lt'); });
+    root.querySelectorAll('label').forEach(l=>{ if(l.dataset.tidy) return; l.dataset.tidy='1'; const nodes=[];
+      const walk=n=>{ n.childNodes.forEach(k=>{ if(k.nodeType===3&&k.textContent.trim()) nodes.push(k); else if(k.nodeType===1&&k.tagName==='SPAN'&&!k.querySelector('input,select,button')) walk(k); }); }; walk(l);
+      nodes.forEach(n=>{ const t=n.textContent; if(t.trim().length<=40) return; let cut=t.search(/\s\(|:\s|\s—\s|\.\s/); if(cut<0) return;
+        const sp=document.createElement('span'); sp.className='lt'; sp.textContent=t.slice(cut); n.textContent=t.slice(0,cut); n.after(sp); }); }); }
+  const m=document.querySelector('main'); tidy(m); let q=0; new MutationObserver(()=>{ if(q) return; q=requestAnimationFrame(()=>{ q=0; tidy(m); }); }).observe(m,{childList:true,subtree:true}); })();
 const want=(location.hash||'').slice(1);
 setTimeout(()=>{ if(['live','pads','stage','more'].includes(want)) go(want); else go('make'); },300);
 })();

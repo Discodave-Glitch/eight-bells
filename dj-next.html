@@ -321,6 +321,20 @@ html.full #dstrip{display:none}
 #start .skart svg{animation:skp 1.6s ease-in-out infinite}
 @keyframes skp{50%{opacity:.6;transform:scale(.96)}}
 @media (orientation:landscape) and (max-height:560px){ #start .skart{width:min(240px,calc(var(--ih,100dvh) - 150px));height:auto;aspect-ratio:1} }
+/* DJ setup "More options" (the original settings panel): tidy, no walls of text. Long explanations show only with Help text on. */
+#setup .sh{justify-content:flex-start}
+.djhelp{margin-left:auto;display:flex;align-items:center;gap:8px;min-height:44px;padding:0 16px 0 6px;border-radius:22px;border:1px solid var(--n-line);background:var(--n-s1);color:var(--n-ink);font-weight:700;font-size:14px}
+.djhelp i{width:32px;height:32px;border-radius:50%;background:var(--n-s2);display:flex;align-items:center;justify-content:center;font-family:Georgia,serif;font-weight:700}
+.djhelp[aria-pressed="true"] i{background:var(--n-teal);color:#06222a}
+html:not(.help) #morebox .lt{display:none!important}
+#morebox .lt{color:var(--n-mut);font-size:13px;line-height:1.4}
+#morebox{font-family:Inter,system-ui,sans-serif}
+#morebox .settabs{position:static!important;top:auto!important;margin:0 0 10px!important}
+#morebox .settabs button{min-height:40px;border-radius:20px;font-weight:700}
+#morebox select{min-height:44px;border-radius:12px;max-width:100%;font-family:inherit;font-size:15px}
+#morebox input[type=checkbox]{width:20px;height:20px;accent-color:var(--n-gold);flex:none}
+#morebox label.chip,#morebox label.row{display:flex;align-items:center;gap:10px;min-height:40px;font-size:15px;color:var(--n-ink)}
+#morebox .ctlbody{display:flex;flex-direction:column;gap:6px}
 /* tap a part of the song to jump there (Car mode) */
 #nsegs,#dsegs{cursor:pointer;padding:12px 0;margin:-12px 0;box-sizing:content-box;touch-action:manipulation}
 /* Keep this song */
@@ -524,7 +538,7 @@ html.full .mxb{display:none}
   <div class="sbody"><div id="keptlist"></div><p class="kfine" id="keptinfo"></p></div>
 </div>
 <div id="setup" hidden role="dialog" aria-modal="true" aria-label="DJ setup">
-  <div class="sh"><button type="button" class="ib" id="setx" aria-label="Back"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button><h2>DJ setup</h2></div>
+  <div class="sh"><button type="button" class="ib" id="setx" aria-label="Back"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button><h2>DJ setup</h2><button type="button" id="djhelp" class="djhelp" aria-pressed="false"><i>i</i>Help text</button></div>
   <div class="sbody">
     <div class="card"><span class="ct">Music</span><div class="seg" role="group" aria-label="Music"><button type="button" data-sel="musicsrc" data-val="songs">Songs</button><button type="button" data-sel="musicsrc" data-val="eb">Synth</button><button type="button" data-sel="musicsrc" data-val="both">Both</button><button type="button" data-sel="musicsrc" data-val="random">Random</button></div></div>
     <div class="card"><span class="ct">Song length</span><div class="seg" role="group" aria-label="Song length"><button type="button" data-sel="sglen" data-val="short">Short</button><button type="button" data-sel="sglen" data-val="medium">Medium</button><button type="button" data-sel="sglen" data-val="long">Long</button></div></div>
@@ -2731,6 +2745,20 @@ rotUpd();
 (function(){ const go=$('go'), st=$('start'); if(!go||!st) return;
   const auto=()=>{ if(go.disabled||st.hidden) return; const ex=$('exauto'), was=ex?ex.checked:false; if(ex) ex.checked=false; try{ go.click(); }finally{ if(ex) ex.checked=was; } };
   new MutationObserver(auto).observe(go,{attributes:true,attributeFilter:['disabled']}); auto(); })();
+
+// ---- tidy the old settings panel: long explanations and long tick-box descriptions are hidden unless Help text is on (same setting as the More tab: ebn.help)
+(function(){ const KEEP=new Set(['tastesum','midimsg','recsavedh','loadmsg','pkcredt','carnote']);
+  const ctl=e=>e.querySelector('input,select,button,textarea');
+  function tidy(root){ if(!root) return;
+    root.querySelectorAll('p,div.chip,span.chip,small,.sechint,.hint').forEach(e=>{ if(e.classList.contains('lt')||KEEP.has(e.id)||e.closest('.lt')) return; if(ctl(e)) return;
+      const t=(e.textContent||'').trim(); if(t.length>55) e.classList.add('lt'); });
+    root.querySelectorAll('label').forEach(l=>{ if(l.dataset.tidy) return; l.dataset.tidy='1'; const nodes=[...l.childNodes].filter(n=>n.nodeType===3&&n.textContent.trim());
+      nodes.forEach(n=>{ const t=n.textContent; if(t.trim().length<=40&&!/^\s*:/.test(t)) return;
+        let cut=t.search(/\s\(|:\s|\s—\s|\.\s/); if(/^\s*:/.test(t)) cut=0; if(cut<0) return;
+        const keep=t.slice(0,cut), rest=t.slice(cut), sp=document.createElement('span'); sp.className='lt'; sp.textContent=rest; n.textContent=keep; n.after(sp); }); }); }
+  const box=$('morebox'); tidy(box); new MutationObserver(()=>tidy(box)).observe(box,{childList:true,subtree:true});
+  const setHelp=on=>{ html.classList.toggle('help',on); $('djhelp').setAttribute('aria-pressed',String(on)); store('ebn.help',on?'1':'0'); };
+  setHelp(store('ebn.help')==='1'); $('djhelp').addEventListener('click',()=>setHelp(!html.classList.contains('help'))); })();
 setInterval(render,250);
 })();
 </script>
