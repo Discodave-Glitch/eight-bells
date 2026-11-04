@@ -335,6 +335,17 @@ html:not(.help) #morebox .lt{display:none!important}
 #morebox input[type=checkbox]{width:20px;height:20px;accent-color:var(--n-gold);flex:none}
 #morebox label.chip,#morebox label.row{display:flex;align-items:center;gap:10px;min-height:40px;font-size:15px;color:var(--n-ink)}
 #morebox .ctlbody{display:flex;flex-direction:column;gap:6px}
+/* phone sideways, decks: slim top bar like the original app, decks fit the screen exactly (they shrink a little if needed), page never slides */
+@media (orientation:landscape) and (max-height:560px){
+  body.v-decks .top{margin:0 0 4px!important;padding:2px 0!important;min-height:0!important}
+  body.v-decks .top #auto{min-height:38px!important;height:38px!important;font-size:15px!important}
+  body.v-decks .top .ib,body.v-decks .top button.ib{width:38px!important;height:38px!important;min-height:38px!important}
+  body.v-decks .top .brand svg{width:28px;height:28px} body.v-decks .top .brand h1{font-size:18px}
+  body.v-decks #app{height:var(--ih,100dvh)!important;min-height:0!important;overflow:hidden!important;box-sizing:border-box;padding-top:max(4px,env(safe-area-inset-top))!important}
+  body.v-decks #console{flex:1 1 auto!important;min-height:0!important}
+}
+html.rot body.v-decks #app{overflow:hidden!important;height:var(--rh)!important;width:var(--rw)!important}
+#console input[type=range]{touch-action:none}
 /* tap a part of the song to jump there (Car mode) */
 #nsegs,#dsegs{cursor:pointer;padding:12px 0;margin:-12px 0;box-sizing:content-box;touch-action:manipulation}
 /* Keep this song */
@@ -3052,7 +3063,7 @@ $('nkept').addEventListener('click',()=>{ $('keptsh').hidden=false; kRender(); $
 const keptClose=()=>{ kStop(); $('keptsh').hidden=true; };
 $('keptx').addEventListener('click',keptClose);
 addEventListener('keydown',e=>{ if(e.key==='Escape'&&!$('keptsh').hidden) keptClose(); });
-const DOCOK=()=>!document.body.classList.contains('v-now');
+const DOCOK=()=>document.body.classList.contains('v-decks')&&!(window.matchMedia&&matchMedia('(orientation: landscape) and (max-height: 560px)').matches)&&!html.classList.contains('rot'); // the page itself only scrolls for the upright simple decks
 // the page itself never moves: a swipe only scrolls a list or menu that really has more to show (or the long More page)
 (function(){ const canScroll=el=>{ for(;el&&el!==document.body&&el!==document.documentElement;el=el.parentElement){ const s=getComputedStyle(el); if(/(auto|scroll)/.test(s.overflowY)&&el.scrollHeight>el.clientHeight+1) return true; if(/(auto|scroll)/.test(s.overflowX)&&el.scrollWidth>el.clientWidth+1) return true; } return false; };
   document.addEventListener('touchmove',e=>{ if(DOCOK()||e.touches.length>1) return; const t=e.target; if(t.closest&&t.closest('input,select,textarea')) return; if(!canScroll(t)) e.preventDefault(); },{passive:false});
