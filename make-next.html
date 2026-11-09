@@ -977,6 +977,8 @@ html[data-tab="more"] main .transport>.deck{display:none!important}
 /* Pads: only the selected track shows, whole, no slices of the tracks above and below (owner, 10 Nov 2026) */
 .padm .pm-tl .pm-tr:not(.sel){display:none!important}
 .padm .pm-tl{flex:0 0 auto!important;min-height:0!important;padding:4px 8px!important;justify-content:flex-start!important;-webkit-user-select:none;user-select:none}
+/* Make: no Record on the front (Keep does it); an "In the DJ" card at the bottom (owner, 10 Nov 2026) */
+.mkdj{background:var(--n-s1);border-radius:18px;padding:12px 16px;display:flex;flex-direction:column;gap:3px;border:1px dashed var(--n-line)}.mkdj b{font-size:14px;color:var(--n-gold)}.mkdj small{font-size:13px;color:var(--n-mut)}
 </style>
 </head>
 <body>
@@ -996,8 +998,9 @@ html[data-tab="more"] main .transport>.deck{display:none!important}
    <button type="button" data-pick="len"><span>Length</span><b id="mkt-len">-</b></button>
   </div>
   <div class="mkpair"><button type="button" id="mksurp"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.2" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/></svg>Surprise me</button><button type="button" id="mksend">Send to DJ</button></div>
-  <div class="mkgo"><button type="button" id="mkgen">Generate</button><button type="button" id="mkrec" aria-pressed="false">Record</button></div>
+  <div class="mkgo"><button type="button" id="mkgen">Generate</button><button type="button" id="mkrec" aria-pressed="false" hidden>Record</button></div>
   <div class="mkri"><button type="button" class="mkswr" id="mkauto" role="switch" aria-checked="false"><span><b>Auto song</b><small id="mkautosub">Changes by itself</small></span><i aria-hidden="true"></i></button><button type="button" class="mkswr" id="mkreal" role="switch" aria-checked="true"><span><b>Real sounds</b><small id="mkrealsub">Piano, guitar, horns</small></span><i aria-hidden="true"></i></button></div>
+  <div class="mkdj" id="mkdj"><b>In the DJ</b><small id="mkdjt">Make a tune you like, then Send to DJ: the DJ builds its next song around it.</small></div>
  </div>
 </div>
 <div id="mkset" hidden role="dialog" aria-modal="true" aria-label="Make setup"><div class="msh"><button type="button" class="msx" id="mksetx" aria-label="Back"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button><h2>Make setup</h2></div><div class="msbody"><small class="mssub">How Make builds a tune. Tap a section to open it.</small><div id="ms_main"></div><button type="button" class="msmore" id="msmoreb" aria-expanded="false">More options<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div id="ms_more" hidden></div></div></div>
@@ -19108,6 +19111,35 @@ stg.addEventListener('pointermove',()=>{if(imm()&&!ftrk.classList.contains('show
 <script>
 if("serviceWorker" in navigator && /^https?:/.test(location.protocol)){ navigator.serviceWorker.register("sw.js").catch(function(){}); }
 </script>
+<script>/* Genre grooves (owner, 10 Nov 2026: "rethink the genres"). Many genres shared one copied hip-hop beat and random hi-hats,
+   so genres sounded alike. Each entry gives real pattern variations (x = hit, 16 steps) and the genre's swing (50 = straight),
+   checked against Wikipedia: UK garage = shuffled 2-step with syncopated hats; drill = snare on beat 3, tresillo hats;
+   boom bap = swing quantising; amapiano = log-drum groove; breakbeat 110-175 BPM. Lanes: 0 kick, 1 snare/clap/rim, 2 hats, 3 perc. */
+function ebFeel(G){ if(!G||G.__feel) return; G.__feel=1;
+  const P=s=>[...s].map((c,i)=>c==='x'?i:-1).filter(i=>i>=0), V=a=>a.map(P);
+  const F=[
+   [/^(UK Garage|Speed Garage|Bassline)/,60,{0:['x.........x.....','x......x..x.....','x........xx.....'],1:['....x.......x...'],2:['..x...x...x...x.','..x..xx...x..xx.','..xx..x...xx..x.'],3:['...x.....x....x.']}],
+   [/^(Hip-hop|Boom Bap|Old School Hip-Hop)$/,57,{0:['x......x..x.....','x.x.......x..x..','x.........x..x..'],1:['....x.......x...','....x.......x..x'],2:['x.x.x.x.x.x.x.x.','x.x.x.xxx.x.x.x.']}],
+   [/^(Lo-fi|Chillhop \/ Jazz Hop|Lo-fi Jazz)$/,60,{0:['x........x......','x......x.x......','x.........x.....'],1:['....x.......x...'],2:['x.x.x.x.x.x.x.x.','x.xxx.x.x.xxx.x.']}],
+   [/^New Jack Swing$/,62,{0:['x......x..x.....','x.x....x..x.....'],1:['....x.......x...'],2:['x.x.x.x.x.x.x.x.']}],
+   [/^(Afrobeats|Afroswing)$/,54,{0:['x.....x.....x...','x.....x...x.....','x..x..x.....x...'],1:['...x......x...x.','....x..x....x...'],2:['x.xxx.xxx.xxx.xx','x.x.x.x.x.x.x.x.'],3:['..x..x..x....x..']}],
+   [/^(Trap|Trap Soul|Rage Trap|Phonk|Memphis Rap|Cloud Rap)$/,50,{2:['x.x.x.x.x.xxx.x.','x.x.x.xxx.x.x.xx','x.xxx.x.x.x.xxxx','x.x.xxx.x.x.x.x.']}],
+   [/Drill/,50,{1:['........x.......','........x.....x.'],2:['x..x..x.x..x..x.','x..x..x...x..x..','x..x..x.x.x..x..']}],
+   [/^Amapiano$/,55,{0:['x...x...x...x...','x.......x.......','x...x...x.....x.'],2:['xxxxxxxxxxxxxxxx'],3:['...x..x....x..x.']}],
+   [/^(Breakbeat|Big Beat)$/,52,{0:['x.x.......x.....','x.........xx....','x.x.......x..x..'],1:['....x..x.x..x...','....x.......x..x','....x..x....x...']}],
+   [/^(Jungle|Drumfunk)$/,50,{0:['x.x.......x.....','x.x.......xx....'],1:['....x..x.x..x..x','....x.......x..x']}],
+   [/^(Drum & Bass|Liquid Drum & Bass|Neurofunk|Techstep|Jump-Up)$/,50,{2:['..x...x...x...x.','x.x.x.x.x.x.x.x.','x.xxx.x.x.xxx.x.']}],
+   [/^(Grime)$/,50,{1:['........x.......','....x.......x...'],2:['x.x.x.x.x.x.x.x.']}],
+   [/^(Techno|Minimal Techno|Detroit Techno|Peak Time Techno|Hard Groove Techno|Melodic Techno|Dub Techno)$/,50,{2:['..x...x...x...x.','xxxxxxxxxxxxxxxx','x.xxx.xxx.xxx.xx']}],
+   [/^(House|Deep House|Chicago House|Garage House|Tech House|Organic House|Tribal House|French House|Acid House)$/,52,{}],
+   [/^(Funk|Jazz-Funk|Go-Go|Boogie|Soul|Neo-Soul|Contemporary R&B|Slow Jam \(R&B\))$/,56,{}],
+   [/^(Blues Shuffle|Slow Blues \(12\/8\)|Swing|Bebop|Jazz)$/,66,{}],
+   [/^(Dancehall|Reggaeton|Moombahton|Dembow)$/,52,{}]
+  ];
+  G.forEach(g=>{ const f=F.find(x=>x[0].test(String(g.name).replace(/&amp;/g,'&'))); if(!f) return; g.swing=f[1];
+    if((g.base||16)!==16||!Array.isArray(g.drums)) return;
+    Object.keys(f[2]).forEach(k=>{ const ln=g.drums[+k]; if(!ln) return; const v=V(f[2][k]); ln.fixed=v.length>1?v:v[0]; delete ln.k; delete ln.rot; }); }); }
+</script>
 <script>
 /* Eight Bells next: Make home and the tab bar. Every button here presses the app's own buttons or menus, so it works exactly as before. */
 (function(){
@@ -19221,10 +19253,17 @@ async function sendToDJ(){ const b=$('mksend'); if(b.disabled) return; b.disable
     let g=''; try{ g=amp(genreObj().name); }catch(e){} const inst=[...new Set(Object.values(RI.names))].slice(0,2).join(' and ');
     const name='Make loop '+(state.bpm)+' BPM '+keyName()+' '+g;
     const file=new File([wav([L,R],sr)],name.replace(/[^\w #]+/g,' ').replace(/\s+/g,' ').trim()+'.wav',{type:'audio/wav'});
-    await sampAdd([file]); toast('Sent to the DJ'); b.textContent='Sent! Send another';
+    await sampAdd([file]); try{ localStorage.setItem('ebn.mlnext',file.name.replace(/\.wav$/i,'')); }catch(e){} toast('Sent: the DJ\'s next song is built around it'); b.textContent='Sent! Send another'; djCard();
   }catch(e){ toast(e&&e.message==='silent'?'Nothing to send: press Play first':'Could not send it'); b.textContent='Send to DJ'; }
   finally{ restore.forEach(r=>{ if(r[0]==='d') state.drums.muted=r[1]; else state.synth[r[1]].muted=r[2]; }); b.disabled=false; setTimeout(()=>{ if(!b.disabled) b.textContent='Send to DJ'; },4000); } }
 $('mksend').addEventListener('click',sendToDJ);
+// genre grooves: real patterns per genre (src/feel.js), and each genre's swing set when the genre changes
+try{ ebFeel(GENRES); }catch(e){}
+{ let lastG=''; const sw=()=>{ let g=null; try{ g=genreObj(); }catch(e){} if(!g||g.id===lastG) return; lastG=g.id; const v=g.swing||50; try{ state.swing=v; const el=$('swing'); if(el){ el.value=v; el.dispatchEvent(new Event('input',{bubbles:true})); } }catch(e){} }; setInterval(sw,600); }
+// the "In the DJ" card: how many loops you sent, and whether the DJ's next song uses the newest
+function djCard(){ let n=0; try{ n=[...SMETA.values()].filter(m=>/^Make loop/i.test(m.name)).length; }catch(e){} let nx=''; try{ nx=localStorage.getItem('ebn.mlnext')||''; }catch(e){}
+  tx('mkdjt',n?(n+(n===1?' loop':' loops')+' of yours in the DJ.'+(nx?' Its next song is built around your newest one.':' It builds a song around one now and then.')):'Make a tune you like, then Send to DJ: the DJ builds its next song around it.'); }
+setTimeout(djCard,1500); setInterval(djCard,5000);
 // Keep and Kept songs, like the DJ (owner, 10 Nov 2026): Keep saves the tune playing now in one tap; Kept songs opens the saved list
 $('mkkeep').addEventListener('click',()=>{ if($('mkkeep').getAttribute('aria-pressed')==='true'){ toast('Already kept'); return; } let g=''; try{ g=amp(genreObj().name); }catch(e){} const d=new Date(), nm=g+' in '+keyName()+' · '+d.getDate()+'/'+(d.getMonth()+1)+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
   const ln=$('libname'), sv=$('libsave'); if(!ln||!sv) return; ln.value=nm; sv.click(); ln.value=''; $('mkkeep').setAttribute('aria-pressed','true'); tx('mkkeepl','Kept'); toast('Kept: '+nm); });
