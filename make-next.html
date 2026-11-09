@@ -974,6 +974,9 @@ html[data-tab="more"] main .transport>.deck{display:none!important}
 .mkkeep{display:flex;justify-content:center;gap:12px}.mkkeep button{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 14px;border-radius:24px;border:1px solid var(--n-line);background:var(--n-s1);color:var(--n-ink);font-weight:700;font-size:15px;cursor:pointer}
 #mkkeep[aria-pressed="true"]{color:var(--n-bad);border-color:var(--n-bad)}#mkkeep[aria-pressed="true"] svg{fill:currentColor}
 .mktiles{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:8px!important}.mktiles button{height:58px!important;padding:0 8px!important;border-radius:16px!important}.mktiles span{font-size:11px!important}.mktiles b{font-size:14px!important}
+/* Pads: only the selected track shows, whole, no slices of the tracks above and below (owner, 10 Nov 2026) */
+.padm .pm-tl .pm-tr:not(.sel){display:none!important}
+.padm .pm-tl{flex:0 0 auto!important;min-height:0!important;padding:4px 8px!important;justify-content:flex-start!important;-webkit-user-select:none;user-select:none}
 </style>
 </head>
 <body>
