@@ -776,6 +776,7 @@ html.st-lock,html.st-lock body{overflow:hidden}
 ['--n-teal','--n-gold','--n-ongold','--n-onteal','--n-logo'].forEach(function(k){r.removeProperty(k)});
 if(A&&ok.test(A)&&A.toLowerCase()!=='#3a93ab'){r.setProperty('--n-teal',A,'important');r.setProperty('--n-onteal',on(A),'important');var n=parseInt(A.slice(1),16),dk=function(c){return Math.round(c*.75).toString(16).padStart(2,'0')};r.setProperty('--n-logo','#'+dk(n>>16)+dk(n>>8&255)+dk(n&255),'important')}
 if(B&&ok.test(B)&&B.toLowerCase()!=='#e0b04a'){r.setProperty('--n-gold',B,'important');r.setProperty('--n-ongold',on(B),'important')}}catch(e){}};window.__ebPaint();</script>
+<script>try{var u=localStorage.getItem('ebn.icon');if(u)document.addEventListener('DOMContentLoaded',function(){document.querySelectorAll('link[rel="icon"],link[rel="apple-touch-icon"]').forEach(function(l){l.href=u})})}catch(e){}</script>
 <meta name="theme-color" content="#2f7f95">
 <meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -969,17 +970,22 @@ html[data-tab="more"] main .transport>.deck{display:none!important}
 #ms_top{display:flex;flex-direction:column;gap:10px}
 
 .two2{display:flex;gap:10px}.two2>button{flex:1}
+/* Make: Keep and Kept songs like the DJ; the four tiles in one row (owner, 10 Nov 2026) */
+.mkkeep{display:flex;justify-content:center;gap:12px}.mkkeep button{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 14px;border-radius:24px;border:1px solid var(--n-line);background:var(--n-s1);color:var(--n-ink);font-weight:700;font-size:15px;cursor:pointer}
+#mkkeep[aria-pressed="true"]{color:var(--n-bad);border-color:var(--n-bad)}#mkkeep[aria-pressed="true"] svg{fill:currentColor}
+.mktiles{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:8px!important}.mktiles button{height:58px!important;padding:0 8px!important;border-radius:16px!important}.mktiles span{font-size:11px!important}.mktiles b{font-size:14px!important}
 </style>
 </head>
 <body>
 <div id="mk" role="region" aria-label="Make">
  <div class="mkin">
-  <div class="mkh"><svg width="32" height="32" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="44" style="fill:var(--n-logo,#2b7f95);stroke:var(--n-gold,#f0b84a)" stroke-width="6"/><path d="M50 22c-9 0-15 7-15 17v12l-7 9h44l-7-9V39c0-10-6-17-15-17z" fill="#fbf3df"/><circle cx="50" cy="71" r="5" fill="#fbf3df"/></svg><h1>Eight Bells</h1><button type="button" class="mkib mkgear" id="mksaved" aria-label="Saved songs"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg></button><button type="button" class="mkib mkgear" id="mkgear" aria-label="Make setup"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2.5"/><circle cx="10" cy="17" r="2.5"/></svg></button><button type="button" class="mkib" id="mkinfo" aria-label="About and help">i</button></div>
+  <div class="mkh"><svg width="32" height="32" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="44" style="fill:var(--n-logo,#2b7f95);stroke:var(--n-gold,#f0b84a)" stroke-width="6"/><path d="M50 22c-9 0-15 7-15 17v12l-7 9h44l-7-9V39c0-10-6-17-15-17z" fill="#fbf3df"/><circle cx="50" cy="71" r="5" fill="#fbf3df"/></svg><h1>Eight Bells</h1><button type="button" class="mkib mkgear" id="mksaved" hidden aria-label="Saved songs"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg></button><button type="button" class="mkib mkgear" id="mkgear" aria-label="Make setup"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2.5"/><circle cx="10" cy="17" r="2.5"/></svg></button><button type="button" class="mkib" id="mkinfo" aria-label="About and help">i</button></div>
   <div class="mknow"><span>NOW</span>
    <div class="mknr"><div class="mknt"><b id="mkgenre">-</b><small id="mksub">-</small></div>
     <button type="button" id="mkplay" aria-label="Play"><svg class="ip1" width="30" height="30" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg><svg class="ip2" width="30" height="30" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4h4v16H6z"/><path d="M14 4h4v16h-4z"/></svg></button></div>
    <div class="mkprog"><i id="mkpos"></i></div>
   </div>
+  <div class="mkkeep"><button type="button" id="mkkeep" aria-pressed="false"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg><span id="mkkeepl">Keep</span></button><button type="button" id="mkkept"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg><span>Kept songs</span></button></div>
   <div class="mktiles">
    <button type="button" data-pick="genre"><span>Genre</span><b id="mkt-genre">-</b></button>
    <button type="button" data-pick="style"><span>Style</span><b id="mkt-style">-</b></button>
@@ -19199,6 +19205,12 @@ async function sendToDJ(){ const b=$('mksend'); if(b.disabled) return; b.disable
   }catch(e){ toast(e&&e.message==='silent'?'Nothing to send: press Play first':'Could not send it'); b.textContent='Send to DJ'; }
   finally{ restore.forEach(r=>{ if(r[0]==='d') state.drums.muted=r[1]; else state.synth[r[1]].muted=r[2]; }); b.disabled=false; setTimeout(()=>{ if(!b.disabled) b.textContent='Send to DJ'; },4000); } }
 $('mksend').addEventListener('click',sendToDJ);
+// Keep and Kept songs, like the DJ (owner, 10 Nov 2026): Keep saves the tune playing now in one tap; Kept songs opens the saved list
+$('mkkeep').addEventListener('click',()=>{ if($('mkkeep').getAttribute('aria-pressed')==='true'){ toast('Already kept'); return; } let g=''; try{ g=amp(genreObj().name); }catch(e){} const d=new Date(), nm=g+' in '+keyName()+' · '+d.getDate()+'/'+(d.getMonth()+1)+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+  const ln=$('libname'), sv=$('libsave'); if(!ln||!sv) return; ln.value=nm; sv.click(); ln.value=''; $('mkkeep').setAttribute('aria-pressed','true'); tx('mkkeepl','Kept'); toast('Kept: '+nm); });
+const keepReset=()=>{ $('mkkeep').setAttribute('aria-pressed','false'); tx('mkkeepl','Keep'); };
+['mkgen','mksurp'].forEach(id=>$(id).addEventListener('click',keepReset));
+$('mkkept').addEventListener('click',()=>$('mksaved').click());
 // Auto song on the front (owner, 10 Nov 2026): the app's own Auto song button, shown as a switch
 const auSync=()=>{ let on=false, ev=4; try{ on=!!AUTO.on; ev=AUTO.every||4; }catch(e){} $('mkauto').setAttribute('aria-checked',String(on)); tx('mkautosub',on?'New pattern every '+ev+' loops':'Changes by itself'); };
 $('mkauto').addEventListener('click',()=>{ const a=$('auto'); if(a) a.click(); setTimeout(auSync,80); }); setInterval(auSync,700); auSync();
