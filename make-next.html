@@ -921,6 +921,8 @@ html,body{overscroll-behavior:none;overflow-x:hidden;touch-action:pan-x pan-y}
 html.nlock main{height:0!important;min-height:0!important;overflow:hidden!important;visibility:hidden;margin:0!important;padding:0!important}
 html.nlock body{padding-bottom:0!important}
 #mk,.live,.padm,.stagev{overflow-x:hidden!important;overscroll-behavior:contain}
+/* Stage opened from the DJ (dj.html overlay): the DJ drives it, so hide Make's own Play buttons and tab bar */
+html.st-feed #stplay,html.st-feed #stfpl,html.st-feed #tabbar{display:none!important}
 </style>
 </head>
 <body>
@@ -18950,6 +18952,7 @@ SCN.push(
 let stOn=false,rafId=0,lm=Array(8).fill(false),free=0,lastMode="",idle=4,wasLive=false,ts=0,vn=0,stopT=99;
 const g$=id=>document.getElementById(id);
 function slot(i){
+  const SF=window.__stageFeed;if(SF&&SF.on())return SF.slot(i);
   try{
     if(i<4){const d=state.drums,l=d&&d.lanes[i];if(!l)return null;const si=state.synth.length;
       return{cells:l.cells,n:d.n,mute:!!(d.muted||l.muted||!audibleLane(state,si,0,i))}}
@@ -18967,13 +18970,13 @@ function stRestore(){let n=0;try{const v=parseInt(localStorage.getItem('eb_stage
 const bgc=g$('stbg'),bgx=bgc&&bgc.getContext('2d');
 function frame(t){if(!stOn)return;rafId=requestAnimationFrame(frame);
 const rd=Math.min(.1,(t-prev)/1000);prev=t;hits=[];
-sd=60/(state.bpm||120)/4;
-const live=playing&&ROLL.step>=0,mode=live?'l':'f';ON=live;if(wasLive&&!live)idle=4;wasLive=live;
+const SF=window.__stageFeed,FD=!!(SF&&SF.on());if(SF)document.documentElement.classList.add("st-feed");sd=FD?SF.stepSec():60/(state.bpm||120)/4;
+const live=FD||(playing&&ROLL.step>=0),mode=live?'l':'f';ON=live;if(wasLive&&!live)idle=4;wasLive=live;
 if(live)stopT=0;else stopT+=rd;
 ts+=((live?1:0)-ts)*Math.min(1,rd*(live?8:2.2));
 if(!live&&stopT>4.5){ts=0;if(idle<=0)return;idle--}
 vn+=rd*1000*ts;now=vn;dt=rd*ts;pd=rd;
-if(live){stf=ROLL.step+Math.max(0,Math.min(.999,(ac.currentTime-ROLL.t)/sd))}
+if(live){stf=FD?SF.now()/sd:ROLL.step+Math.max(0,Math.min(.999,(ac.currentTime-ROLL.t)/sd))}
 if(live){const ns=Math.floor(stf);if(mode!==lastMode||ns-last>4||ns<last){last=ns-1;lastMode=mode}
  const gs=T.map((_,i)=>slot(i));
  for(let k=last+1;k<=ns;k++){gs.forEach((q,i)=>{if(q&&!q.mute&&!lm[i]&&on(q,k)){T[i].h=1;hits.push(i)}});if(k%16===0)shake=mood>.5?8:3}
@@ -18993,7 +18996,7 @@ if(bgx)try{if(imm()){const wide=innerWidth/innerHeight>W/H;if(wide){bgx.drawImag
 syncTrk();const pb=g$('stplay'),pf=g$('stfpl');const lbl=playing?'Stop':'Play';if(pb.textContent!==lbl)pb.textContent=lbl;if(pf.textContent!==lbl)pf.textContent=lbl}
 function openStage(){if(stOn)return;stOn=true;g$('stage').hidden=false;document.documentElement.classList.add('st-lock');
  prev=performance.now();last=-1;lastMode='';lastAutoBar=-1;setScene(stRestore());g$('stage').scrollTop=0;lastLs=null;autoRot();fit();rafId=requestAnimationFrame(frame);setTimeout(()=>{try{autoRot()}catch(e){}},60)}
-function closeStage(){if(imm())exitImm();stOn=false;cancelAnimationFrame(rafId);g$('stage').hidden=true;document.documentElement.classList.remove('st-lock')}
+function closeStage(){if(imm())exitImm();stOn=false;cancelAnimationFrame(rafId);g$('stage').hidden=true;document.documentElement.classList.remove('st-lock');try{window.__stageFeed&&window.__stageFeed.exit&&window.__stageFeed.exit()}catch(e){}}
 const chips=g$('stchips');
 SCN.forEach((sc,i)=>{const b=document.createElement('button');b.className='sb';b.textContent=(i+1)+' '+sc[0];b.onclick=()=>setScene(i);chips.appendChild(b)});
 const trk=g$('sttrk');
