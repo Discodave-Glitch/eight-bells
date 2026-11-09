@@ -934,12 +934,26 @@ html.st-feed #stplay,html.st-feed #stfpl,html.st-feed #tabbar{display:none!impor
 #mksend:disabled{opacity:.6}
 .mkpair{display:flex;gap:12px}.mkpair>#mksurp{flex:1}
 @media (max-height:760px){.mkin{gap:11px}.mkh{padding-top:10px}.mknow{padding:14px 16px;gap:8px}.mknt b{font-size:24px}.mktiles button{height:60px}#mksurp,#mksend{height:50px}#mkgen,#mkrec{height:56px}.mkswr{min-height:50px}}
+/* Make setup (owner, 10 Nov 2026: song-building settings move from More into Make, options folded like DJ setup) */
+.mkgear{display:flex;align-items:center;justify-content:center;color:var(--n-ink);font:inherit}
+#mkset{position:fixed;inset:0;z-index:260;background:var(--n-bg);color:var(--n-ink);overflow:auto;overscroll-behavior:contain;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+#mkset[hidden]{display:none}
+.msh{position:sticky;top:0;z-index:2;background:var(--n-bg);display:flex;align-items:center;gap:10px;padding:16px 20px 8px}.msh h2{margin:0;font-size:20px;font-weight:800}
+.msx{width:48px;height:48px;border-radius:24px;border:1px solid var(--n-line);background:var(--n-s1);color:var(--n-ink);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.msbody{max-width:560px;margin:0 auto;padding:8px 20px 40px;display:flex;flex-direction:column;gap:12px}.mssub{color:var(--n-mut);font-size:13px}
+#ms_main,#ms_more{display:flex;flex-direction:column;gap:12px}#ms_more[hidden]{display:none}
+.msmore{height:48px;border:0;background:transparent;color:var(--n-mut);font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer}.msmore[aria-expanded="true"] svg{transform:rotate(180deg)}
+#mkset details.mscard,details.mscard{background:var(--n-s1);border-radius:22px;padding:2px 16px 4px;margin:0;border:0}
+#mkset details.mscard>summary,details.mscard>summary{min-height:60px;display:flex;align-items:center;gap:8px;font-weight:800;font-size:16px;list-style:none;cursor:pointer;color:var(--n-ink)}
+details.mscard>summary::-webkit-details-marker{display:none}details.mscard>summary::after{content:"\25BE";margin-left:auto;color:var(--n-mut)}details.mscard[open]>summary::after{content:"\25B4"}
+.msnote{background:var(--n-s1);border-radius:22px;padding:14px 16px;display:flex;align-items:center;gap:12px;margin:8px 0}.msnote span{flex:1;font-size:14px;color:var(--n-mut)}.msnote button{height:48px;padding:0 16px;border-radius:16px;border:0;background:var(--n-gold);color:var(--n-ongold,#1a1305);font-weight:800;cursor:pointer}
+.msgrp{margin:20px 0 8px;font-size:13px;font-weight:800;letter-spacing:.06em;color:var(--n-gold);text-transform:uppercase}
 </style>
 </head>
 <body>
 <div id="mk" role="region" aria-label="Make">
  <div class="mkin">
-  <div class="mkh"><svg width="32" height="32" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="44" style="fill:var(--n-logo,#2b7f95);stroke:var(--n-gold,#f0b84a)" stroke-width="6"/><path d="M50 22c-9 0-15 7-15 17v12l-7 9h44l-7-9V39c0-10-6-17-15-17z" fill="#fbf3df"/><circle cx="50" cy="71" r="5" fill="#fbf3df"/></svg><h1>Eight Bells</h1><button type="button" class="mkib" id="mkinfo" aria-label="About and help">i</button></div>
+  <div class="mkh"><svg width="32" height="32" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="44" style="fill:var(--n-logo,#2b7f95);stroke:var(--n-gold,#f0b84a)" stroke-width="6"/><path d="M50 22c-9 0-15 7-15 17v12l-7 9h44l-7-9V39c0-10-6-17-15-17z" fill="#fbf3df"/><circle cx="50" cy="71" r="5" fill="#fbf3df"/></svg><h1>Eight Bells</h1><button type="button" class="mkib mkgear" id="mkgear" aria-label="Make setup"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2.5"/><circle cx="10" cy="17" r="2.5"/></svg></button><button type="button" class="mkib" id="mkinfo" aria-label="About and help">i</button></div>
   <div class="mknow"><span>NOW</span>
    <div class="mknr"><div class="mknt"><b id="mkgenre">-</b><small id="mksub">-</small></div>
     <button type="button" id="mkplay" aria-label="Play"><svg class="ip1" width="30" height="30" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg><svg class="ip2" width="30" height="30" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4h4v16H6z"/><path d="M14 4h4v16h-4z"/></svg></button></div>
@@ -956,6 +970,7 @@ html.st-feed #stplay,html.st-feed #stfpl,html.st-feed #tabbar{display:none!impor
   <div class="mkri"><button type="button" class="mkswr" id="mkreal" role="switch" aria-checked="true"><span><b>Real instruments</b><small id="mkrealsub">Piano, guitar, horns and strings instead of synths</small></span><i aria-hidden="true"></i></button><button type="button" id="mknew" aria-label="Pick new real instruments">New sounds</button></div>
  </div>
 </div>
+<div id="mkset" hidden role="dialog" aria-modal="true" aria-label="Make setup"><div class="msh"><button type="button" class="msx" id="mksetx" aria-label="Back"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button><h2>Make setup</h2></div><div class="msbody"><small class="mssub">How Make builds a tune. Tap a section to open it.</small><div id="ms_main"></div><button type="button" class="msmore" id="msmoreb" aria-expanded="false">More options<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div id="ms_more" hidden></div></div></div>
 <div id="mksheet" hidden role="dialog" aria-modal="true" aria-labelledby="shtitle"><div class="shbox"><div class="shh"><h2 id="shtitle">Genre</h2><button type="button" id="shdone">Done</button></div><input id="shq" type="search" placeholder="Search" aria-label="Search" autocomplete="off"><div class="shlist" id="shlist"></div></div></div>
 <div id="morehd"><h1>More</h1><button type="button" id="helpb" aria-pressed="false"><i>i</i>Help text</button></div>
 <nav id="tabbar" aria-label="Sections">
@@ -19156,6 +19171,25 @@ async function sendToDJ(){ const b=$('mksend'); if(b.disabled) return; b.disable
   }catch(e){ toast(e&&e.message==='silent'?'Nothing to send: press Play first':'Could not send it'); b.textContent='Send to DJ'; }
   finally{ restore.forEach(r=>{ if(r[0]==='d') state.drums.muted=r[1]; else state.synth[r[1]].muted=r[2]; }); b.disabled=false; setTimeout(()=>{ if(!b.disabled) b.textContent='Send to DJ'; },4000); } }
 $('mksend').addEventListener('click',sendToDJ);
+// ---- Make setup (owner, 10 Nov 2026): the song-building sections move out of More into Make's own setup screen.
+// The real sections are moved (ids and buttons keep working); the most used ones show first, the rest under More options.
+(function(){ const byId=id=>document.getElementById(id), bySum=t=>[...document.querySelectorAll('details')].find(d=>{ const s=d.querySelector(':scope>summary'); return s&&s.textContent.trim().indexOf(t)===0; });
+  const MAIN=[['feelbox'],['autobox'],['songbox']], MORE=[['engbox'],['genbox'],['secbox'],['chgbox'],['solobox'],['fxbox'],[null,'Sound controls'],['psbox'],['seedbox'],['seedlib']];
+  const put=(list,to)=>list.forEach(([id,t])=>{ const d=id?byId(id):bySum(t); if(d){ d.classList.add('mscard'); d.open=false; to.appendChild(d); } });
+  put(MAIN,byId('ms_main')); put(MORE,byId('ms_more'));
+  const open=()=>{ byId('mkset').hidden=false; byId('mkset').scrollTop=0; }, close=()=>{ byId('mkset').hidden=true; };
+  byId('mkgear').addEventListener('click',open); byId('mksetx').addEventListener('click',close);
+  byId('msmoreb').addEventListener('click',()=>{ const m=byId('ms_more'); m.hidden=!m.hidden; byId('msmoreb').setAttribute('aria-expanded',String(!m.hidden)); });
+  addEventListener('keydown',e=>{ if(e.key==='Escape'&&!byId('mkset').hidden) close(); });
+  window.__mkSetOpen=open;
+  // More: a pointer to Make setup at the top, then the track editor, and the FM-1 hardware help folded at the end
+  const main=document.querySelector('main'); if(main){
+    const note=document.createElement('div'); note.className='msnote'; note.innerHTML='<span>Song settings (tempo, song builder, auto song, effects) are in Make setup.</span><button type="button">Make setup</button>'; note.querySelector('button').addEventListener('click',()=>{ go('make'); open(); });
+    main.insertBefore(note,main.firstChild);
+    const fm=document.createElement('details'); fm.className='mscard'; fm.id='fm1grp'; fm.innerHTML='<summary>FM-1 hardware</summary>'; ['about','midi','outbox'].forEach(id=>{ const d=byId(id); const host=d&&(d.closest('section')&&id==='outbox'?d.closest('section'):d); if(host) fm.appendChild(host); });
+    const h=document.createElement('div'); h.className='msgrp'; h.textContent='Hardware'; main.appendChild(h); main.appendChild(fm);
+    const ed=byId('editbox'); if(ed){ const h2=document.createElement('div'); h2.className='msgrp'; h2.textContent='Track editor'; ed.parentNode.insertBefore(h2,ed); } }
+})();
 window.__mkSend=sendToDJ; window.__mkRI=RI;
 $('mkinfo').addEventListener('click',()=>{ setHelp(true); go('more'); const a=$('about'); if(a){ a.open=true; a.scrollIntoView({block:'start'}); } });
 // help text: long explanations hidden unless the i button is on
