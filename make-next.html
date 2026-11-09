@@ -936,8 +936,8 @@ html.st-feed #stplay,html.st-feed #stfpl,html.st-feed #tabbar{display:none!impor
 @media (max-height:760px){.mkin{gap:11px}.mkh{padding-top:10px}.mknow{padding:14px 16px;gap:8px}.mknt b{font-size:24px}.mktiles button{height:60px}#mksurp,#mksend{height:50px}#mkgen,#mkrec{height:56px}.mkswr{min-height:50px}}
 /* Make setup (owner, 10 Nov 2026: song-building settings move from More into Make, options folded like DJ setup) */
 .mkgear{display:flex;align-items:center;justify-content:center;color:var(--n-ink);font:inherit}
-#mkset{position:fixed;inset:0;z-index:260;background:var(--n-bg);color:var(--n-ink);overflow:auto;overscroll-behavior:contain;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
-#mkset[hidden]{display:none}
+#mkset,.mkpage{position:fixed;inset:0;z-index:260;background:var(--n-bg);color:var(--n-ink);overflow:auto;overscroll-behavior:contain;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+#mkset[hidden],.mkpage[hidden]{display:none}
 .msh{position:sticky;top:0;z-index:2;background:var(--n-bg);display:flex;align-items:center;gap:10px;padding:16px 20px 8px}.msh h2{margin:0;font-size:20px;font-weight:800}
 .msx{width:48px;height:48px;border-radius:24px;border:1px solid var(--n-line);background:var(--n-s1);color:var(--n-ink);display:flex;align-items:center;justify-content:center;cursor:pointer}
 .msbody{max-width:560px;margin:0 auto;padding:8px 20px 40px;display:flex;flex-direction:column;gap:12px}.mssub{color:var(--n-mut);font-size:13px}
@@ -956,12 +956,25 @@ details.mscard>summary::-webkit-details-marker{display:none}details.mscard>summa
 .padm .pm-tr.sel .pm-dots i{height:22px!important}
 @media (max-height:780px){.padm .pm-pad{aspect-ratio:1.7/1!important}}
 @media (max-height:640px){.padm .pm-pad{aspect-ratio:2.3/1!important}.padm .pm-pad em{display:none}}
+/* Make front: Auto song + Real instruments side by side; Saved songs and Edit tracks pages (owner, 10 Nov 2026) */
+.mkri>.mkswr{flex:1 1 0;min-width:0;padding:0 10px;overflow:hidden}.mkri .mkswr span{min-width:0}.mkri .mkswr b{overflow:hidden;text-overflow:ellipsis}.mkri .mkswr b{font-size:14px;white-space:nowrap}#mkreal b::after{content:''}.mkri .mkswr i{width:44px;height:28px}.mkri .mkswr i::after{width:22px;height:22px}.mkri .mkswr[aria-checked="true"] i::after{left:19px}
+.mscard2{background:var(--n-s1);border-radius:22px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}.mscard2>b{font-size:16px}
+.msbig{height:52px;border-radius:16px;border:1px solid var(--n-line);background:var(--n-bg);color:var(--n-ink);font-weight:700;font-size:15px;cursor:pointer}
+#sv_save{display:flex;flex-wrap:wrap;gap:10px}#sv_save #libname{flex:1 0 100%;height:48px;border-radius:14px;border:1px solid var(--n-line);background:var(--n-bg);color:var(--n-ink);font-size:16px;padding:0 14px}
+#sv_save button{flex:1;height:52px;border-radius:16px;border:0;background:var(--n-gold);color:var(--n-ongold,#1a1305);font-weight:800;font-size:15px}#sv_save #libsaves{background:var(--n-bg);color:var(--n-ink);border:1px solid var(--n-line)}#sv_save #libmsg{flex:1 0 100%;margin:0;color:var(--n-mut);font-size:13px}
+#sv_list .librow{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--n-line)}#sv_list .librow:last-child{border-bottom:0}#sv_list .libmain{flex:1 0 100%;display:flex;flex-direction:column}#sv_list .libmain b{font-size:15px}#sv_list .libmain small{color:var(--n-mut);font-size:12px}
+#sv_list button.mini{min-height:44px;min-width:64px;border-radius:12px;border:1px solid var(--n-line);background:var(--n-bg);color:var(--n-ink);font-weight:700;font-size:14px}#sv_list [data-libload]{background:var(--n-gold)!important;color:var(--n-ongold,#1a1305)!important;border:0!important}
+#sv_list .libauto{display:flex;align-items:center;gap:6px;font-size:14px;margin-right:auto}#sv_codes textarea{width:100%;min-height:80px;border-radius:14px;background:var(--n-bg);color:var(--n-ink);border:1px solid var(--n-line);padding:10px;font-size:15px}#sv_codes button{height:48px;border-radius:14px;margin:8px 0;padding:0 18px}
+html[data-tab="more"] main .transport>.deck{display:none!important}
+#ms_top{display:flex;flex-direction:column;gap:10px}
+
+.two2{display:flex;gap:10px}.two2>button{flex:1}
 </style>
 </head>
 <body>
 <div id="mk" role="region" aria-label="Make">
  <div class="mkin">
-  <div class="mkh"><svg width="32" height="32" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="44" style="fill:var(--n-logo,#2b7f95);stroke:var(--n-gold,#f0b84a)" stroke-width="6"/><path d="M50 22c-9 0-15 7-15 17v12l-7 9h44l-7-9V39c0-10-6-17-15-17z" fill="#fbf3df"/><circle cx="50" cy="71" r="5" fill="#fbf3df"/></svg><h1>Eight Bells</h1><button type="button" class="mkib mkgear" id="mkgear" aria-label="Make setup"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2.5"/><circle cx="10" cy="17" r="2.5"/></svg></button><button type="button" class="mkib" id="mkinfo" aria-label="About and help">i</button></div>
+  <div class="mkh"><svg width="32" height="32" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="44" style="fill:var(--n-logo,#2b7f95);stroke:var(--n-gold,#f0b84a)" stroke-width="6"/><path d="M50 22c-9 0-15 7-15 17v12l-7 9h44l-7-9V39c0-10-6-17-15-17z" fill="#fbf3df"/><circle cx="50" cy="71" r="5" fill="#fbf3df"/></svg><h1>Eight Bells</h1><button type="button" class="mkib mkgear" id="mksaved" aria-label="Saved songs"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg></button><button type="button" class="mkib mkgear" id="mkgear" aria-label="Make setup"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2.5"/><circle cx="10" cy="17" r="2.5"/></svg></button><button type="button" class="mkib" id="mkinfo" aria-label="About and help">i</button></div>
   <div class="mknow"><span>NOW</span>
    <div class="mknr"><div class="mknt"><b id="mkgenre">-</b><small id="mksub">-</small></div>
     <button type="button" id="mkplay" aria-label="Play"><svg class="ip1" width="30" height="30" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg><svg class="ip2" width="30" height="30" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4h4v16H6z"/><path d="M14 4h4v16h-4z"/></svg></button></div>
@@ -975,10 +988,17 @@ details.mscard>summary::-webkit-details-marker{display:none}details.mscard>summa
   </div>
   <div class="mkpair"><button type="button" id="mksurp"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.2" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/></svg>Surprise me</button><button type="button" id="mksend">Send to DJ</button></div>
   <div class="mkgo"><button type="button" id="mkgen">Generate</button><button type="button" id="mkrec" aria-pressed="false">Record</button></div>
-  <div class="mkri"><button type="button" class="mkswr" id="mkreal" role="switch" aria-checked="true"><span><b>Real instruments</b><small id="mkrealsub">Piano, guitar, horns and strings instead of synths</small></span><i aria-hidden="true"></i></button><button type="button" id="mknew" aria-label="Pick new real instruments">New sounds</button></div>
+  <div class="mkri"><button type="button" class="mkswr" id="mkauto" role="switch" aria-checked="false"><span><b>Auto song</b><small id="mkautosub">Changes by itself</small></span><i aria-hidden="true"></i></button><button type="button" class="mkswr" id="mkreal" role="switch" aria-checked="true"><span><b>Real sounds</b><small id="mkrealsub">Piano, guitar, horns</small></span><i aria-hidden="true"></i></button></div>
  </div>
 </div>
 <div id="mkset" hidden role="dialog" aria-modal="true" aria-label="Make setup"><div class="msh"><button type="button" class="msx" id="mksetx" aria-label="Back"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button><h2>Make setup</h2></div><div class="msbody"><small class="mssub">How Make builds a tune. Tap a section to open it.</small><div id="ms_main"></div><button type="button" class="msmore" id="msmoreb" aria-expanded="false">More options<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div id="ms_more" hidden></div></div></div>
+<div id="mksv" class="mkpage" hidden role="dialog" aria-modal="true" aria-label="Saved songs"><div class="msh"><button type="button" class="msx" data-close="mksv" aria-label="Back"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button><h2>Saved songs</h2></div><div class="msbody">
+ <div class="mscard2"><b>Save what is playing</b><div id="sv_save"></div></div>
+ <div class="mscard2"><b>My saved songs</b><small class="mssub">Load one to play it again. Copy gives a code to share. Auto lets Auto song use it.</small><div id="sv_list"></div></div>
+ <div class="mscard2"><b>Recordings</b><small class="mssub">Audio files you recorded with Record.</small><button type="button" class="msbig" id="svrecs">Open my recordings</button></div>
+ <details class="mscard" id="sv_codes"><summary>Add codes other people shared</summary></details>
+</div></div>
+<div id="mked" class="mkpage" hidden role="dialog" aria-modal="true" aria-label="Edit tracks"><div class="msh"><button type="button" class="msx" data-close="mked" aria-label="Back"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button><h2>Edit tracks</h2></div><div class="msbody" id="ed_body"><small class="mssub">Change the tune step by step: tap steps, set hits, notes, level and pan, lock or clear a track.</small></div></div>
 <div id="mksheet" hidden role="dialog" aria-modal="true" aria-labelledby="shtitle"><div class="shbox"><div class="shh"><h2 id="shtitle">Genre</h2><button type="button" id="shdone">Done</button></div><input id="shq" type="search" placeholder="Search" aria-label="Search" autocomplete="off"><div class="shlist" id="shlist"></div></div></div>
 <div id="morehd"><h1>More</h1><button type="button" id="helpb" aria-pressed="false"><i>i</i>Help text</button></div>
 <nav id="tabbar" aria-label="Sections">
@@ -19149,9 +19169,9 @@ async function riPick(){ if(!RI.on) return; let man; try{ man=await riMan(); }ca
   const nm=[...new Set(Object.values(RI.names))].slice(0,3).join(', '); tx('mkrealsub',nm?nm:'Piano, guitar, horns and strings instead of synths'); }
 function riOff(){ for(let ti=0;ti<8;ti++){ const id='ri_'+ti; if(PV.samp['s'+ti]===id) delete PV.samp['s'+ti]; SBUF.delete(id); RI.meta.delete(id); } RI.names={}; tx('mkrealsub','Piano, guitar, horns and strings instead of synths'); }
 { const sp0=samplePlay; samplePlay=function(id,midi,time,v,dur,hold){ const m=RI.meta.get(id); if(!m) return sp0(id,midi,time,v,dur,hold); const b=SBUF.get(id); if(!b) return null; const src=ac.createBufferSource(), g=ac.createGain(); src.buffer=b; src.playbackRate.value=midi==null?1:Math.pow(2,(midi-m.root)/12); const vv=Math.max(.0001,.85*v); g.gain.setValueAtTime(vv,time); src.connect(g); g.connect(master); src.start(time); if(dur){ const end=time+Math.max(.08,dur); g.gain.setValueAtTime(vv,end); g.gain.exponentialRampToValueAtTime(.0001,end+.12); src.stop(end+.15); } return {src,g}; }; }
-const riSync=()=>{ $('mkreal').setAttribute('aria-checked',String(RI.on)); $('mknew').disabled=!RI.on; };
+const riSync=()=>{ $('mkreal').setAttribute('aria-checked',String(RI.on)); const nb=$('mknew'); if(nb) nb.disabled=!RI.on; };
 $('mkreal').addEventListener('click',()=>{ RI.on=!RI.on; try{ localStorage.setItem('ebn.realins',RI.on?'1':'0'); }catch(e){} riSync(); if(RI.on){ toast('Real instruments'); riPick(); } else { riOff(); toast('Synths'); } });
-$('mknew').addEventListener('click',()=>{ toast('New sounds'); riPick(); });
+
 riSync(); setTimeout(()=>riPick(),1500);
 $('mkgen').addEventListener('click',()=>setTimeout(riPick,250)); $('mksurp').addEventListener('click',()=>setTimeout(riPick,250));
 // ---- Send to DJ: records exactly one loop of the tune (no drums, no bass: the DJ adds its own) and adds it to your sounds,
@@ -19179,6 +19199,9 @@ async function sendToDJ(){ const b=$('mksend'); if(b.disabled) return; b.disable
   }catch(e){ toast(e&&e.message==='silent'?'Nothing to send: press Play first':'Could not send it'); b.textContent='Send to DJ'; }
   finally{ restore.forEach(r=>{ if(r[0]==='d') state.drums.muted=r[1]; else state.synth[r[1]].muted=r[2]; }); b.disabled=false; setTimeout(()=>{ if(!b.disabled) b.textContent='Send to DJ'; },4000); } }
 $('mksend').addEventListener('click',sendToDJ);
+// Auto song on the front (owner, 10 Nov 2026): the app's own Auto song button, shown as a switch
+const auSync=()=>{ let on=false, ev=4; try{ on=!!AUTO.on; ev=AUTO.every||4; }catch(e){} $('mkauto').setAttribute('aria-checked',String(on)); tx('mkautosub',on?'New pattern every '+ev+' loops':'Changes by itself'); };
+$('mkauto').addEventListener('click',()=>{ const a=$('auto'); if(a) a.click(); setTimeout(auSync,80); }); setInterval(auSync,700); auSync();
 // ---- Make setup (owner, 10 Nov 2026): the song-building sections move out of More into Make's own setup screen.
 // The real sections are moved (ids and buttons keep working); the most used ones show first, the rest under More options.
 (function(){ const byId=id=>document.getElementById(id), bySum=t=>[...document.querySelectorAll('details')].find(d=>{ const s=d.querySelector(':scope>summary'); return s&&s.textContent.trim().indexOf(t)===0; });
@@ -19190,6 +19213,21 @@ $('mksend').addEventListener('click',sendToDJ);
   byId('msmoreb').addEventListener('click',()=>{ const m=byId('ms_more'); m.hidden=!m.hidden; byId('msmoreb').setAttribute('aria-expanded',String(!m.hidden)); });
   addEventListener('keydown',e=>{ if(e.key==='Escape'&&!byId('mkset').hidden) close(); });
   window.__mkSetOpen=open;
+  // top of Make setup: new real sounds and the track editor
+  { const top=document.createElement('div'); top.id='ms_top'; top.innerHTML='<div class="two2"><button type="button" class="msbig" id="mknew">New real instruments</button><button type="button" class="msbig" id="mkedit">Edit tracks</button></div>'; byId('ms_main').parentNode.insertBefore(top,byId('ms_main'));
+    byId('mknew').addEventListener('click',()=>{ toast('New sounds'); riPick(); }); byId('mkedit').addEventListener('click',()=>{ close(); byId('mked').hidden=false; byId('mked').scrollTop=0; }); }
+  // Edit tracks page: the track editor moves here from More
+  { const pane=byId('editbox')&&byId('editbox').closest('.pane'); const eb=byId('ed_body'); if(pane&&eb){ [...pane.children].forEach(ch=>{ if(!ch.classList.contains('msgrp')) eb.appendChild(ch); else ch.remove(); }); const tr=byId('tracks'); if(tr) eb.appendChild(tr); const vx=byId('voxbox'); if(vx) eb.appendChild(vx); } } /* the track cards too */
+  // Saved songs page: save what is playing, the saved list, recordings, shared codes
+  { const mv=(id,to)=>{ const e=byId(id); if(e&&to) to.appendChild(e); }; const sv=byId('sv_save'), sl=byId('sv_list'), sc=byId('sv_codes');
+    mv('libname',sv); mv('libsave',sv); mv('libsaves',sv); mv('libmsg',sv); mv('liblist',sl); mv('libpaste',sc); mv('libadd',sc);
+    const t1=byId('libsave'), t2=byId('libsaves'); if(t1) t1.textContent='Save this tune'; if(t2) t2.textContent='Save whole song'; const ln=byId('libname'); if(ln) ln.placeholder='Name (optional)';
+    const sl0=byId('seedlib'); if(sl0) sl0.hidden=true;
+    byId('mksaved').addEventListener('click',()=>{ byId('mksv').hidden=false; byId('mksv').scrollTop=0; });
+    byId('svrecs').addEventListener('click',()=>{ byId('mksv').hidden=true; const r=byId('recsbtn'); if(r) r.click(); });
+    byId('sv_list').addEventListener('click',e=>{ if(e.target.closest('[data-libload]')) setTimeout(()=>{ byId('mksv').hidden=true; toast('Loaded'); },150); }); }
+  document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>{ byId(b.dataset.close).hidden=true; }));
+  addEventListener('keydown',e=>{ if(e.key==='Escape') ['mksv','mked'].forEach(id=>{ byId(id).hidden=true; }); });
   // More: a pointer to Make setup at the top, then the track editor, and the FM-1 hardware help folded at the end
   const main=document.querySelector('main'); if(main){
     const note=document.createElement('div'); note.className='msnote'; note.innerHTML='<span>Song settings (tempo, song builder, auto song, effects) are in Make setup.</span><button type="button">Make setup</button>'; note.querySelector('button').addEventListener('click',()=>{ go('make'); open(); });
