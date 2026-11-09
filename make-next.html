@@ -923,6 +923,17 @@ html.nlock body{padding-bottom:0!important}
 #mk,.live,.padm,.stagev{overflow-x:hidden!important;overscroll-behavior:contain}
 /* Stage opened from the DJ (dj.html overlay): the DJ drives it, so hide Make's own Play buttons and tab bar */
 html.st-feed #stplay,html.st-feed #stfpl,html.st-feed #tabbar{display:none!important}
+/* Make: real instruments and Send to DJ (owner, 9 Nov 2026) */
+.mkri{display:flex;gap:10px;align-items:stretch}
+.mkswr{flex:1;display:flex;align-items:center;gap:10px;min-height:56px;border-radius:18px;border:1px solid var(--n-line);background:var(--n-s1);color:var(--n-ink);text-align:left;padding:0 14px;cursor:pointer}
+.mkswr span{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}.mkswr small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mkswr b{font-size:15px}.mkswr small{font-size:12px;color:var(--n-mut)}
+.mkswr i{width:48px;height:30px;border-radius:15px;background:var(--n-line);position:relative;flex:none}.mkswr i::after{content:"";position:absolute;left:3px;top:3px;width:24px;height:24px;border-radius:12px;background:var(--n-mut);transition:left .15s}
+.mkswr[aria-checked="true"] i{background:var(--n-gold)}.mkswr[aria-checked="true"] i::after{left:21px;background:#1a1305}
+#mknew{width:96px;border-radius:18px;border:1px solid var(--n-line);background:var(--n-s1);color:var(--n-ink);font-weight:700;font-size:14px;cursor:pointer}
+#mksend{flex:1;height:56px;border-radius:18px;border:2px solid var(--n-gold);background:transparent;color:var(--n-gold);font-weight:800;font-size:16px;cursor:pointer}
+#mksend:disabled{opacity:.6}
+.mkpair{display:flex;gap:12px}.mkpair>#mksurp{flex:1}
+@media (max-height:760px){.mkin{gap:11px}.mkh{padding-top:10px}.mknow{padding:14px 16px;gap:8px}.mknt b{font-size:24px}.mktiles button{height:60px}#mksurp,#mksend{height:50px}#mkgen,#mkrec{height:56px}.mkswr{min-height:50px}}
 </style>
 </head>
 <body>
@@ -940,8 +951,9 @@ html.st-feed #stplay,html.st-feed #stfpl,html.st-feed #tabbar{display:none!impor
    <button type="button" data-pick="key"><span>Key</span><b id="mkt-key">-</b></button>
    <button type="button" data-pick="len"><span>Length</span><b id="mkt-len">-</b></button>
   </div>
-  <button type="button" id="mksurp"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.2" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/></svg>Surprise me</button>
+  <div class="mkpair"><button type="button" id="mksurp"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.2" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/></svg>Surprise me</button><button type="button" id="mksend">Send to DJ</button></div>
   <div class="mkgo"><button type="button" id="mkgen">Generate</button><button type="button" id="mkrec" aria-pressed="false">Record</button></div>
+  <div class="mkri"><button type="button" class="mkswr" id="mkreal" role="switch" aria-checked="true"><span><b>Real instruments</b><small id="mkrealsub">Piano, guitar, horns and strings instead of synths</small></span><i aria-hidden="true"></i></button><button type="button" id="mknew" aria-label="Pick new real instruments">New sounds</button></div>
  </div>
 </div>
 <div id="mksheet" hidden role="dialog" aria-modal="true" aria-labelledby="shtitle"><div class="shbox"><div class="shh"><h2 id="shtitle">Genre</h2><button type="button" id="shdone">Done</button></div><input id="shq" type="search" placeholder="Search" aria-label="Search" autocomplete="off"><div class="shlist" id="shlist"></div></div></div>
@@ -19098,6 +19110,53 @@ $('mkplay').addEventListener('click',()=>$('play').click());
 $('mkgen').addEventListener('click',()=>{ $('gen').click(); toast('New pattern'); });
 $('mksurp').addEventListener('click',()=>{ $('gsurp').click(); toast('Surprise!'); });
 $('mkrec').addEventListener('click',()=>$('recbtn').click());
+// ---- Real instruments (owner, 9 Nov 2026: "make should make real loops"): Make's tracks play single real notes from the packs
+// (piano, guitar, horns, strings, bass) instead of synths. Only notes whose names say the note are used, so the tuning is right.
+const RI={on:true,man:null,meta:new Map(),names:{}};
+try{ RI.on=localStorage.getItem('ebn.realins')!=='0'; }catch(e){}
+const RINOTE=/(?:^|[\s_-])([a-g])([#bs]?)(-?\d)(?=$|[\s_.-])/i, RIPC={c:0,d:2,e:4,f:5,g:7,a:9,b:11};
+const RIROLE={bass:[['bass'],/^(?!.*(synth|synrez|reso|acid|303|wobble|sub)).*(bass|slap|upright)/i,[28,52]],stab:[['keys','orch','syn','gtr'],/rhodes|piano|organ|string|mellotron|choir|guitar|12string|steel/i,[48,72]],arp:[['gtr','keys','wld','syn'],/guitar|12string|steel|rhodes|piano|harp|bell|marimba/i,[52,76]],lead:[['horn','orch','flt','syn','keys'],/sax|trumpet|horn|oboe|bassoon|flute|clarinet|violin|mellotron|rhodes/i,[55,79]]};
+const RINICE=[[/upright/i,'Upright bass'],[/slap/i,'Slap bass'],[/rhodes/i,'Rhodes'],[/piano/i,'Piano'],[/organ/i,'Organ'],[/12.?string|twelve/i,'12-string guitar'],[/steel/i,'Steel guitar'],[/nylon/i,'Nylon guitar'],[/guitar/i,'Guitar'],[/mellotron.*cho|choir/i,'Choir'],[/mellotron/i,'Mellotron'],[/string/i,'Strings'],[/alto sax|tenor sax|\bsax/i,'Sax'],[/trumpet/i,'Trumpet'],[/tuba/i,'Tuba'],[/horn/i,'Horn'],[/oboe/i,'Oboe'],[/bassoon/i,'Bassoon'],[/flute/i,'Flute'],[/harp/i,'Harp'],[/bell/i,'Bells'],[/marimba/i,'Marimba'],[/addsynth|harmonics/i,'Soft synth'],[/bass/i,'Bass']];
+const riNice=n=>{ const f=RINICE.find(x=>x[0].test(n)); return f?f[1]:String(n).split(/\s+/).slice(0,2).join(' '); };
+async function riMan(){ if(RI.man) return RI.man; const out=[]; for(const [sub,pre] of [['samples/pack/','samples/pack/'],['samples/xpack/','samples/xpack/']]){ try{ const r=await fetch(sub+'manifest.json'); if(!r.ok) continue; const m=await r.json(); (m.groups||[]).forEach(g=>(g.clips||[]).forEach(c=>{ const mm=RINOTE.exec(c.name); if(!mm||c.k==='loop'||!(c.d>=.3&&c.d<=6)) return; const pc=(RIPC[mm[1].toLowerCase()]+(/[#s]/i.test(mm[2])?1:(/b/i.test(mm[2])?-1:0))+12)%12; out.push({g:g.id,name:c.name,url:pre+c.f,pc:pc,p:c.p||0}); })); }catch(e){} } RI.man=out; return out; }
+async function riLoad(c,lo,hi){ const r=await fetch(c.url); const ab=await r.arrayBuffer(); ensureAudio(); const b=await ac.decodeAudioData(ab); let root=(c.p>20&&c.p%12===c.pc)?c.p:0; if(!root){ root=lo+((c.pc-lo%12+12)%12); } return {b,root}; }
+async function riPick(){ if(!RI.on) return; let man; try{ man=await riMan(); }catch(e){ return; } if(!man.length) return; const used=[];
+  for(let ti=0;ti<(state.synth||[]).length;ti++){ const t=state.synth[ti]; const spec=RIROLE[t&&t.role]; if(!spec) continue; const pool=man.filter(c=>spec[0].indexOf(c.g)>=0&&spec[1].test(c.name)&&used.indexOf(c.name)<0); if(!pool.length) continue;
+    for(let tries=0;tries<3;tries++){ const c=pool[Math.floor(Math.random()*pool.length)]; try{ const {b,root}=await riLoad(c,spec[2][0],spec[2][1]); const id='ri_'+ti; SBUF.set(id,b); RI.meta.set(id,{id,name:c.name,root:root,mode:'gate'}); PV.samp['s'+ti]=id; RI.names[t.role]=riNice(c.name); used.push(c.name); break; }catch(e){} } }
+  const nm=[...new Set(Object.values(RI.names))].slice(0,3).join(', '); tx('mkrealsub',nm?nm:'Piano, guitar, horns and strings instead of synths'); }
+function riOff(){ for(let ti=0;ti<8;ti++){ const id='ri_'+ti; if(PV.samp['s'+ti]===id) delete PV.samp['s'+ti]; SBUF.delete(id); RI.meta.delete(id); } RI.names={}; tx('mkrealsub','Piano, guitar, horns and strings instead of synths'); }
+{ const sp0=samplePlay; samplePlay=function(id,midi,time,v,dur,hold){ const m=RI.meta.get(id); if(!m) return sp0(id,midi,time,v,dur,hold); const b=SBUF.get(id); if(!b) return null; const src=ac.createBufferSource(), g=ac.createGain(); src.buffer=b; src.playbackRate.value=midi==null?1:Math.pow(2,(midi-m.root)/12); const vv=Math.max(.0001,.85*v); g.gain.setValueAtTime(vv,time); src.connect(g); g.connect(master); src.start(time); if(dur){ const end=time+Math.max(.08,dur); g.gain.setValueAtTime(vv,end); g.gain.exponentialRampToValueAtTime(.0001,end+.12); src.stop(end+.15); } return {src,g}; }; }
+const riSync=()=>{ $('mkreal').setAttribute('aria-checked',String(RI.on)); $('mknew').disabled=!RI.on; };
+$('mkreal').addEventListener('click',()=>{ RI.on=!RI.on; try{ localStorage.setItem('ebn.realins',RI.on?'1':'0'); }catch(e){} riSync(); if(RI.on){ toast('Real instruments'); riPick(); } else { riOff(); toast('Synths'); } });
+$('mknew').addEventListener('click',()=>{ toast('New sounds'); riPick(); });
+riSync(); setTimeout(()=>riPick(),1500);
+$('mkgen').addEventListener('click',()=>setTimeout(riPick,250)); $('mksurp').addEventListener('click',()=>setTimeout(riPick,250));
+// ---- Send to DJ: records exactly one loop of the tune (no drums, no bass: the DJ adds its own) and adds it to your sounds,
+// where the DJ's Real loops songs can use it. The DJ setup's "My loops" list shows and removes them.
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function wav(chs,sr){ const n=chs[0].length, nc=chs.length, buf=new ArrayBuffer(44+n*nc*2), v=new DataView(buf); const w=(o,s)=>{ for(let i=0;i<s.length;i++) v.setUint8(o+i,s.charCodeAt(i)); };
+  w(0,'RIFF'); v.setUint32(4,36+n*nc*2,true); w(8,'WAVE'); w(12,'fmt '); v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,nc,true); v.setUint32(24,sr,true); v.setUint32(28,sr*nc*2,true); v.setUint16(32,nc*2,true); v.setUint16(34,16,true); w(36,'data'); v.setUint32(40,n*nc*2,true);
+  let o=44; for(let i=0;i<n;i++) for(let c=0;c<nc;c++){ const x=Math.max(-1,Math.min(1,chs[c][i])); v.setInt16(o,x<0?x*32768:x*32767,true); o+=2; } return new Blob([buf],{type:'audio/wav'}); }
+async function sendToDJ(){ const b=$('mksend'); if(b.disabled) return; b.disabled=true; b.textContent='Listening...';
+  const restore=[]; try{
+    ensureAudio(); if(!playing){ $('play').click(); await sleep(400); }
+    const sd=60/(state.bpm||120)/4; let nb=state.bars||1; while(nb>1&&nb*16*sd>8.1) nb=nb/2; let cyc=1; while(nb*16*sd*cyc<2&&cyc<4) cyc*=2; const steps=nb*16*cyc, sec=steps*sd;
+    if(state.drums){ restore.push(['d',state.drums.muted]); state.drums.muted=true; } (state.synth||[]).forEach((t,i)=>{ if(t.role==='bass'){ restore.push(['s',i,t.muted]); t.muted=true; } });
+    let wait=0; while(!(ROLL&&ROLL.step>=0)&&wait<40){ await sleep(50); wait++; } if(!(ROLL&&ROLL.step>=0)) throw new Error('not playing');
+    const lead=Math.ceil(.6/sd), kB=Math.ceil((ROLL.step+lead)/steps)*steps, tB=ROLL.t+(kB-ROLL.step)*sd, sr=ac.sampleRate, N=Math.round(sec*sr), L=new Float32Array(N), R=new Float32Array(N);
+    const proc=ac.createScriptProcessor(4096,2,2), sink=ac.createGain(); sink.gain.value=0; master.connect(proc); proc.connect(sink); sink.connect(ac.destination);
+    proc.onaudioprocess=e=>{ const t0=e.playbackTime, a=e.inputBuffer.getChannelData(0), c=e.inputBuffer.numberOfChannels>1?e.inputBuffer.getChannelData(1):a; const off=Math.round((t0-tB)*sr); for(let i=0;i<a.length;i++){ const k=off+i; if(k>=0&&k<N){ L[k]=a[i]; R[k]=c[i]; } } };
+    b.textContent='Recording one loop...'; while(ac.currentTime<tB+sec+.35) await sleep(60);
+    proc.onaudioprocess=null; try{ master.disconnect(proc); }catch(e){} proc.disconnect(); sink.disconnect();
+    let pk=0; for(let i=0;i<N;i++) pk=Math.max(pk,Math.abs(L[i]),Math.abs(R[i])); if(pk<.003) throw new Error('silent'); const gn=Math.min(4,.89/pk); for(let i=0;i<N;i++){ L[i]*=gn; R[i]*=gn; }
+    let g=''; try{ g=amp(genreObj().name); }catch(e){} const inst=[...new Set(Object.values(RI.names))].slice(0,2).join(' and ');
+    const name='Make loop '+(state.bpm)+' BPM '+keyName()+' '+g;
+    const file=new File([wav([L,R],sr)],name.replace(/[^\w #]+/g,' ').replace(/\s+/g,' ').trim()+'.wav',{type:'audio/wav'});
+    await sampAdd([file]); toast('Sent to the DJ'); b.textContent='Sent! Send another';
+  }catch(e){ toast(e&&e.message==='silent'?'Nothing to send: press Play first':'Could not send it'); b.textContent='Send to DJ'; }
+  finally{ restore.forEach(r=>{ if(r[0]==='d') state.drums.muted=r[1]; else state.synth[r[1]].muted=r[2]; }); b.disabled=false; setTimeout(()=>{ if(!b.disabled) b.textContent='Send to DJ'; },4000); } }
+$('mksend').addEventListener('click',sendToDJ);
+window.__mkSend=sendToDJ; window.__mkRI=RI;
 $('mkinfo').addEventListener('click',()=>{ setHelp(true); go('more'); const a=$('about'); if(a){ a.open=true; a.scrollIntoView({block:'start'}); } });
 // help text: long explanations hidden unless the i button is on
 const setHelp=on=>{ document.documentElement.classList.toggle('help',on); $('helpb').setAttribute('aria-pressed',String(on)); try{ localStorage.setItem('ebn.help',on?'1':'0'); }catch(e){} };
