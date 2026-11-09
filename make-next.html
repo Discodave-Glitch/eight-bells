@@ -773,8 +773,8 @@ html.st-lock,html.st-lock body{overflow:hidden}
 <meta name="theme-color" content="#0d1320">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <script>/* the owner's deck colours (DJ settings) replace the teal and gold everywhere (owner, 5 Nov 2026) */window.__ebPaint=function(){try{var r=document.documentElement.style,ok=/^#[0-9a-f]{6}$/i,A=localStorage.getItem('ebdj.colA'),B=localStorage.getItem('ebdj.colB'),on=function(v){var n=parseInt(v.slice(1),16);return (.299*(n>>16)+.587*(n>>8&255)+.114*(n&255))>150?'#1a1305':'#ffffff'};
-['--n-teal','--n-gold','--n-ongold','--n-onteal'].forEach(function(k){r.removeProperty(k)});
-if(A&&ok.test(A)&&A.toLowerCase()!=='#3a93ab'){r.setProperty('--n-teal',A,'important');r.setProperty('--n-onteal',on(A),'important')}
+['--n-teal','--n-gold','--n-ongold','--n-onteal','--n-logo'].forEach(function(k){r.removeProperty(k)});
+if(A&&ok.test(A)&&A.toLowerCase()!=='#3a93ab'){r.setProperty('--n-teal',A,'important');r.setProperty('--n-onteal',on(A),'important');var n=parseInt(A.slice(1),16),dk=function(c){return Math.round(c*.75).toString(16).padStart(2,'0')};r.setProperty('--n-logo','#'+dk(n>>16)+dk(n>>8&255)+dk(n&255),'important')}
 if(B&&ok.test(B)&&B.toLowerCase()!=='#e0b04a'){r.setProperty('--n-gold',B,'important');r.setProperty('--n-ongold',on(B),'important')}}catch(e){}};window.__ebPaint();</script>
 <meta name="theme-color" content="#2f7f95">
 <meta name="robots" content="noindex, nofollow">
@@ -808,7 +808,7 @@ if(B&&ok.test(B)&&B.toLowerCase()!=='#e0b04a'){r.setProperty('--n-gold',B,'impor
 .mktiles b{font-size:17px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 #mksurp{height:56px;border-radius:20px;border:1px dashed var(--n-teal);background:transparent;color:var(--n-teal);font-weight:800;font-size:16px;display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer}
 .mkgo{display:flex;gap:12px}
-#mkgen{flex:1;height:64px;border-radius:20px;border:0;background:var(--n-blue);color:#fff;font-weight:800;font-size:18px;cursor:pointer}
+#mkgen{flex:1;height:64px;border-radius:20px;border:0;background:var(--n-gold);color:var(--n-ongold,#1a1305);font-weight:800;font-size:18px;cursor:pointer}
 #mkrec{width:96px;height:64px;border-radius:20px;border:1px solid var(--n-line);background:var(--n-s1);color:var(--n-ink);font-weight:700;font-size:15px;cursor:pointer}
 #mkrec.on{background:#e5584f;border-color:#e5584f;color:#fff}
 /* chooser sheet */
@@ -928,7 +928,7 @@ html.st-feed #stplay,html.st-feed #stfpl,html.st-feed #tabbar{display:none!impor
 <body>
 <div id="mk" role="region" aria-label="Make">
  <div class="mkin">
-  <div class="mkh"><svg width="32" height="32" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="44" fill="#2b7f95" stroke="#f0b84a" stroke-width="6"/><path d="M50 22c-9 0-15 7-15 17v12l-7 9h44l-7-9V39c0-10-6-17-15-17z" fill="#fbf3df"/><circle cx="50" cy="71" r="5" fill="#fbf3df"/></svg><h1>Eight Bells</h1><button type="button" class="mkib" id="mkinfo" aria-label="About and help">i</button></div>
+  <div class="mkh"><svg width="32" height="32" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="44" style="fill:var(--n-logo,#2b7f95);stroke:var(--n-gold,#f0b84a)" stroke-width="6"/><path d="M50 22c-9 0-15 7-15 17v12l-7 9h44l-7-9V39c0-10-6-17-15-17z" fill="#fbf3df"/><circle cx="50" cy="71" r="5" fill="#fbf3df"/></svg><h1>Eight Bells</h1><button type="button" class="mkib" id="mkinfo" aria-label="About and help">i</button></div>
   <div class="mknow"><span>NOW</span>
    <div class="mknr"><div class="mknt"><b id="mkgenre">-</b><small id="mksub">-</small></div>
     <button type="button" id="mkplay" aria-label="Play"><svg class="ip1" width="30" height="30" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg><svg class="ip2" width="30" height="30" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4h4v16H6z"/><path d="M14 4h4v16h-4z"/></svg></button></div>
