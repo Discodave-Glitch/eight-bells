@@ -982,6 +982,22 @@ html[data-tab="more"] main .transport>.deck{display:none!important}
 /* Make setup: which real sound categories Make may use (owner, 10 Nov 2026) */
 .ricats{display:flex;flex-direction:column}.ricat{display:flex;align-items:center;gap:10px;min-height:52px;border:0;border-bottom:1px solid var(--n-line);background:transparent;color:var(--n-ink);font-weight:700;font-size:15px;text-align:left;padding:0;cursor:pointer}.ricat:last-child{border-bottom:0}.ricat span{flex:1}
 .ricat i{width:48px;height:30px;border-radius:15px;background:var(--n-line);position:relative;flex:none}.ricat i::after{content:"";position:absolute;left:3px;top:3px;width:24px;height:24px;border-radius:12px;background:var(--n-mut);transition:left .15s}.ricat[aria-checked="true"] i{background:var(--n-gold)}.ricat[aria-checked="true"] i::after{left:21px;background:#1a1305}
+/* Live page fixes (owner, 10 Nov 2026: buttons spilling out of the track rows and the edit pads covering Redo/Clear/Lock).
+   The big-button rule (44 px) is undone for the small row buttons and pads; the page scrolls instead of squashing the track list. */
+.live .lv-in{overflow-y:auto;overscroll-behavior:contain}
+.live .lv-trkw{flex:1 0 auto;min-height:190px}
+.live .lv-trks{flex:1 1 auto;overflow-y:auto}
+.live .lv-trk{flex:none;min-height:40px;max-height:none!important;height:40px;gap:4px;padding:3px 4px}
+.live .lv-trk .lv-m{min-height:0!important;height:32px;width:32px;border-radius:8px!important;font-size:10.5px}
+.live .lv-nm{width:64px;font-size:11px}
+.live .lv-stw{max-height:32px!important}
+.live.editing .lv-edit{flex:none!important;min-height:0!important;max-height:none!important}
+.live.editing .lv-big{flex:none!important;grid-auto-rows:46px!important;gap:6px}
+.live .lv-step{min-height:0!important;height:46px!important;border-radius:10px!important}
+.live .lv-edit .lv-row .lvb{min-height:42px}
+.live .lv-edit .lv-done{min-height:36px}
+.live.editing .lv-d{min-height:40px!important}.live.editing .lv-d small{display:block!important}
+.live.editing .lv-trkw{min-height:150px}
 </style>
 </head>
 <body>
