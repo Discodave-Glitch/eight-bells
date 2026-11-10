@@ -1,0 +1,11 @@
+Free sounds used by Eight Bells (Make > Real sounds):
+CC-BY 3.0, Karoryfer samples via tonejs-instruments
+CC-BY 3.0, donyaquick (Freesound 330410) via tonejs-instruments
+CC-BY 3.0, flcellogrl (Freesound 12408) via tonejs-instruments
+CC-BY 3.0, quartertone (Freesound 11573) via tonejs-instruments
+CC-BY 3.0, samples from the University of Iowa via tonejs-instruments (Nicholaus Brosowsky)
+Meatbass by Karoryfer Samples, CC0
+Salamander Grand Piano by Alexander Holm, CC-BY 3.0 (via Tone.js audio)
+Virtuosity Drums by Versilian Studios, CC0
+VSCO 2 Community Edition by Versilian Studios, CC0 (folder vsco). Upright Piano sampled by Simon Dalzell of Ivy Audio.
+CC-BY 3.0: https://creativecommons.org/licenses/by/3.0/
