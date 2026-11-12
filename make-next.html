@@ -19240,7 +19240,7 @@ function go(t){
 }
 function cur(){ try{ if(lvOn()) return 'live'; if(padOn()) return 'pads'; }catch(e){} if(stageOn()) return 'stage'; return $('mk').hidden?'more':'make'; }
 function mark(){ const c=cur(); document.querySelectorAll('#tabbar [data-nav]').forEach(b=>{ if(b.dataset.nav===c) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); }); }
-document.querySelectorAll('#tabbar [data-nav]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.nav)));
+document.querySelectorAll('#tabbar [data-nav]').forEach(b=>b.addEventListener('click',()=>{ const t=b.dataset.nav; if(t==='make'||t==='live'){ location.href=page('dj')+'#'+(t==='make'?'studio':'live'); return; } go(t); })); /* Make is the Studio and Live is the new Live, both on the DJ page (owner, 12 Nov 2026); this page's own loop maker is 'Old Make' */
 // the tab bar hides itself 4 s after it was last used; the small handle at the bottom brings it back
 const hb=document.createElement('button'); hb.type='button'; hb.id='barhandle'; hb.setAttribute('aria-label','Show tabs');
 hb.innerHTML='<i><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></i>';
