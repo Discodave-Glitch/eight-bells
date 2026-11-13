@@ -19508,5 +19508,12 @@ const want=(location.hash||'').slice(1);
 setTimeout(()=>{ if(['live','pads','stage','more'].includes(want)) go(want); else go('make'); },300);
 })();
 </script>
+<script>/* owner 13 Nov 2026: Studio and Live have a back button to the DJ; Pads and Stage get the same (not when Stage runs inside the DJ page, which has its own close) */
+(function(){ if(window.top!==window.self) return; const dj=()=>location.pathname.replace(/make(-next)?\.html$/,'dj$1.html');
+  const mk=()=>{ const b=document.createElement('button'); b.type='button'; b.className='ebback'; b.setAttribute('aria-label','Back to the DJ'); b.innerHTML='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>'; b.addEventListener('click',e=>{ e.preventDefault(); e.stopPropagation(); location.href=dj(); }); return b; };
+  const add=()=>{ document.querySelectorAll('.pm-brand').forEach(el=>{ if(!el.querySelector('.ebback')) el.prepend(mk()); }); document.querySelectorAll('.st-top .st-brand').forEach(el=>{ if(!el.querySelector('.ebback')) el.prepend(mk()); }); };
+  const st=document.createElement('style'); st.textContent='.ebback{width:40px;height:40px;min-width:40px;padding:0!important;margin-right:8px;border-radius:20px!important;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:#fff;display:inline-flex!important;align-items:center;justify-content:center;flex:none;vertical-align:middle;cursor:pointer}.st-top .ebback{width:34px;height:34px;min-width:34px;margin-right:0}.st-top .st-brand>svg{display:none}'; document.head.appendChild(st);
+  add(); let q=0; new MutationObserver(()=>{ if(q) return; q=requestAnimationFrame(()=>{ q=0; add(); }); }).observe(document.body,{childList:true,subtree:true}); })();
+</script>
 </body>
 </html>
