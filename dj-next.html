@@ -743,7 +743,7 @@ if(B&&ok.test(B)&&B.toLowerCase()!=='#e0b04a'){r.setProperty('--n-gold',B,'impor
     <div class="card sws"><button type="button" class="swr" role="switch" aria-checked="false" data-sw="car"><span class="swt"><b>Car mode</b><small>Smooth over CarPlay</small></span><i class="sw" aria-hidden="true"></i></button><div class="carre" id="carre" hidden><span>Reload to use it</span><button type="button" id="carrl">Reload</button></div><button type="button" class="swr" role="switch" aria-checked="false" data-sw="vox"><span class="swt"><b>Singing</b><small>Sung vocals in the songs</small></span><i class="sw" aria-hidden="true"></i></button><button type="button" class="swr" role="switch" aria-checked="false" data-sw="hook"><span class="swt"><b>Robot hook words</b><small>A robot voice says the hook in choruses</small></span><i class="sw" aria-hidden="true"></i></button><button type="button" class="swr" role="switch" aria-checked="false" data-sw="licks"><span class="swt"><b>Instrument licks</b><small>Guitar, horn, flute, piano</small></span><i class="sw" aria-hidden="true"></i></button><button type="button" class="swr" role="switch" aria-checked="false" data-sw="track"><span class="swt"><b>Track mode</b><small>Play each song to the end, no mixing</small></span><i class="sw" aria-hidden="true"></i></button><button type="button" class="swr" role="switch" aria-checked="false" data-sw="keeplike"><span class="swt"><b>Keep songs I like</b><small>Likes go to Kept songs</small></span><i class="sw" aria-hidden="true"></i></button><button type="button" class="swr" role="switch" aria-checked="false" data-sw="mine"><span class="swt"><b>Play my sounds too</b><small>Your loaded samples</small></span><i class="sw" aria-hidden="true"></i></button><button type="button" class="swr" role="switch" aria-checked="false" data-sw="full"><span class="swt"><b>Full decks</b><small>Pads, knobs and effects</small></span><i class="sw" aria-hidden="true"></i></button></div>
     <div class="two"><button type="button" class="big" id="addsnd">Add sounds</button><button type="button" class="big" id="mytaste">My taste</button></div>
     <div class="two"><button type="button" class="big" id="songrpt">Copy report</button><button type="button" class="big" id="songrptnew">New report</button></div>
-    <p class="ebver" id="ebver">Version 2026-11-13 08:42</p><button type="button" class="moreb" id="moreb" aria-expanded="false">More options<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+    <p class="ebver" id="ebver">Version 2026-11-13 09:43</p><button type="button" class="moreb" id="moreb" aria-expanded="false">More options<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
     <div id="morebox" hidden>
 <div id="nopts">
   <div class="two" hidden><button type="button" class="big" data-click="bothplay">Play both decks</button><button type="button" class="big" data-click="bothstop">Stop both</button></div>
@@ -2839,7 +2839,7 @@ async function sgRender0(p,POOL){
         for(let b=b0;b<b1;b++) EVB[b]={m:m};
         if(m==='filt') evSweep.push([b0,b1]);
         if(k<P-1&&sc.type!=='verse'&&R2()<.55) EVB[b1-1].kout=1;
-        if(k>0&&(m==='peak'||(EVB[b0-1]&&EVB[b0-1].kout))) EVB[b0].crash=1; } }); p.evPlan=EVB.length; }
+        if(k>0&&(m==='peak'||(EVB[b0-1]&&EVB[b0-1].kout))) EVB[b0].crash=1; } }); p.evPlan=EVB.length; p.evM=Array.from({length:p.total},(_,b)=>EVB[b]?EVB[b].m+(EVB[b].kout?'+k':''):''); /* for the Stage pictures */ }
   const capA=capOf(p.bed.c), capB=p.bed2?capOf(p.bed2.c):20000; p.hfCap=[capA,capB];
   { const stA={x1:0,x2:0,y1:0,y2:0}, stB={x1:0,x2:0,y1:0,y2:0}; let prev=20000;
     p.secs.forEach((sc,i)=>{ const a=st(sc), s0=Math.floor(at(sc.b0)*SGSR), s1=Math.min(N,Math.floor(at(sc.b1)*SGSR)+(i===p.secs.length-1?Math.floor(1.5*SGSR):0)), g=Math.min(s1,s0+Math.floor(.5*SGSR));
@@ -4097,6 +4097,7 @@ const STAGEF={ cur:null, t:0,
     if(k===6) return pl.hook&&pl.hook.rhythm?{cells:cells(pl.hook.rhythm),n,mute:!main}:null;
     if(k===7) return (pl.vocals||[]).length?{cells:cells([0]),n,mute:!main}:null;
     return null; },
+  info(){ const i=this.get(); if(i&&i.pl&&!i.pl.title) try{ i.pl.title=window.songTitle(i.pl); }catch(e){} return i; }, stat(){ return (window.__djTest&&window.__djTest.SGSTAT)||null; }, /* the Stage pictures (song map, desk, wheel, light grid) read the playing song's plan */
   exit(){ stageClose(); } };
 function stageOpen(){ let o=$('djstage'); if(o) return; o=document.createElement('div'); o.id='djstage'; o.setAttribute('role','dialog'); o.setAttribute('aria-label','Stage');
   o.style.cssText='position:fixed;inset:0;z-index:400;background:#151213'; const f=document.createElement('iframe'); f.title='Stage'; f.style.cssText='border:0;position:absolute;inset:0;width:100%;height:100%;display:block;z-index:1';
