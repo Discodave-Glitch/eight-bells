@@ -3,7 +3,7 @@
   "name": "Selecta",
   "short_name": "Selecta",
   "description": "Selecta: the DJ that makes and plays songs for you",
-  "start_url": "make-next.html",
+  "start_url": "dj-next.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#0d1320",
