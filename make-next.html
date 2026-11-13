@@ -765,7 +765,8 @@ html.st-lock,html.st-lock body{overflow:hidden}
 }
 @media(max-height:420px){ .pm-kn span{display:none} .pm-kn i{width:34px;height:34px} .pm-kn i::after{height:11px;transform-origin:50% 13px} }
 </style>
-<script>/* owner 13 Nov 2026: reloading showed the old Make look first; this page opens on the DJ page unless a tab (or Old Make) was asked for */ (function(){ try{ var h=(location.hash||"").slice(1); if(!/^(oldmake|live|pads|stage|more)$/.test(h)&&window.top===window.self) location.replace(location.pathname.replace(/make(-next)?\.html$/,"dj$1.html")+location.search); }catch(e){} })();</script>
+<script>/* owner 13 Nov 2026: reloading showed the old Make look first; this page opens on the DJ page unless a tab (or Old Make) was asked for */ (function(){ try{ var h=(location.hash||"").slice(1); if(!/^(oldmake|live|pads|stage|more)$/.test(h)&&window.top===window.self) location.replace(location.pathname.replace(/make(-next)?\.html$/,"dj$1.html")+location.search); else if(/^(live|pads|stage|more)$/.test(h)){ document.documentElement.classList.add("mkboot"); setTimeout(function(){ document.documentElement.classList.remove("mkboot"); },4000); } }catch(e){} })();</script>
+<style>html.mkboot body>*:not(#tabbar){visibility:hidden!important}</style>
 <link rel="manifest" href="manifest-next.webmanifest">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -19251,7 +19252,7 @@ function go(t){
   else if(t==='pads') $('padbtn').click();
   else if(t==='stage') $('stagebtn').click();
   else if(t==='more') window.scrollTo(0,0);
-  TAB=t; document.documentElement.dataset.tab=t; document.documentElement.classList.toggle('nlock',t!=='more'); barShow(); mark(); try{ history.replaceState(null,'',t==='make'?location.pathname+location.search:'#'+t); }catch(e){}
+  TAB=t; document.documentElement.dataset.tab=t; if(t!=='make'||!/^#(live|pads|stage|more)$/.test(location.hash)) requestAnimationFrame(()=>document.documentElement.classList.remove('mkboot')); /* the old Make screen no longer flashes before Pads / Stage / More (owner 13 Nov 2026) */ document.documentElement.classList.toggle('nlock',t!=='more'); barShow(); mark(); try{ history.replaceState(null,'',t==='make'?location.pathname+location.search:'#'+t); }catch(e){}
 }
 function cur(){ try{ if(lvOn()) return 'live'; if(padOn()) return 'pads'; }catch(e){} if(stageOn()) return 'stage'; return $('mk').hidden?'more':'make'; }
 function mark(){ const c=cur(); document.querySelectorAll('#tabbar [data-nav]').forEach(b=>{ if(b.dataset.nav===c) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); }); }
