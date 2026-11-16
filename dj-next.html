@@ -756,7 +756,7 @@ if(B&&ok.test(B)&&B.toLowerCase()!=='#e0b04a'){r.setProperty('--n-gold',B,'impor
     <div class="card sws"><button type="button" class="swr" role="switch" aria-checked="false" data-sw="car"><span class="swt"><b>Car mode</b><small>Smooth over CarPlay</small></span><i class="sw" aria-hidden="true"></i></button><div class="carre" id="carre" hidden><span>Reload to use it</span><button type="button" id="carrl">Reload</button></div><button type="button" class="swr" role="switch" aria-checked="false" data-sw="vox"><span class="swt"><b>Singing</b><small>Sung vocals in the songs</small></span><i class="sw" aria-hidden="true"></i></button><button type="button" class="swr" role="switch" aria-checked="false" data-sw="hook"><span class="swt"><b>Robot hook words</b><small>A robot voice says the hook in choruses</small></span><i class="sw" aria-hidden="true"></i></button><button type="button" class="swr" role="switch" aria-checked="false" data-sw="licks"><span class="swt"><b>Instrument licks</b><small>Guitar, horn, flute, piano</small></span><i class="sw" aria-hidden="true"></i></button><button type="button" class="swr" role="switch" aria-checked="false" data-sw="track"><span class="swt"><b>Track mode</b><small>Play each song to the end, no mixing</small></span><i class="sw" aria-hidden="true"></i></button><button type="button" class="swr" role="switch" aria-checked="false" data-sw="keeplike"><span class="swt"><b>Keep songs I like</b><small>Likes go to Kept songs</small></span><i class="sw" aria-hidden="true"></i></button><button type="button" class="swr" role="switch" aria-checked="false" data-sw="mine"><span class="swt"><b>Play my sounds too</b><small>Your loaded samples</small></span><i class="sw" aria-hidden="true"></i></button><button type="button" class="swr" role="switch" aria-checked="false" data-sw="full"><span class="swt"><b>Full decks</b><small>Pads, knobs and effects</small></span><i class="sw" aria-hidden="true"></i></button></div>
     <div class="two"><button type="button" class="big" id="addsnd">Add sounds</button><button type="button" class="big" id="mytaste">My taste</button></div>
     <div class="two"><button type="button" class="big" id="songrpt">Copy report</button><button type="button" class="big" id="songrptnew">New report</button></div>
-    <p class="ebver" id="ebver">Version 2026-11-16 22:00</p><button type="button" class="moreb" id="moreb" aria-expanded="false">More options<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+    <p class="ebver" id="ebver">Version 2026-11-16 22:25</p><button type="button" class="moreb" id="moreb" aria-expanded="false">More options<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
     <div id="morebox" hidden>
 <div id="nopts">
   <div class="two" hidden><button type="button" class="big" data-click="bothplay">Play both decks</button><button type="button" class="big" data-click="bothstop">Stop both</button></div>
@@ -4707,7 +4707,7 @@ function sxWave(){ const HC=sxH(), i=sxSong(), pl=i.pl, bar=i.bar, H=HC-44; sxBa
    Dark silhouettes against back light, haze and beams. Each person is ONE smooth outline (head, hair, neck, shoulders, torso) traced through hand-placed points (sxCrHeads, sxCrBody),
    made once per screen size (sxCrLay, kept in sxCrL). Arms are ready-made shapes too (sxCrParts: upper arm, and forearm with a real hand: open, fingers together, fist, peace sign, pointing),
    turned at the shoulder and elbow. Each frame only moves things: bob, sway, lean and the arms. Everything follows the song's bar, so it stands still when nothing plays. No words on the crowd. */
-let sxCrL=null, sxCrEn=-1, sxCrV=null, sxCrG=null, sxCrSl=0, sxCrA=null; const sxCrC={}, SXCRN=16, sxCrK=[0,0,0,0];
+const sxCrO={}; let sxCrL=null, sxCrEn=-1, sxCrV=null, sxCrG=null, sxCrSl=0, sxCrA=null; const sxCrC={}, SXCRN=16, sxCrK=[0,0,0,0];
 function sxCrCol(h,a,wm){ let c=sxCrC[h]; if(!c){ const m=/^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(h||''); c=sxCrC[h]=m?[parseInt(m[1],16),parseInt(m[2],16),parseInt(m[3],16)]:[255,255,255]; } const w=wm||0; return 'rgba('+Math.round(c[0]+(255-c[0])*w)+','+Math.round(c[1]+(255-c[1])*w)+','+Math.round(c[2]+(255-c[2])*w)+','+(a<0?0:a>1?1:a).toFixed(3)+')'; }
 function sxCrMix(h,wm,k,dr,dg,db){ sxCrCol(h,1); const c=sxCrC[h]; return 'rgb('+Math.round(dr+(c[0]+(255-c[0])*wm-dr)*k)+','+Math.round(dg+(c[1]+(255-c[1])*wm-dg)*k)+','+Math.round(db+(c[2]+(255-c[2])*wm-db)*k)+')'; }
 function sxCrGlow(cx,cy,rx,ry,h,a,wm){ if(a<=.004) return; const c=sxCrG; c.save(); c.translate(cx,cy); c.scale(rx,ry); const g=c.createRadialGradient(0,0,0,0,0,1); g.addColorStop(0,sxCrCol(h,a,wm)); g.addColorStop(.45,sxCrCol(h,a*.38,wm)); g.addColorStop(1,sxCrCol(h,0,wm)); c.fillStyle=g; c.fillRect(-1,-1,2,2); c.restore(); }
@@ -4748,8 +4748,8 @@ function sxCrParts(){ const la=2.05, lb=1.85, S=.76, dg=(o,bx,by,an,len,w)=>{ co
   const fore=hands.map(h=>{ const q=[-.34,0,-.26,-.26,0,-.37,.5,-.4,1.2,-.29,lb-.12,-.235]; for(let k=0;k<h.length;k+=2) q.push(lb+h[k+1]*S,h[k]*S); q.push(lb-.12,.235,1.2,.28,.5,.36,0,.36,-.26,.25); return sxCrSm(q); });
   const up=sxCrSm([-.42,0,-.3,-.36,0,-.5,.55,-.5,.98,-.46,1.04,-.38,1.5,-.36,la,-.34,la+.3,-.2,la+.36,0,la+.3,.2,la,.34,1.5,.38,1.04,.42,.98,.5,.5,.5,0,.48,-.3,.34]); /* the small step is a T-shirt sleeve */
   return {up,fore,la,lb,hl:S}; }
-function sxCrLay(xl,xr,HC,top,key){ let s=20261116; const R=()=>{ s=s+0x6D2B79F5|0; let t=Math.imul(s^s>>>15,1|s); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; };
-  const port=HC>600, N=port?9:7, R1=Math.max(22,Math.min(40,HC*.066)), R0=R1*(port?.2:.26), yh=top+(HC-top)*(port?.4:.3), y0=yh+R0*2.6, y1=HC-R1*(port?2.4:1.7), rows=[]; let tot=0;
+function sxCrLay(xl,xr,HC,top,key,hz,scl){ let s=20261116; const R=()=>{ s=s+0x6D2B79F5|0; let t=Math.imul(s^s>>>15,1|s); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; };
+  const port=HC>600, N=port?9:7, R1=Math.max(22,Math.min(40,HC*.066))*(scl||1), R0=R1*(port?.2:.26), yh=top+(HC-top)*(hz||(port?.4:.3)), y0=yh+R0*2.6, y1=HC-R1*(port?2.4:1.7), rows=[]; let tot=0;
   for(let j=0;j<N;j++){ const t=j/(N-1), r=R0+(R1-R0)*Math.pow(t,1.25), y=y0+(y1-y0)*Math.pow(t,1.45), sp=r*3.05, n=Math.ceil((xr-xl)/sp)+2; rows.push({i0:tot,n,r,y,sp,t}); tot+=n; }
   const P=new Float32Array(tot*SXCRN), B=new Array(tot);
   rows.forEach((rw,j)=>{ const off=R(), r=rw.r, by=j<N-1?rows[j+1].y-rw.y+rows[j+1].r*2.2+r:HC-rw.y+r*2, mk=o=>sxCrBody(r,r*P[o+2],r*P[o+3],P[o+12],P[o+7]|0,P[o+11],P[o+13]>0,by,P[o+15]);
@@ -4762,9 +4762,10 @@ function sxCrLay(xl,xr,HC,top,key){ let s=20261116; const R=()=>{ s=s+0x6D2B79F5
   return {key,N,rows,P,B,tot,yh,port,lt:-1e9,lk:''}; }
 /* where the elbow and wrist go: shoulder (sx,sy), wrist aimed at (tx,ty), bent like a real arm. Answer in sxCrK = [elbow x, elbow y, wrist x, wrist y] */
 function sxCrIK(sx,sy,tx,ty,la,lb,a){ let dx=tx-sx, dy=ty-sy, d=Math.sqrt(dx*dx+dy*dy)||1; const mx=(la+lb)*.985, mn=Math.abs(la-lb)+la*.2; if(d>mx){ dx*=mx/d; dy*=mx/d; d=mx; } else if(d<mn){ dx*=mn/d; dy*=mn/d; d=mn; } const ux=dx/d, uy=dy/d, a1=(la*la-lb*lb+d*d)/(2*d), h=Math.sqrt(Math.max(0,la*la-a1*a1)), sg=(uy<0?1:-1)*a; sxCrK[0]=sx+ux*a1-uy*h*sg; sxCrK[1]=sy+uy*a1+ux*h*sg; sxCrK[2]=sx+dx; sxCrK[3]=sy+dy; }
-function sxCrowd(){ const HC=sxH(), i=sxSong(), pl=i.pl, bar=i.bar, sc=sxCur(pl,bar), big=/drop|chorus/.test(sc.type), brk=/break|intro|outro/.test(sc.type), bp=Qbp()||0;
-  const m=x.getTransform(), xl=Math.min(0,-m.e/m.a), xr=Math.max(W,(cv.width-m.e)/m.a), wv=xr-xl, cxv=(xl+xr)/2, top=60*SXF+SXD, key=Math.round(xl)+'|'+Math.round(xr)+'|'+HC+'|'+top;
-  if(!sxCrA) sxCrA=sxCrParts(); if(!sxCrL||sxCrL.key!==key) sxCrL=sxCrLay(xl,xr,HC,top,key); const L=sxCrL, P=L.P, N=L.N, yh=L.yh, port=L.port, A=sxCrA;
+/* the crowd and its lights, drawn down to height HC. O (all optional): hz = how far down the far end of the room sits, sc = people size, mid = something to draw between the far and the near rows (a stage), noVig = no dark fade at the bottom. Other pictures (DJ view, Main stage) use it too */
+function sxCrDraw(HC,i,O){ O=O||{}; const pl=i.pl, bar=i.bar, sc=sxCur(pl,bar), big=/drop|chorus/.test(sc.type), brk=/break|intro|outro/.test(sc.type), bp=Qbp()||0;
+  const m=x.getTransform(), xl=Math.min(0,-m.e/m.a), xr=Math.max(W,(cv.width-m.e)/m.a), wv=xr-xl, cxv=(xl+xr)/2, top=60*SXF+SXD, key=Math.round(xl)+'|'+Math.round(xr)+'|'+Math.round(HC)+'|'+top+'|'+(O.hz||0)+'|'+(O.sc||0);
+  if(!sxCrA) sxCrA=sxCrParts(); if(!sxCrL||sxCrL.key!==key) sxCrL=sxCrLay(xl,xr,HC,top,key,O.hz,O.sc); const L=sxCrL, P=L.P, N=L.N, yh=L.yh, port=L.port, A=sxCrA;
   /* how wild the crowd is: quiet in intro / break / outro, climbing through a build, full in a drop or chorus */
   const bld=sc.type==='build'?Math.min(1,Math.max(0,(bar-sc.b0)/Math.max(1,sc.b1-sc.b0))):0, eT=big?1.02:brk?.2:sc.type==='build'?.38+.52*bld:.48; sxCrEn=sxCrEn<0?eT:sxCrEn+(eT-sxCrEn)*Math.min(1,(dt||.016)*3.5); const e=sxCrEn;
   const beat=bar*(pl.base||16)/4, lt=beat*Math.PI/8, ph8=Math.floor(Math.max(0,bar)/8), cols=[SXC.loop,SXC.bass,SXC.drums,SXC.stab,SXC.vocal], cA=cols[ph8%5], cB=cols[(ph8+2)%5], sh=HC-top;
@@ -4817,12 +4818,134 @@ function sxCrowd(){ const HC=sxH(), i=sxSong(), pl=i.pl, bar=i.bar, sc=sxCur(pl,
   x.imageSmoothingEnabled=true; x.drawImage(sxCrV,xl,0,wv,HC);
   /* truss lamps and the far lamps */
   x.fillStyle=sxCrCol('#ffffff',.5+.4*e); x.beginPath(); for(let k=0;k<K;k++){ const f=(k+.5)/K-.5, X=xl+wv*(.5+f*.92); x.moveTo(X+2,ty); x.arc(X,ty,2,0,6.2832); } x.fill();
-  const M=port?9:13; x.fillStyle=sxCrCol(cA,.3+.35*e+.3*fl,.75); x.beginPath(); for(let k=0;k<M;k++){ const X=cxv+((k+.5)/M-.5)*wv*.9; x.moveTo(X+2,yh-3); x.arc(X,yh-3,1.6+1.2*fl,0,6.2832); } x.fill();
+  if(O.mid) O.mid(xl,xr,yh,top,e,cA,cB,bp); const M=O.mid?0:port?9:13; x.fillStyle=sxCrCol(cA,.3+.35*e+.3*fl,.75); x.beginPath(); for(let k=0;k<M;k++){ const X=cxv+((k+.5)/M-.5)*wv*.9; x.moveTo(X+2,yh-3); x.arc(X,yh-3,1.6+1.2*fl,0,6.2832); } x.fill();
   /* the near rows, sharp, on top */
   sxCrSl+=((dt||.016)*1000-sxCrSl)*.05; for(let j=NF;j<N;j++) row(j,x,m.a,m.d,m.e,m.f,sxCrSl>26&&j<N-3); x.setTransform(m.a,0,0,m.d,m.e,m.f); /* on a slow phone only the front rows keep their light edge, so it stays smooth */
-  const g2=x.createLinearGradient(0,HC-sh*.2,0,HC); g2.addColorStop(0,'rgba(2,2,5,0)'); g2.addColorStop(1,'rgba(2,2,5,.7)'); x.fillStyle=g2; x.fillRect(xl,HC-sh*.2,wv,sh*.2); /* darker towards the bottom */
-  sxHead(i,'CROWD');
+  if(!O.noVig){ const g2=x.createLinearGradient(0,HC-sh*.2,0,HC); g2.addColorStop(0,'rgba(2,2,5,0)'); g2.addColorStop(1,'rgba(2,2,5,.7)'); x.fillStyle=g2; x.fillRect(xl,HC-sh*.2,wv,sh*.2); } /* darker towards the bottom */
+  const o=sxCrO; o.xl=xl; o.xr=xr; o.yh=yh; o.top=top; o.e=e; o.cA=cA; o.cB=cB; o.beat=beat; o.m=m; o.big=big; return o; }
+function sxCrowd(){ const HC=sxH(), i=sxSong(); sxCrDraw(HC,i); sxHead(i,'CROWD');
   /* owner: no words on the crowd */ }
+/* sxNew: more Stage pictures (owner 16 Nov 2026), made for the automatic rotation and the car screen: big, calm, no hard flashes. DJ view, Main stage, Vinyl, Night drive.
+   Same rules as the Crowd: shapes are made once and only moved, heavy parts are kept on hidden canvases, everything follows the song's bar. */
+let sxNwD=null, sxNwRec=null, sxNwSky=null, sxNwCar=null;
+function sxNwLv(pl,bar){ const L=sxLevels(pl,bar); if(!Z.nlv) Z.nlv={drums:0,bass:0,loop:0,stab:0,vocal:0}; for(const k in Z.nlv) Z.nlv[k]+=((L[k]||0)-Z.nlv[k])*Math.min(1,(dt||.016)*(k==='drums'?18:9)); return Z.nlv; }
+function sxNwPut(m,p,X0,Y0,c,s,sx,sv,fs,o){ x.setTransform(m.a*c*sx,m.d*s*sx,-m.a*s*sv,m.d*c*sv,m.e+m.a*X0,m.f+m.d*(Y0+o)); x.fillStyle=fs; x.fill(p); }
+function sxNwEl(cx,cy,rx,ry){ x.beginPath(); x.ellipse(cx,cy,rx,ry,0,0,6.2832); }
+function sxNwGlow(cx,cy,rx,ry,h,a,wm){ if(a<=.004) return; x.save(); x.translate(cx,cy); x.scale(rx,ry); const g=x.createRadialGradient(0,0,0,0,0,1); g.addColorStop(0,sxCrCol(h,a,wm)); g.addColorStop(.5,sxCrCol(h,a*.35,wm)); g.addColorStop(1,sxCrCol(h,0,wm)); x.fillStyle=g; x.fillRect(-1,-1,2,2); x.restore(); }
+
+/* ---- DJ view: from behind the DJ. The crowd and lights beyond (the Crowd picture, smaller), the decks and mixer in front, the DJ as a silhouette with headphones on one ear.
+   Jog wheels glow with the drums and the music, the mixer lights are the real levels (same numbers as the Desk), the DJ's hands work the deck and the mixer, and one hand goes up on a drop. */
+function sxBooth(){ const HC=sxH(), i=sxSong(), pl=i.pl, bar=i.bar, sc=sxCur(pl,bar), bp=Qbp()||0, port=HC>600;
+  const V=sxCrDraw(HC*(port?.66:.72),i,{sc:port?.62:.72,noVig:1}), xl=V.xl, xr=V.xr, wv=xr-xl, cx=(xl+xr)/2, m=V.m, e=V.e, cA=V.cA, cB=V.cB, beat=V.beat, lv=sxNwLv(pl,bar), A=sxCrA;
+  const yF=HC*(port?.6:.58), dh=HC-yF, r=port?60:Math.min(46,HC*.12), q=beat-Math.floor(beat), gv=.5-.5*Math.cos(6.2832*q), pu=(1-q)*(1-q);
+  /* the desk */
+  let g=x.createLinearGradient(0,yF,0,HC); g.addColorStop(0,'#0d0e17'); g.addColorStop(.25,'#07080e'); g.addColorStop(1,'#020204'); x.fillStyle=g; x.beginPath(); x.moveTo(xl+wv*.04,yF); x.lineTo(xr-wv*.04,yF); x.lineTo(xr+4,yF+dh*.5); x.lineTo(xr+4,HC); x.lineTo(xl-4,HC); x.lineTo(xl-4,yF+dh*.5); x.closePath(); x.fill();
+  x.fillStyle=sxCrCol(cA,.3+.3*e,.4); x.fillRect(xl+wv*.04,yF,wv*.92,1.5); g=x.createLinearGradient(0,yF-dh*.12,0,yF); g.addColorStop(0,'rgba(2,2,5,0)'); g.addColorStop(1,'rgba(2,2,5,.85)'); x.fillStyle=g; x.fillRect(xl,yF-dh*.12,wv,dh*.12);
+  /* two decks */
+  const R=port?wv*.185:Math.min(wv*.13,dh*.6), ry=R*.5, dW=port?wv*.29:Math.min(wv*.3,r*5.3), jy=yF+dh*(port?.4:.44), th=bar*Math.PI;
+  for(let a=-1;a<=1;a+=2){ const jx=cx+a*dW, col=a<0?SXC.drums:SXC.loop, v=Math.min(1,a<0?lv.drums:lv.loop);
+    x.fillStyle='#090a11'; sxRR(jx-R*1.22,jy-ry*2,R*2.44,ry*3.7,6); x.fill(); x.lineWidth=1; x.strokeStyle='rgba(255,255,255,.08)'; x.stroke();
+    x.fillStyle='#04050a'; x.fillRect(jx-R*.8,jy-ry*1.84,R*1.6,ry*.48); x.fillStyle=sxCrCol(col,.5,.1); x.beginPath(); for(let k=0;k<24;k++){ const hh=ry*.4*(.25+.75*Math.abs(Math.sin(k*1.9+Math.floor(bar*4)*.7)))*(.4+.6*v); x.rect(jx-R*.76+k*R*1.52/24,jy-ry*1.6-hh/2,R*1.52/24-1,hh); } x.fill(); x.fillStyle='#fff'; x.fillRect(jx-R*.76+R*1.52*((bar%4)/4),jy-ry*1.82,1.5,ry*.44); /* its little screen */
+    sxNwGlow(jx,jy,R*1.25,ry*1.25,col,.1+.2*v,.1); sxNwEl(jx,jy,R,ry); x.fillStyle='#06070c'; x.fill(); x.lineWidth=3; x.strokeStyle=sxCrCol(col,.45+.55*v,.15); x.stroke(); sxNwEl(jx,jy,R*.86,ry*.86); x.lineWidth=1; x.strokeStyle='rgba(255,255,255,.1)'; x.stroke();
+    x.beginPath(); for(let k=0;k<3;k++){ const t2=th*a+k*2.094; x.moveTo(jx+Math.cos(t2)*R*.36,jy+Math.sin(t2)*ry*.36); x.lineTo(jx+Math.cos(t2)*R*.8,jy+Math.sin(t2)*ry*.8); } x.lineWidth=1.5; x.strokeStyle='rgba(255,255,255,.5)'; x.stroke();
+    sxNwEl(jx,jy,R*.3,ry*.3); x.fillStyle='#10121c'; x.fill(); x.strokeStyle=sxCrCol(col,.7,.3); x.stroke();
+    x.fillStyle=sxCrCol(col,.5+.5*bp,.2); sxNwEl(jx-a*R*.95,jy+ry*1.35,R*.09,ry*.1); x.fill(); x.fillStyle='rgba(255,255,255,.14)'; sxNwEl(jx-a*R*.6,jy+ry*1.35,R*.09,ry*.1); x.fill(); }
+  /* the mixer: three level columns each side (drums, bass, pad | music, vocal, all), knobs, faders */
+  const mw=port?wv*.32:R*2.5, my=yF+dh*.05, lh=dh*(port?.3:.34), ns=port?16:10, sg=lh/ns, cw2=mw*(port?.1:.075), off=port?[.42,.66,.9]:[.62,.8,.98], names=[['stab','bass','drums'],['loop','vocal','all']], all=Math.min(1,Math.max(lv.drums,lv.bass,lv.loop,lv.vocal));
+  x.fillStyle='#0a0b12'; sxRR(cx-mw/2-8,my-6,mw+16,HC-my+12,6); x.fill(); x.lineWidth=1; x.strokeStyle='rgba(255,255,255,.09)'; x.stroke();
+  for(let a=-1;a<=1;a+=2) for(let k=0;k<3;k++){ const nm=names[a<0?0:1][k], v=nm==='all'?all:Math.min(1,lv[nm]||0), X=cx+a*mw/2*off[a<0?2-k:k]-cw2/2, lit=Math.round(v*ns), col=nm==='all'?'#ffffff':SXC[nm];
+    x.fillStyle='rgba(255,255,255,.06)'; x.beginPath(); for(let s=lit;s<ns;s++) x.rect(X,my+lh-(s+1)*sg+1.5,cw2,Math.max(1.5,sg-3.5)); x.fill(); x.fillStyle=sxCrCol(col,nm==='all'?.7:.85,0); x.beginPath(); for(let s=0;s<lit;s++) x.rect(X,my+lh-(s+1)*sg+1.5,cw2,Math.max(1.5,sg-3.5)); x.fill();
+    const ky=my+lh+dh*.07; x.fillStyle='#141622'; sxNwEl(X+cw2/2,ky,cw2*.6,cw2*.36); x.fill(); x.strokeStyle='rgba(255,255,255,.22)'; x.stroke(); sxNwEl(X+cw2/2,ky+dh*.07,cw2*.6,cw2*.36); x.fill(); x.stroke();
+    const fy=ky+dh*.14, fh=dh*.2; x.fillStyle='#030307'; x.fillRect(X+cw2/2-1.5,fy,3,fh); x.fillStyle='#c9cdd8'; x.fillRect(X-1,fy+fh*(1-v)*.8,cw2+2,Math.max(3,dh*.02)); }
+  /* the DJ: arms first (they reach forward over the desk), then the back and head, then the headphones */
+  const sy=HC-r*(port?1:1.25)-r*.05*gv*e, sw=r*1.95, hr=r, la=A.la*r, lb=A.lb*r, D=sxNwD&&sxNwD.r===r?sxNwD:(sxNwD={r,b:sxCrBody(r,sw,hr,.06,1,1,false,r*5,.03)}), dk='#040407', rc=sxCrMix(cA,.5,.55+.35*e,4,4,7), rim=r*.07;
+  const big=V.big, bld=sc.type==='build', fx=cx+mw/2*.66, t0x=big?cx+sw*.9+r*.9:bld?fx+Math.cos(beat*3.1416)*r*.08:cx+mw/2*.9+cw2*.2, t0y=big?sy-r*(2.9+.8*pu):bld?my+lh+dh*.1+Math.sin(beat*3.1416)*r*.05:my+lh+dh*.3+Math.sin(bar*1.5708)*dh*.05;
+  if(Z.hx==null){ Z.hx=t0x; Z.hy=t0y; } const kk=Math.min(1,(dt||.016)*5); Z.hx+=(t0x-Z.hx)*kk; Z.hy+=(t0y-Z.hy)*kk;
+  for(let a=-1;a<=1;a+=2){ const shx=cx+a*sw*.86, shy=sy+r*.26, tx=a<0?cx-dW+R*.5+Math.cos(beat*1.5708)*R*.16:Z.hx, tY=a<0?jy+ry*.62+Math.sin(beat*1.5708)*ry*.2:Z.hy; sxCrIK(shx,shy,tx,tY,la,lb,a);
+    const ex=sxCrK[0], ey=sxCrK[1], wx=sxCrK[2], wy=sxCrK[3], c1=(ex-shx)/la, s1=(ey-shy)/la, c2=(wx-ex)/lb, s2=(wy-ey)/lb, sv=-a*r*.92, F=A.fore[a>0&&big?(Z.hy<sy-r*2.4?2:1):1];
+    sxNwPut(m,A.up,shx,shy,c1,s1,r,sv,rc,0); sxNwPut(m,F,ex,ey,c2,s2,r,sv,rc,0); sxNwPut(m,A.up,shx,shy,c1,s1,r,sv,dk,rim); sxNwPut(m,F,ex,ey,c2,s2,r,sv,dk,rim); }
+  sxNwPut(m,D.b,cx,sy,1,0,1,1,rc,0); sxNwPut(m,D.b,cx,sy,1,0,1,1,dk,rim); x.setTransform(m.a,0,0,m.d,m.e,m.f);
+  { const hx=cx+.06*r, hy=sy-r*.55-hr*1.02, a0=Math.PI, a1=Math.PI*2-.62; for(let p=0;p<2;p++){ const o=p?rim:0; x.fillStyle=p?'#020203':rc; x.beginPath(); x.arc(hx,hy+o,hr*1.17,a0,a1); x.arc(hx,hy+o,hr*1.04,a1,a0,true); x.closePath(); x.fill();
+      x.beginPath(); x.ellipse(hx-hr*.96,hy+hr*.04+o,hr*.23,hr*.4,0,0,6.2832); x.fill(); x.beginPath(); x.ellipse(hx+Math.cos(a1)*hr*1.1,hy+Math.sin(a1)*hr*1.1+o,hr*.23,hr*.38,.55,0,6.2832); x.fill(); } } /* headphones: one cup on the ear, the other pushed back */
+  sxHead(i,'DJ VIEW'); }
+
+/* ---- Main stage: a festival stage seen from the crowd. A big LED wall with the song name and calm bars that follow the real levels, speaker stacks, the crowd in front (no words on the crowd). */
+function sxFest(){ const HC=sxH(), i=sxSong(), pl=i.pl, bar=i.bar, port=HC>600, lv=sxNwLv(pl,bar), sc=sxCur(pl,bar);
+  sxCrDraw(HC,i,{hz:port?.5:.5,mid:(xl,xr,yh,top,e,cA,cB,bp)=>{ const wv=xr-xl, cx=(xl+xr)/2, av=yh-top, dk=av*.07, sw=port?wv*.84:Math.min(wv*.5,av*2.6), sh2=av*(port?.6:.74), x0=cx-sw/2, y0=yh-dk-sh2;
+    x.fillStyle='#04050a'; x.fillRect(xl,yh-dk,wv,dk+3); x.fillStyle=sxCrCol(cA,.35+.3*e,.3); x.fillRect(xl,yh-dk,wv,1.2); /* stage edge */
+    x.fillStyle='#030408'; x.fillRect(x0-10,y0-12,sw+20,sh2+12); x.fillRect(x0-16,y0-18,6,sh2+18+dk); x.fillRect(x0+sw+10,y0-18,6,sh2+18+dk); x.fillRect(x0-22,y0-22,sw+44,7); /* frame and roof */
+    const g=x.createLinearGradient(0,y0,0,y0+sh2); g.addColorStop(0,sxCrCol(cB,.07+.06*e)); g.addColorStop(1,sxCrCol(cA,.12+.1*e)); x.fillStyle='#05060c'; x.fillRect(x0,y0,sw,sh2); x.fillStyle=g; x.fillRect(x0,y0,sw,sh2);
+    const n=32, bw=sw/n, ks=['drums','bass','loop','stab','vocal'], ph=bar*Math.PI/2; for(let p=0;p<2;p++){ x.fillStyle=p?sxCrCol(cA,.9,.35):sxCrCol(cA,.2,.1); x.beginPath(); for(let k=0;k<n;k++){ const v=Math.min(1,lv[ks[k%5]]||0), hh=sh2*.46*(.08+.92*v)*(.5+.5*Math.abs(Math.sin(ph+k*.55))); if(p) x.rect(x0+k*bw+1.5,y0+sh2-hh,bw-3,2); else x.rect(x0+k*bw+1.5,y0+sh2-hh,bw-3,hh); } x.fill(); }
+    x.fillStyle='rgba(3,4,8,.3)'; x.beginPath(); for(let y=y0;y<y0+sh2;y+=4) x.rect(x0,y,sw,1); x.fill(); /* LED lines */
+    const ttl=String(pl.title||(pl.name&&!/BPM/.test(pl.name)?pl.name:'')||(pl.g&&pl.g.name)||'').slice(0,22); let fs=sh2*.24/SXF; x.font='800 '+(fs*SXF)+'px Inter,system-ui,sans-serif'; const tw=x.measureText(ttl).width; if(tw>sw*.88) fs*=sw*.88/tw;
+    sxText(ttl,cx,y0+sh2*.36,fs,'#ffffff','center',800); sxText(sc.type.toUpperCase()+'  ·  '+Math.round(i.bpm||pl.T)+' BPM',cx,y0+sh2*.36+fs*SXF*.95,Math.max(8,fs*.36),sxCrCol(cA,1,.6),'center',700);
+    for(let a=-1;a<=1;a+=2){ const px=cx+a*(sw/2+Math.min(wv*.07,34)+12), pw=Math.min(wv*.05,26); x.fillStyle='#030408'; x.beginPath(); x.moveTo(px-pw/2,y0-10); x.lineTo(px+pw/2,y0-10); x.lineTo(px+pw/2-a*pw*.25,y0+sh2*.8); x.lineTo(px-pw/2-a*pw*.25,y0+sh2*.8); x.closePath(); x.fill(); x.fillStyle='rgba(255,255,255,.07)'; for(let k=1;k<8;k++) x.fillRect(px-pw/2-a*pw*.25*k/8,y0-10+(sh2*.8+10)*k/8,pw,1); } /* speaker stacks */
+    x.fillStyle=sxCrCol('#ffffff',.5+.3*bp); x.beginPath(); for(let k=0;k<7;k++){ const X=x0+sw*(k+.5)/7; x.moveTo(X+2,yh-dk-2); x.arc(X,yh-dk-2,1.8,0,6.2832); } x.fill(); } });
+  sxHead(i,'MAIN STAGE'); }
+
+/* ---- Vinyl: a record close up. The song's sections are bands of grooves, the needle sits where the song is, the label turns with the music. The still parts are kept on a hidden canvas. */
+function sxVinyl(){ const HC=sxH(), i=sxSong(), pl=i.pl, bar=i.bar, bp=Qbp()||0, H=HC-44, port=HC>600; sxBack('#0b0c14','#030306'); const m=x.getTransform(), xl=Math.min(0,-m.e/m.a), xr=Math.max(W,(cv.width-m.e)/m.a);
+  const top=64*SXF+SXD, cx=port?W*.47:(xl+xr)/2-20, R=port?Math.min(W*.44,(H-top)*.42):Math.min((H-top)*.56,W*.3), cy=port?top+(H-top)*.5:top+(H-top)*.52, r0=R*.36, r1=R*.965, tot=pl.total||1, rad=b=>r1-(r1-r0)*Math.max(0,Math.min(tot,b))/tot, sc=sxCur(pl,bar);
+  const SCc={intro:SXC.fx,build:SXC.stab,drop:SXC.drums,chorus:SXC.drums,verse:SXC.loop,break:SXC.bass,bridge:SXC.bass,outro:SXC.fx}, key=Math.round(R)+'|'+tot+'|'+(pl.secs||[]).length+'|'+SXC.drums+SXC.loop+SXC.bass+(pl.title||'');
+  if(!sxNwRec||sxNwRec.key!==key){ const c=document.createElement('canvas'), q=Math.min(2,Math.max(1,m.a)), S=Math.ceil(R*2.2*q); c.width=c.height=S; const g=c.getContext('2d'); g.setTransform(q,0,0,q,S/2,S/2);
+    g.fillStyle='#08090e'; g.beginPath(); g.arc(0,0,R*1.07,0,7); g.fill(); g.strokeStyle='rgba(255,255,255,.1)'; g.lineWidth=1; g.stroke(); g.fillStyle='#050508'; g.beginPath(); g.arc(0,0,R,0,7); g.fill();
+    (pl.secs||[]).forEach(s=>{ const ra=rad(s.b0), rb=rad(s.b1); g.beginPath(); g.arc(0,0,(ra+rb)/2,0,7); g.lineWidth=Math.max(1,ra-rb-2.5); g.strokeStyle=sxCrCol(SCc[s.type]||'#888888',.075); g.stroke(); g.beginPath(); g.arc(0,0,ra,0,7); g.lineWidth=1; g.strokeStyle='rgba(255,255,255,.2)'; g.stroke(); });
+    g.lineWidth=.6; g.strokeStyle='rgba(255,255,255,.055)'; for(let rr=r0+2;rr<r1;rr+=2.4){ g.beginPath(); g.arc(0,0,rr,0,7); g.stroke(); }
+    for(let k=0;k<2;k++){ const a=-.9+k*Math.PI, gr=g.createLinearGradient(0,0,Math.cos(a)*R,Math.sin(a)*R); gr.addColorStop(.36,'rgba(255,255,255,0)'); gr.addColorStop(.7,'rgba(255,255,255,.05)'); gr.addColorStop(1,'rgba(255,255,255,.015)'); g.fillStyle=gr; g.beginPath(); g.moveTo(Math.cos(a)*r0,Math.sin(a)*r0); g.arc(0,0,R,a-.32,a+.32); g.closePath(); g.fill(); } /* the shine of the lamp on the grooves */
+    sxNwRec={key,c,S,q}; }
+  sxNwGlow(cx,cy,R*1.5,R*1.5,SCc[sc.type]||SXC.loop,.1+.05*bp,0); const RC=sxNwRec; x.drawImage(RC.c,cx-RC.S/RC.q/2,cy-RC.S/RC.q/2,RC.S/RC.q,RC.S/RC.q);
+  const col=SCc[sc.type]||SXC.loop, ra=rad(sc.b0), rb=rad(sc.b1), rn=rad(bar); x.beginPath(); x.arc(cx,cy,(ra+rb)/2,0,7); x.lineWidth=Math.max(1,ra-rb-2.5); x.strokeStyle=sxCrCol(col,.1+.04*bp); x.stroke(); x.beginPath(); x.arc(cx,cy,rn,0,7); x.lineWidth=1.5; x.strokeStyle=sxCrCol(col,.9,.3); x.stroke(); /* the part that is playing, and the groove under the needle */
+  /* the label turns */
+  const spin=bar*6.2832*1.1; x.save(); x.translate(cx,cy); x.rotate(spin); x.beginPath(); x.arc(0,0,r0*.93,0,7); const lg=x.createLinearGradient(-r0,-r0,r0,r0); lg.addColorStop(0,sxCrCol(col,1,-0)); lg.addColorStop(1,sxCrCol(SXC.bass,1,0)); x.fillStyle='#0c0d15'; x.fill(); x.globalAlpha=.34; x.fillStyle=lg; x.fill(); x.globalAlpha=1; x.lineWidth=1; x.strokeStyle='rgba(255,255,255,.25)'; x.stroke();
+  x.beginPath(); x.arc(0,0,r0*.6,0,7); x.strokeStyle='rgba(0,0,0,.35)'; x.stroke(); const ttl=String(pl.title||(pl.g&&pl.g.name)||'').slice(0,16); sxText(ttl,0,-r0*.36,Math.max(6,r0*.15/SXF),'#ffffff','center',800); sxText(Math.round(i.bpm||pl.T)+' BPM',0,r0*.4,Math.max(5,r0*.11/SXF),'rgba(255,255,255,.75)','center',700);
+  x.fillStyle='#020203'; x.beginPath(); x.arc(0,0,r0*.07,0,7); x.fill(); x.restore();
+  /* the arm and the needle */
+  const na=-.5, nx=cx+Math.cos(na)*rn, ny=cy+Math.sin(na)*rn, px=Math.min(cx+R*1.2,xr-30), py=cy-R*(port?1.08:.95), dx=nx-px, dy=ny-py, dl=Math.sqrt(dx*dx+dy*dy)||1, ux=dx/dl, uy=dy/dl;
+  x.lineCap='round'; x.strokeStyle='#05060a'; x.lineWidth=9; x.beginPath(); x.moveTo(px-ux*R*.2,py-uy*R*.2); x.lineTo(nx-ux*R*.1,ny-uy*R*.1); x.stroke(); x.strokeStyle='#8f94a3'; x.lineWidth=4; x.stroke(); x.strokeStyle='rgba(255,255,255,.5)'; x.lineWidth=1; x.beginPath(); x.moveTo(px-uy*1.5,py+ux*1.5); x.lineTo(nx-ux*R*.1-uy*1.5,ny-uy*R*.1+ux*1.5); x.stroke(); x.lineCap='butt';
+  x.fillStyle='#14161f'; x.beginPath(); x.arc(px,py,R*.11,0,7); x.fill(); x.strokeStyle='rgba(255,255,255,.2)'; x.lineWidth=1; x.stroke(); x.fillStyle='#2a2d3a'; x.beginPath(); x.arc(px-ux*R*.24,py-uy*R*.24,R*.075,0,7); x.fill();
+  x.save(); x.translate(nx,ny); x.rotate(Math.atan2(uy,ux)); x.fillStyle='#181a24'; x.fillRect(-R*.15,-R*.045,R*.19,R*.09); x.strokeStyle='rgba(255,255,255,.3)'; x.strokeRect(-R*.15,-R*.045,R*.19,R*.09); x.restore(); x.fillStyle=sxCrCol(col,.25+.2*bp,.2); x.beginPath(); x.arc(nx,ny,R*.045,0,7); x.fill(); x.fillStyle='#fff'; x.beginPath(); x.arc(nx,ny,1.8,0,7); x.fill();
+  sxHead(i,'VINYL'); }
+
+/* ---- Night drive: following a sports car through the city at night. The road moves with the song's speed (faster in a drop, calmer in a break), the street lamps pass on the beat,
+   tail lights and lamps reflect on the road. Soft and steady: nothing flashes (it may be on while the owner drives). The skyline is kept on a hidden canvas. */
+function sxDrive(){ const HC=sxH(), i=sxSong(), pl=i.pl, bar=i.bar, sc=sxCur(pl,bar), bp=Qbp()||0, port=HC>600, big=/drop|chorus/.test(sc.type), brk=/break|intro|outro/.test(sc.type);
+  const m=x.getTransform(), xl=Math.min(0,-m.e/m.a), xr=Math.max(W,(cv.width-m.e)/m.a), wv=xr-xl, cx=(xl+xr)/2, top=60*SXF+SXD, yv=top+(HC-top)*(port?.4:.36), yb=HC, rd=yb-yv;
+  const beat=bar*(pl.base||16)/4, ph8=Math.floor(Math.max(0,bar)/8), cols=[SXC.loop,SXC.bass,SXC.drums,SXC.stab,SXC.vocal], cA=cols[ph8%5], cB=cols[(ph8+2)%5], playing=i.playing!==false;
+  if(Z.sp==null){ Z.sp=1; Z.pos=bar*2; } Z.sp+=((big?1.7:brk?.6:1)-Z.sp)*Math.min(1,(dt||.016)*1.2); if(playing) Z.pos+=(dt||.016)*Z.sp*(i.bpm||pl.T||120)/60*.5; const pos=Z.pos;
+  /* sky and the city far ahead */
+  let g=x.createLinearGradient(0,0,0,yv); g.addColorStop(0,'#020308'); g.addColorStop(.7,'#080a18'); g.addColorStop(1,sxCrMix(cA,0,.3,10,10,24)); x.fillStyle=g; x.fillRect(xl,0,wv,yv+1); sxNwGlow(cx,yv,wv*.6,(yv-top)*.6,cA,.2+.05*bp,.1);
+  const key=Math.round(wv)+'|'+Math.round(yv)+'|'+Math.round(m.a*100); if(!sxNwSky||sxNwSky.key!==key){ const c=document.createElement('canvas'), q=Math.min(2,Math.max(1,m.a)), hh=(yv-top)*.62; c.width=Math.ceil(wv*q); c.height=Math.ceil(hh*q); const k=c.getContext('2d'); k.setTransform(q,0,0,q,0,0); let s=77; const R=()=>{ s=s+0x6D2B79F5|0; let t=Math.imul(s^s>>>15,1|s); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; };
+    for(let L=0;L<2;L++){ let X=-10; while(X<wv){ const bw=(14+R()*30)*(port?1:1.2), d=Math.abs((X+bw/2)/wv-.5)*2, bh=hh*(.16+R()*.5*(.35+.65*(1-d)))*(L?.72:1); k.fillStyle=L?'#05060d':'#0a0c18'; k.fillRect(X,hh-bh,bw,bh); if(R()<.2){ k.fillRect(X+bw*.45,hh-bh-8,1.5,8); }
+        k.fillStyle=L?'rgba(255,214,150,.5)':'rgba(190,205,255,.22)'; for(let wy=hh-bh+4;wy<hh-3;wy+=5) for(let wx=X+3;wx<X+bw-3;wx+=4) if(R()<(L?.2:.12)) k.fillRect(wx,wy,1.6,2); X+=bw+R()*5; } }
+    sxNwSky={key,c,hh}; }
+  x.drawImage(sxNwSky.c,xl,yv-sxNwSky.hh,wv,sxNwSky.hh);
+  /* the road */
+  g=x.createLinearGradient(0,yv,0,yb); g.addColorStop(0,'#0a0b14'); g.addColorStop(.3,'#07080e'); g.addColorStop(1,'#030305'); x.fillStyle=g; x.fillRect(xl,yv,wv,rd); const hw0=wv*(port?.9:.62);
+  x.fillStyle='#090a11'; x.beginPath(); x.moveTo(cx-3,yv); x.lineTo(cx+3,yv); x.lineTo(cx+hw0,yb); x.lineTo(cx-hw0,yb); x.closePath(); x.fill();
+  const Y=d=>yv+rd*d*d, HW=y=>3+(hw0-3)*(y-yv)/rd; x.fillStyle='rgba(255,255,255,.34)'; x.beginPath(); for(let a=-1;a<=1;a+=2){ x.moveTo(cx+a*2.6,yv); x.lineTo(cx+a*3,yv); x.lineTo(cx+a*hw0,yb); x.lineTo(cx+a*hw0*.985,yb); x.closePath(); } x.fill(); /* edge lines */
+  const nd=9, f=pos-Math.floor(pos); x.fillStyle='rgba(255,255,255,.5)'; x.beginPath(); for(let k=0;k<nd;k++){ const d0=(k+f)/nd, d1=Math.min(1,d0+.42/nd), y0=Y(d0), y1=Y(d1); for(let a=-1;a<=1;a+=2){ const o0=HW(y0)*.34*a, o1=HW(y1)*.34*a, w0=HW(y0)*.012, w1=HW(y1)*.012; x.moveTo(cx+o0-w0,y0); x.lineTo(cx+o0+w0,y0); x.lineTo(cx+o1+w1,y1); x.lineTo(cx+o1-w1,y1); x.closePath(); } } x.fill(); /* lane marks */
+  /* street lamps: they pass on the beat (one pair every two beats), light pooled on the road under them */
+  const nl=6, fb=playing?(beat/2)-Math.floor(beat/2):.3; for(let k=0;k<nl;k++){ const d=(k+fb)/nl, y=Y(d), s=(y-yv)/rd, fade=Math.min(1,d*5)*Math.min(1,(1-d)*6); if(s<.004) continue; for(let a=-1;a<=1;a+=2){ const X=cx+a*(HW(y)*1.16+4), ph2=rd*.95*s+6, col=a<0?cA:cB;
+      x.fillStyle='#04050a'; x.fillRect(X-1-s*2,y-ph2,2+s*4,ph2); x.fillRect(a<0?X:X-ph2*.22,y-ph2,ph2*.22,1.5+s*3); const lx=X-a*ph2*.22, ly=y-ph2+2;
+      const gr=rd*.1*s; x.fillStyle=sxCrCol(col,.035*fade,.5); x.beginPath(); x.arc(lx,ly,4+gr,0,7); x.fill(); x.fillStyle=sxCrCol(col,.06*fade,.5); x.beginPath(); x.arc(lx,ly,3+gr*.6,0,7); x.fill(); x.fillStyle=sxCrCol(col,.12*fade,.6); x.beginPath(); x.arc(lx,ly,2+gr*.28,0,7); x.fill(); x.fillStyle=sxCrCol(col,.9*fade,.8); x.beginPath(); x.arc(lx,ly,1+gr*.07,0,7); x.fill();
+      x.fillStyle=sxCrCol(col,.03*fade,.5); x.beginPath(); x.ellipse(cx+a*HW(y)*.62,y,HW(y)*.5,3+rd*.05*s,0,0,6.2832); x.fill(); x.beginPath(); x.ellipse(cx+a*HW(y)*.66,y,HW(y)*.28,2+rd*.028*s,0,0,6.2832); x.fill(); } }
+  /* far traffic: tail lights ahead, headlights coming the other way */
+  { const d=.2+.03*Math.sin(pos*.21), y=Y(d), o=HW(y)*.34; x.fillStyle='rgba(255,40,40,.85)'; x.fillRect(cx+o*.3-3,y-3,2,1.5); x.fillRect(cx+o*.3+2,y-3,2,1.5); const d2=.12+.5*((pos*.13)%1), y2=Y(d2), s2=(y2-yv)/rd, X2=cx-HW(y2)*.7; x.fillStyle='rgba(235,240,255,'+(.75*Math.min(1,(1-d2*1.6)*3)).toFixed(3)+')'; if(d2<.6){ x.beginPath(); x.arc(X2-6*s2-1,y2-8*s2-2,1+2.4*s2,0,7); x.arc(X2+6*s2+1,y2-8*s2-2,1+2.4*s2,0,7); x.fill(); } }
+  /* our car: low and wide, seen from behind */
+  const cw=port?wv*.56:Math.min(wv*.27,rd*1.15), cxr=cx+Math.sin(pos*.19)*wv*.018, cyr=yb-(port?rd*.16:rd*.3), P=(a,b)=>[cxr+a*cw,cyr+b*cw];
+  sxNwGlow(cxr,cyr-cw*.9,cw*.9,cw*.75,'#cfdcff',.11,0); /* our headlights on the road ahead */
+  x.fillStyle='rgba(0,0,0,.6)'; x.beginPath(); x.ellipse(cxr,cyr-cw*.01,cw*.56,cw*.05,0,0,6.2832); x.fill();
+  sxNwGlow(cxr-cw*.3,cyr+cw*.03,cw*.24,cw*.4,'#ff2020',.2,0); sxNwGlow(cxr+cw*.3,cyr+cw*.03,cw*.24,cw*.4,'#ff2020',.2,0); /* tail lights on the wet road */
+  if(!sxNwCar) sxNwCar=sxCrSm([-.49,-.04,-.525,-.1,-.53,-.17,-.515,-.225,-.46,-.262,-.36,-.285,-.3,-.325,-.235,-.395,-.15,-.428,0,-.438,.15,-.428,.235,-.395,.3,-.325,.36,-.285,.46,-.262,.515,-.225,.53,-.17,.525,-.1,.49,-.04,.3,-.028,-.3,-.028]); /* low and wide: hips, a small cabin, a smooth roof */
+  sxNwPut(m,sxNwCar,cxr,cyr,1,0,cw,cw,sxCrMix(cA,.6,.55,6,7,12),0); sxNwPut(m,sxNwCar,cxr,cyr,1,0,cw,cw,'#06070c',cw*.008); x.setTransform(m.a,0,0,m.d,m.e,m.f); /* the light of the lamps along the roof and shoulders */
+  x.fillStyle='#020203'; x.fillRect(cxr-cw*.5,cyr-cw*.1,cw*.13,cw*.1); x.fillRect(cxr+cw*.37,cyr-cw*.1,cw*.13,cw*.1); /* tyres */
+  g=x.createLinearGradient(0,cyr-cw*.41,0,cyr-cw*.3); g.addColorStop(0,sxCrMix(cB,.3,.22,10,12,22)); g.addColorStop(1,'#07080f'); x.fillStyle=g; x.beginPath(); let q=P(-.17,-.405); x.moveTo(q[0],q[1]); q=P(.17,-.405); x.lineTo(q[0],q[1]); q=P(.25,-.31); x.lineTo(q[0],q[1]); q=P(-.25,-.31); x.lineTo(q[0],q[1]); x.closePath(); x.fill(); /* rear window */
+  x.fillStyle='rgba(255,255,255,.1)'; x.fillRect(cxr-cw*.36,cyr-cw*.29,cw*.72,1.2); x.fillStyle='#030305'; x.fillRect(cxr-cw*.4,cyr-cw*.12,cw*.8,cw*.07); x.fillStyle='#0d0e15'; x.beginPath(); x.ellipse(cxr-cw*.2,cyr-cw*.075,cw*.035,cw*.018,0,0,6.2832); x.ellipse(cxr+cw*.2,cyr-cw*.075,cw*.035,cw*.018,0,0,6.2832); x.fill();
+  const tl=.86+.14*bp; x.fillStyle='rgba(255,35,35,'+(.1*tl).toFixed(3)+')'; x.fillRect(cxr-cw*.52,cyr-cw*.255,cw*1.04,cw*.1); x.fillStyle='rgba(255,35,35,'+(.22*tl).toFixed(3)+')'; x.fillRect(cxr-cw*.5,cyr-cw*.228,cw*1,cw*.05);
+  x.fillStyle='rgba(255,52,48,'+tl.toFixed(3)+')'; x.fillRect(cxr-cw*.485,cyr-cw*.212,cw*.97,cw*.018); x.fillStyle='rgba(255,170,160,'+(.8*tl).toFixed(3)+')'; x.fillRect(cxr-cw*.47,cyr-cw*.207,cw*.2,cw*.007); x.fillRect(cxr+cw*.27,cyr-cw*.207,cw*.2,cw*.007); /* the tail light bar and its glow */
+  g=x.createLinearGradient(0,yb-rd*.12,0,yb); g.addColorStop(0,'rgba(2,2,4,0)'); g.addColorStop(1,'rgba(2,2,4,.75)'); x.fillStyle=g; x.fillRect(xl,yb-rd*.12,wv,rd*.12);
+  g=x.createLinearGradient(0,0,0,top); g.addColorStop(0,'rgba(2,3,8,.8)'); g.addColorStop(1,'rgba(2,3,8,0)'); x.fillStyle=g; x.fillRect(xl,0,wv,top); sxHead(i,'NIGHT DRIVE'); }
+/* end sxNew */
 
 function sxSet(){ const HC=sxH(), i=sxSong(), H=HC-44; sxBack('#0c0f1c','#05060c'); sxHead(i,'SET SO FAR');
   if(!Z.sq||now-Z.sq>2000){ Z.sq=now; let S=[]; try{ S=(JSON.parse(localStorage.getItem('ebn.report')||'{}').s||[]); }catch(e){} const L=[]; for(let k=S.length-1;k>=0;k--){ if(L.length&&L[0].ts-S[k].ts>45*60000) break; L.unshift(S[k]); if(k>0&&S[k].ts-S[k-1].ts>45*60000) break; } Z.set=L; }
@@ -4868,7 +4991,7 @@ function sxOver2(){ const i=sxSong(), pl=i.pl, bar=i.bar, H=SXHH; if(!pl||!pl.se
     const ch=60+rows.length*34*SXF, y0=70*SXF+10; x.fillStyle='rgba(8,10,20,.94)'; sxRR(20,y0,W-40,ch,18); x.fill(); x.strokeStyle='#2a3150'; x.lineWidth=2; x.stroke(); sxText(String(pl.title||'This song').slice(0,30),40,y0+30*SXF,18,'#ffffff');
     rows.forEach(([a,b],j)=>{ const y=y0+(64+j*34)*SXF; sxText(a,40,y,13,'#8b95b3','left',700); sxText(String(b).slice(0,30),W-40,y,14,'#ffffff','right',800); }); } }
 
-  const SC=[sxMap,sxDesk,sxWheel,sxGrid,sxWave,sxCrowd,sxSet,sxClock,sxTaste,sxParty], SCN=['Map','Desk','Wheel','Grid','Wave','Crowd','Set','Clock','Taste','Party']; /* owner 15 Nov 2026: Up next, Mix fit and Singer taken out (did not do much); their code is kept */
+  const SC=[sxMap,sxDesk,sxWheel,sxGrid,sxWave,sxCrowd,sxSet,sxClock,sxTaste,sxParty,sxBooth,sxFest,sxVinyl,sxDrive], SCN=['Map','Desk','Wheel','Grid','Wave','Crowd','Set','Clock','Taste','Party','DJ','Stage','Vinyl','Drive']; /* owner 16 Nov 2026: four more pictures, added at the end so saved choices keep pointing at the same picture; the auto tour goes round all of them */ /* owner 15 Nov 2026: Up next, Mix fit and Singer taken out (did not do much); their code is kept */
   let TOUR=false, tourT=0; try{ TOUR=localStorage.getItem('ebn.sttour')==='1'; }catch(e){}
   function tourOv(){ if(!TOUR) return; if(!tourT) tourT=now; if(now-tourT>30000){ tourT=now; setSc(cur+1); return; } const H=SXHH, n=SC.length, gap=Math.min(46,(W-90)/n), x0=W/2-(n-1)*gap/2-24, y=H-30*SXF; x.fillStyle='rgba(0,0,0,.55)'; sxRR(x0-26,y-24*SXF,(n-1)*gap+100,52*SXF,26*SXF); x.fill(); for(let k=0;k<n;k++){ x.fillStyle=k===cur?SXC.stab:'#3a4466'; x.beginPath(); x.arc(x0+k*gap,y-4*SXF,k===cur?7:5,0,7); x.fill(); if(k===cur) sxText(SCN[k],x0+k*gap,y+14*SXF,10,'#ffffff','center'); } const rx=x0+(n-1)*gap+44; x.strokeStyle='#3a4466'; x.lineWidth=4; x.beginPath(); x.arc(rx,y,13,0,7); x.stroke(); x.strokeStyle=SXC.stab; x.beginPath(); x.arc(rx,y,13,-Math.PI/2,-Math.PI/2+6.283*(now-tourT)/30000); x.stroke(); }
   function tourPaint(){ const b=$('sgtour'); if(b) b.setAttribute('aria-pressed',String(TOUR)); }
