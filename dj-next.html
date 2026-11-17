@@ -738,7 +738,18 @@ if(B&&ok.test(B)&&B.toLowerCase()!=='#e0b04a'){r.setProperty('--n-gold',B,'impor
 <div id="livesh" hidden role="dialog" aria-modal="true" aria-label="Live">
   <div class="sh"><button type="button" class="ib" id="livex" aria-label="Back"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button><h2 id="liveh">Live</h2><button type="button" class="lvrec" id="lvrec" hidden><i></i><span>REC</span></button><button type="button" class="ib shset" aria-label="Settings"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg></button></div>
   <div class="sbody">
-    <div id="lvpick"><p class="fxnote">Play one of your songs live: turn parts on and off, add effects, record it.</p><span class="ct">Your songs</span><div id="lvlist"></div><button type="button" class="big" id="lvrand">Make one for me to play</button><small class="nsub" id="lvmsg"></small></div>
+    <div id="lvmix">
+      <div class="mxdecks"><div class="mxdeck" id="mxA" data-d="A"><div class="mxtop"><b class="mxl">A</b><button type="button" class="mxpick">Choose song</button></div><small class="mxinfo">-</small><div class="mxbar"><i></i></div><button type="button" class="mxpp" aria-label="Play deck A">&#9654;</button></div>
+        <div class="mxdeck" id="mxB" data-d="B"><div class="mxtop"><b class="mxl">B</b><button type="button" class="mxpick">Choose song</button></div><small class="mxinfo">-</small><div class="mxbar"><i></i></div><button type="button" class="mxpp" aria-label="Play deck B">&#9654;</button></div></div>
+      <div class="card mxxf"><div class="strow"><span class="ct">A</span><span class="ct">Crossfade</span><span class="ct">B</span></div><input type="range" id="mxxf" min="0" max="100" value="0" aria-label="Crossfade from A to B"></div>
+      <button type="button" class="big stgo" id="mxauto">Mix into the other deck</button>
+      <span class="ct">Effects &middot; hold</span>
+      <div class="mxfx"><button type="button" data-mfx="echo">Echo</button><button type="button" data-mfx="filter">Filter</button><button type="button" data-mfx="build">Build-up</button><button type="button" data-mfx="cut">Cut &amp; drop</button></div>
+      <button type="button" class="big mxrec" id="mxrec"><i></i><span>Record my mix</span></button>
+      <small class="nsub" id="mxst">Pick a song for each deck. They play in time with each other.</small>
+      <div id="mxlist" hidden><span class="ct" id="mxlh">Choose a song</span><div id="mxsongs"></div><button type="button" class="big" id="mxlx">Cancel</button></div>
+    </div>
+    <div id="lvpick" hidden><p class="fxnote">Play one of your songs live: turn parts on and off, add effects, record it.</p><span class="ct">Your songs</span><div id="lvlist"></div><button type="button" class="big" id="lvrand">Make one for me to play</button><small class="nsub" id="lvmsg"></small></div>
     <div id="lvplay" hidden>
       <div class="card lvnow"><button type="button" class="lvpb" id="lvpp" aria-label="Play">&#9654;</button><div class="lvt"><b id="lvsec">-</b><small id="lvnext"></small><div class="lvstrip" id="lvstrip"></div></div></div>
       <span class="ct">Parts &middot; tap to turn on or off</span>
@@ -784,7 +795,7 @@ if(B&&ok.test(B)&&B.toLowerCase()!=='#e0b04a'){r.setProperty('--n-gold',B,'impor
     <div class="card sws"><button type="button" class="swr" role="switch" aria-checked="false" data-sw="car"><span class="swt"><b>Car mode</b><small>Smooth over CarPlay</small></span><i class="sw" aria-hidden="true"></i></button><div class="carre" id="carre" hidden><span>Reload to use it</span><button type="button" id="carrl">Reload</button></div><button type="button" class="swr" role="switch" aria-checked="false" data-sw="vox"><span class="swt"><b>Singing</b><small>Sung vocals in the songs</small></span><i class="sw" aria-hidden="true"></i></button><button type="button" class="swr" role="switch" aria-checked="false" data-sw="hook"><span class="swt"><b>Robot hook words</b><small>A robot voice says the hook in choruses</small></span><i class="sw" aria-hidden="true"></i></button><button type="button" class="swr" role="switch" aria-checked="false" data-sw="licks"><span class="swt"><b>Instrument licks</b><small>Guitar, horn, flute, piano</small></span><i class="sw" aria-hidden="true"></i></button><button type="button" class="swr" role="switch" aria-checked="false" data-sw="track"><span class="swt"><b>Track mode</b><small>Play each song to the end, no mixing</small></span><i class="sw" aria-hidden="true"></i></button><button type="button" class="swr" role="switch" aria-checked="false" data-sw="keeplike"><span class="swt"><b>Keep songs I like</b><small>Likes go to Kept songs</small></span><i class="sw" aria-hidden="true"></i></button><button type="button" class="swr" role="switch" aria-checked="false" data-sw="mine"><span class="swt"><b>Play my sounds too</b><small>Your loaded samples</small></span><i class="sw" aria-hidden="true"></i></button><button type="button" class="swr" role="switch" aria-checked="false" data-sw="full"><span class="swt"><b>Full decks</b><small>Pads, knobs and effects</small></span><i class="sw" aria-hidden="true"></i></button></div>
     <div class="two"><button type="button" class="big" id="addsnd">Add sounds</button><button type="button" class="big" id="mytaste">My taste</button></div>
     <div class="two"><button type="button" class="big" id="songrpt">Copy report</button><button type="button" class="big" id="songrptnew">New report</button></div>
-    <p class="ebver" id="ebver">Version 2026-11-17 12:46</p><button type="button" class="moreb" id="moreb" aria-expanded="false">More options<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+    <p class="ebver" id="ebver">Version 2026-11-17 13:00</p><button type="button" class="moreb" id="moreb" aria-expanded="false">More options<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
     <div id="morebox" hidden>
 <div id="nopts">
   <div class="two" hidden><button type="button" class="big" data-click="bothplay">Play both decks</button><button type="button" class="big" data-click="bothstop">Stop both</button></div>
@@ -5784,8 +5795,8 @@ async function lvList(){ const L=$('lvlist'); let all=[]; try{ all=(await kAll()
   function paint(){ const on=djOn(); sheets.forEach(sh=>{ if(!sh.hidden) sh.classList.toggle('lk',on); }); }
   const mo=new MutationObserver(paint); sheets.forEach(sh=>mo.observe(sh,{attributes:true,attributeFilter:['hidden']})); setInterval(()=>{ if(sheets.some(sh=>!sh.hidden)) paint(); },1000);
 })();
-function openLive(){ /* the DJ keeps playing until a Live song is started (owner, 13 Nov 2026) */ $('livesh').hidden=false; try{ const I=window.__ebPre.kx(); $('lvgo').hidden=!I; $('lvstrip').classList.toggle('seek',I); }catch(e){} txt('liveh','Live'); lvShow('pick'); lvList(); }
-window.openLive=openLive;
+function openLive(){ /* the DJ keeps playing until a Live song is started (owner, 13 Nov 2026) */ $('livesh').hidden=false; try{ const I=window.__ebPre.kx(); $('lvgo').hidden=!I; $('lvstrip').classList.toggle('seek',I); }catch(e){} txt('liveh','Live mix'); lvShow('pick'); $('lvpick').hidden=true; $('lvmix').hidden=false; try{ window.__mxOpen&&window.__mxOpen(); }catch(e){} }
+window.openLive=openLive; window.__mxK={kAll,kreq,kMp3,kPcm32,kShow,mmss,toast,fixPauseDJ,kept:async()=>{ try{ const all=await kAll(); keptN=Math.min(all.length,KEEPMAX); kLabel(); }catch(e){} }}; /* for Live mix */
 // ---- Pads (owner, 13 Nov 2026): 16 pads loaded with the sounds of one of your Studio / kept songs (kick, snare, hats, bass note, chord,
 // hook note, sung word, effects), or your own sounds from the phone. Web Audio, on top of whatever plays; nothing in Car mode's playback changes.
 const PD={ctx:null,out:null,buf:[],slots:[],song:null,edit:false,sel:-1,cands:[]};
@@ -6175,5 +6186,87 @@ addEventListener('load',()=>{ const $=id=>document.getElementById(id); const add
   $('uplist').addEventListener('click',async e=>{ const x=e.target.closest('button[data-id]'); if(!x) return; if(!x.__ask){ x.__ask=1; x.textContent='Sure?'; setTimeout(()=>{ x.__ask=0; x.textContent='Remove'; },2500); return; } await window.__upk.remove(x.dataset.id); paint(); });
 });
 </script>
+<script>/* ---- Live mix (owner, 17 Nov 2026: 'Play live don't really do anything it's pretty much studio', picked 'Live mix'):
+   two of your songs on two decks, kept in time with each other (the second deck is sped up or slowed down to the first and starts on the first's next bar),
+   a crossfader, hold-down effects (echo, filter, build-up, cut & drop), 'Mix into the other deck' does a 16-bar blend by itself, and Record saves the mix to My songs.
+   Web Audio, at home only: Car mode never uses this. */
+(function(){ const $=id=>document.getElementById(id), K=()=>window.__mxK||{}, kAll=(...a)=>K().kAll(...a), kreq=(...a)=>K().kreq(...a), kMp3=(...a)=>K().kMp3(...a), kPcm32=(...a)=>K().kPcm32(...a), kShow=(...a)=>K().kShow(...a), mmss=(...a)=>K().mmss(...a), toast=(...a)=>K().toast(...a);
+  const M={ctx:null,D:{A:{},B:{}},xf:0,rec:null,pick:null,busy:false};
+  function ctx(){ if(M.ctx) return M.ctx; const c=new (window.AudioContext||window.webkitAudioContext)(); M.ctx=c;
+    M.bus=c.createGain(); M.hp=c.createBiquadFilter(); M.hp.type='highpass'; M.hp.frequency.value=10; M.lp=c.createBiquadFilter(); M.lp.type='lowpass'; M.lp.frequency.value=20000; M.out=c.createGain();
+    M.dl=c.createDelay(2); M.fb=c.createGain(); M.fb.gain.value=.5; M.send=c.createGain(); M.send.gain.value=0; M.lim=c.createDynamicsCompressor(); M.lim.threshold.value=-3; M.lim.ratio.value=12;
+    M.bus.connect(M.hp); M.hp.connect(M.lp); M.lp.connect(M.out); M.lp.connect(M.send); M.send.connect(M.dl); M.dl.connect(M.fb); M.fb.connect(M.dl); M.dl.connect(M.out); M.out.connect(M.lim); M.lim.connect(c.destination);
+    ['A','B'].forEach(k=>{ const g=c.createGain(); g.connect(M.bus); M.D[k].g=g; }); xfApply(); return c; }
+  const now=()=>M.ctx?M.ctx.currentTime:0;
+  function pos(d){ return d.playing?d.off+(now()-d.t0)*d.rate:(d.off||0); }
+  function master(){ const A=M.D.A, B=M.D.B; if(A.playing&&B.playing) return M.xf<50?A:B; return A.playing?A:B.playing?B:null; }
+  function xfApply(){ const f=M.xf/100; if(M.D.A.g){ M.D.A.g.gain.setTargetAtTime(Math.cos(f*Math.PI/2),now(),.02); M.D.B.g.gain.setTargetAtTime(Math.sin(f*Math.PI/2),now(),.02); } }
+  function stopDeck(d){ if(d.src){ try{ d.src.onended=null; d.src.stop(); }catch(e){} d.src=null; } if(d.playing){ d.off=pos(d); d.playing=false; } paint(); }
+  function startDeck(k){ const c=ctx(); c.resume(); const d=M.D[k], o=M.D[k==='A'?'B':'A']; if(!d.buf) return;
+    try{ K().fixPauseDJ(); }catch(e){}
+    let rate=1, when=now()+.05, off=d.off||0; if(o.playing&&o.bpm&&d.bpm){ const tb=o.bpm*o.rate; let r=tb/d.bpm; if(r>1.5) r/=2; else if(r<.67) r*=2; rate=Math.max(.85,Math.min(1.18,r));
+      const ob=pos(o)*o.bpm/60, bps=o.bpm*o.rate/60, toBar=(4-((ob%4)+4)%4)%4||4; when=now()+toBar/bps; const db=off*d.bpm/60; off=Math.round(db/4)*4*60/d.bpm; } /* in time: same beats per second, starting on the other deck's next bar */
+    if(off>=d.buf.duration-1) off=0; const src=c.createBufferSource(); src.buffer=d.buf; src.playbackRate.value=rate; src.connect(d.g); src.start(when,off); src.onended=()=>{ if(d.src===src){ d.src=null; d.playing=false; d.off=0; paint(); } };
+    d.src=src; d.rate=rate; d.t0=when; d.off=off; d.playing=true; paint(); }
+  function paint(){ ['A','B'].forEach(k=>{ const d=M.D[k], el=$('mx'+k); if(!el) return; el.classList.toggle('on',!!d.playing); el.querySelector('.mxpp').innerHTML=d.playing?'&#10074;&#10074;':'&#9654;'; el.querySelector('.mxpp').disabled=!d.buf; el.querySelector('.mxpick').textContent=d.name||'Choose song';
+      el.querySelector('.mxinfo').textContent=d.buf?(Math.round(d.bpm*(d.playing?d.rate:1))+' BPM'+(d.playing&&Math.abs(d.rate-1)>.004?' (in time)':'')):(d.loading?'Loading...':'-'); }); }
+  setInterval(()=>{ if(!$('livesh')||$('livesh').hidden) return; ['A','B'].forEach(k=>{ const d=M.D[k], el=$('mx'+k); if(!el||!d.buf) return; el.querySelector('.mxbar i').style.width=(100*Math.min(1,pos(d)/d.buf.duration))+'%'; }); if(M.rec) $('mxrec').querySelector('span').textContent='Stop · '+mmss((now()-M.rec.t0)); },250);
+  async function load(k,x){ const c=ctx(), d=M.D[k]; stopDeck(d); d.loading=true; d.buf=null; d.name=kShow(x); paint();
+    try{ const ab=await x.blob.arrayBuffer(); d.buf=await new Promise((ok,no)=>{ const pr=c.decodeAudioData(ab,ok,no); if(pr&&pr.then) pr.then(ok,no); }); d.bpm=x.bpm||120; d.off=0; d.rec=x; $('mxst').textContent='Deck '+k+' ready: tap play.'; }
+    catch(e){ console.warn('mix load',e); d.name=''; $('mxst').textContent='Could not open that song'; } d.loading=false; paint(); }
+  async function list(k){ M.pick=k; $('mxlh').textContent='Song for deck '+k; const L=$('mxsongs'); let all=[]; try{ all=(await kAll()).filter(x=>x.blob); }catch(e){}
+    L.innerHTML=all.length?'':'<div class="kempty">No songs yet. Make one in Studio, or tap Keep while the DJ plays.</div>';
+    all.forEach(x=>{ const r=document.createElement('div'); r.className='fxrow'; r.innerHTML='<div class="kt"><b></b><small>'+(x.bpm?x.bpm+' BPM · ':'')+mmss(x.dur)+'</small></div><button type="button">Load</button>'; r.querySelector('b').textContent=kShow(x); r.querySelector('button').addEventListener('click',()=>{ $('mxlist').hidden=true; load(k,x); }); L.appendChild(r); });
+    $('mxlist').hidden=false; }
+  /* effects: hold down */
+  let bT=null, nz=null;
+  function fx(k,on){ const c=ctx(), t=now(), m=master(), bps=m?m.bpm*m.rate/60:2;
+    if(k==='echo'){ M.dl.delayTime.setValueAtTime(Math.min(1.9,.75/bps),t); M.send.gain.setTargetAtTime(on?.55:0,t,on?.01:.05); }
+    if(k==='filter'){ M.lp.frequency.cancelScheduledValues(t); M.lp.frequency.setValueAtTime(M.lp.frequency.value,t); M.lp.frequency.exponentialRampToValueAtTime(on?350:20000,t+(on?1.6:.25)); M.lp.Q.value=on?6:.7; }
+    if(k==='build'){ M.hp.frequency.cancelScheduledValues(t); if(on){ M.hp.frequency.setValueAtTime(Math.max(10,M.hp.frequency.value),t); M.hp.frequency.exponentialRampToValueAtTime(1800,t+16/bps); M.hp.Q.value=4;
+        const n=c.createBuffer(1,c.sampleRate*2,c.sampleRate), dd=n.getChannelData(0); for(let i=0;i<dd.length;i++) dd[i]=Math.random()*2-1; nz=c.createBufferSource(); nz.buffer=n; nz.loop=true; const bp=c.createBiquadFilter(); bp.type='bandpass'; bp.Q.value=1.5; bp.frequency.setValueAtTime(600,t); bp.frequency.exponentialRampToValueAtTime(9000,t+16/bps); const g=c.createGain(); g.gain.setValueAtTime(.001,t); g.gain.exponentialRampToValueAtTime(.22,t+16/bps); nz.connect(bp); bp.connect(g); g.connect(M.out); nz.start(); nz.__g=g; }
+      else { const q=m?nextBeat(m):t; M.hp.frequency.setValueAtTime(M.hp.frequency.value,t); M.hp.frequency.setValueAtTime(10,q); M.hp.Q.value=.7; if(nz){ const z=nz; z.__g.gain.cancelScheduledValues(t); z.__g.gain.setValueAtTime(z.__g.gain.value,t); z.__g.gain.setValueAtTime(0,q); try{ z.stop(q+.05); }catch(e){} nz=null; } } } /* release: the drop lands on the next beat */
+    if(k==='cut'){ const q=m?nextBeat(m):t; M.out.gain.cancelScheduledValues(t); M.out.gain.setValueAtTime(M.out.gain.value,t); M.out.gain.setValueAtTime(on?0:1,q); } }
+  function nextBeat(d){ const b=pos(d)*d.bpm/60, bps=d.bpm*d.rate/60, fr=1-(b%1); return now()+(fr<.05?fr+1:fr)/bps; }
+  /* the automatic blend: start the other deck in time, then fade across over 16 bars */
+  let auto=null; function autoMix(){ const A=M.D.A, B=M.D.B, from=A.playing&&(!B.playing||M.xf<50)?'A':(B.playing?'B':null); if(!from){ $('mxst').textContent='Play one deck first'; return; } const to=from==='A'?'B':'A', T=M.D[to]; if(!T.buf){ $('mxst').textContent='Choose a song for deck '+to+' first'; list(to); return; }
+    if(!T.playing) startDeck(to); const F=M.D[from], bars=16, dur=bars*4/(F.bpm*F.rate/60), t0=T.t0, x0=M.xf, x1=to==='B'?100:0; clearInterval(auto); $('mxst').textContent='Mixing into deck '+to+'...';
+    auto=setInterval(()=>{ const f=Math.max(0,Math.min(1,(now()-t0)/dur)); M.xf=x0+(x1-x0)*f; $('mxxf').value=String(Math.round(M.xf)); xfApply(); if(f>=1){ clearInterval(auto); auto=null; stopDeck(F); $('mxst').textContent='Now on deck '+to+'. Load the next song on deck '+from+'.'; } },100); }
+  /* recording what comes out, saved as an MP3 in My songs */
+  function recToggle(){ const c=ctx(); if(!M.rec){ const sp=c.createScriptProcessor(4096,1,1), z=c.createGain(); z.gain.value=0; const parts=[]; sp.onaudioprocess=e=>{ parts.push(new Float32Array(e.inputBuffer.getChannelData(0))); }; M.lim.connect(sp); sp.connect(z); z.connect(c.destination); M.rec={sp,z,parts,t0:now()}; $('mxrec').classList.add('on'); return; }
+    const R=M.rec; M.rec=null; try{ M.lim.disconnect(R.sp); R.sp.disconnect(); R.z.disconnect(); }catch(e){} $('mxrec').classList.remove('on'); $('mxrec').querySelector('span').textContent='Saving...';
+    (async()=>{ try{ let n=0; R.parts.forEach(a=>n+=a.length); if(n<c.sampleRate*3){ toast('Too short to save'); return; } const d=new Float32Array(n); let o=0; R.parts.forEach(a=>{ d.set(a,o); o+=a.length; }); const w=await kMp3(kPcm32(d,c.sampleRate)), nm='Live mix: '+[M.D.A.name,M.D.B.name].filter(Boolean).map(t=>String(t).split(' · ')[0]).join(' + '), bpm=Math.round((master()||M.D.A.buf&&M.D.A||M.D.B).bpm||120);
+      await kreq('readwrite',st=>st.add({name:nm,bpm,title:'Live mix',at:Date.now(),dur:w.dur,size:w.blob.size,why:'live',fmt:'mp3',blob:w.blob})); await K().kept(); toast('Mix saved in My songs'); }
+      catch(e){ console.warn('mix save',e); toast('Could not save (phone storage full?)'); } finally{ $('mxrec').querySelector('span').textContent='Record my mix'; } })(); }
+  function stopAll(){ clearInterval(auto); auto=null; if(M.rec) recToggle(); stopDeck(M.D.A); stopDeck(M.D.B); }
+  window.__mxOpen=()=>{ paint(); }; window.__mx=M;
+  document.addEventListener('DOMContentLoaded',()=>{},{once:true});
+  setTimeout(()=>{ if(!$('lvmix')) return;
+    ['A','B'].forEach(k=>{ const el=$('mx'+k); el.querySelector('.mxpick').addEventListener('click',()=>list(k)); el.querySelector('.mxpp').addEventListener('click',()=>{ const d=M.D[k]; if(d.playing) stopDeck(d); else startDeck(k); }); });
+    $('mxlx').addEventListener('click',()=>{ $('mxlist').hidden=true; });
+    $('mxxf').addEventListener('input',()=>{ M.xf=+$('mxxf').value; if(auto){ clearInterval(auto); auto=null; } ctx(); xfApply(); });
+    $('mxauto').addEventListener('click',autoMix); $('mxrec').addEventListener('click',recToggle);
+    document.querySelectorAll('[data-mfx]').forEach(b=>{ const k=b.dataset.mfx, dn=e=>{ e.preventDefault(); if(b.classList.contains('on')) return; b.classList.add('on'); fx(k,true); }, up=()=>{ if(!b.classList.contains('on')) return; b.classList.remove('on'); fx(k,false); }; b.addEventListener('pointerdown',dn); ['pointerup','pointerleave','pointercancel'].forEach(t=>b.addEventListener(t,up)); });
+    $('livex').addEventListener('click',e=>{ if(!$('mxlist').hidden){ e.stopImmediatePropagation(); $('mxlist').hidden=true; return; } stopAll(); },true);
+    paint(); },0);
+})();
+</script>
+<style id="mx-css">/* Live mix (owner, 17 Nov 2026: Live becomes a two-deck mix of your own songs) */
+#lvmix{display:flex;flex-direction:column;gap:12px;padding:0 16px 24px;box-sizing:border-box;width:100%;max-width:640px;margin:0 auto}#lvmix>*{width:100%;box-sizing:border-box;margin:0}#lvmix .big{display:flex;align-items:center;justify-content:center}
+.mxdecks{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}.mxdeck{min-width:0}
+.mxdeck{background:var(--n-s1);border-radius:20px;padding:12px;display:flex;flex-direction:column;gap:8px;border:2px solid transparent}
+.mxdeck.on{border-color:var(--n-teal)}#mxB.on{border-color:var(--n-gold)}
+.mxtop{display:flex;align-items:center;gap:8px}.mxl{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--n-teal);color:#06231f;font-size:15px;flex:none}#mxB .mxl{background:var(--n-gold);color:#241a02}
+.mxpick{flex:1;min-width:0;min-height:44px;border-radius:16px;border:1px solid var(--n-line);background:var(--n-s2);color:var(--n-ink);font-weight:700;font-size:14px;line-height:1.2;padding:6px 10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-align:left}
+.mxinfo{color:var(--n-mut);font-size:13px;min-height:16px}
+.mxbar{height:8px;border-radius:4px;background:rgba(255,255,255,.1);overflow:hidden}.mxbar i{display:block;height:100%;width:0;background:var(--n-teal)}#mxB .mxbar i{background:var(--n-gold)}
+.mxpp{height:56px;border-radius:28px;border:0;background:var(--n-teal);color:#06231f;font-size:24px;font-weight:800}#mxB .mxpp{background:var(--n-gold);color:#241a02}.mxpp:disabled{opacity:.35}
+.mxxf input{width:100%;height:44px}.mxxf .strow{display:flex;justify-content:space-between}
+.mxfx{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0 14px}.mxfx button{height:76px;border-radius:20px;border:1px solid var(--n-line);background:var(--n-s1);color:var(--n-ink);font-weight:800;font-size:17px;touch-action:none;user-select:none;-webkit-user-select:none}
+.mxfx button.on{background:var(--n-acc,#a78bfa);color:#111;border-color:transparent}
+.mxrec{display:flex;align-items:center;justify-content:center;gap:10px}.mxrec i{width:16px;height:16px;border-radius:50%;background:#e5484d}.mxrec.on{background:#e5484d;color:#fff}.mxrec.on i{background:#fff;border-radius:3px}
+#mxlist{position:fixed;inset:0;z-index:60;background:var(--n-bg,#0b0e17);padding:calc(env(safe-area-inset-top) + 20px) 16px 24px;overflow:auto;display:flex;flex-direction:column;gap:10px}#mxlist[hidden]{display:none}
+#mxsongs{display:flex;flex-direction:column;gap:10px}#mxlx{flex:none!important;height:56px!important;min-height:0!important}
+</style>
 </body>
 </html>
